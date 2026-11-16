@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from PySide6.QtCore import QLockFile
+from PySide6.QtCore import QCoreApplication, QEvent, QLockFile
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from .storage import Store
@@ -23,6 +23,7 @@ def main():
         QMessageBox.warning(None, "Ứng dụng đang mở", "Chỉ mở một ứng dụng với cùng thư mục dữ liệu.")
         store.close()
         return 1
+    window = None
     try:
         if args.smoke_test:
             from .smoke import run_smoke
@@ -32,6 +33,9 @@ def main():
         window.show()
         return app.exec()
     finally:
+        if window is not None:
+            window.deleteLater()
+            QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         store.close()
         lock.unlock()
 

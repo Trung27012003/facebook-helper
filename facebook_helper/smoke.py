@@ -3,7 +3,7 @@
 import json
 import traceback
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QTimer
 
 from .ui import MainWindow
 
@@ -25,7 +25,10 @@ def run_smoke(app, store):
         QTimer.singleShot(1000, window.close)
         code = app.exec()
         assert code == 0 and not window.browser.isRunning()
-        result.update(ok=True, tabs=window.tabs.count(), qt_started=True, worker_stopped=True)
+        tabs = window.tabs.count()
+        window.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        result.update(ok=True, tabs=tabs, qt_started=True, worker_stopped=True)
         return 0
     except Exception:
         result["error"] = traceback.format_exc()
