@@ -18,7 +18,9 @@ def test_create_six_tasks_using_ui(window, store, task_data):
     window.refresh_posts()
     window.refresh_groups()
     window.tabs.setCurrentIndex(2)
-    create = next(widget for widget in window.findChildren(QPushButton) if widget.text() == "Tạo lượt đăng")
+    create = next(
+        widget for widget in window.findChildren(QPushButton) if widget.text() == "Tạo danh sách đăng"
+    )
     posts, groups = task_data
     for post_id in posts:
         for group_id in groups:

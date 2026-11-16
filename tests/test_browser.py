@@ -180,3 +180,85 @@ def test_photo_button_fallback_uploads_images_in_selected_order(page, store, tas
         "node => Array.from(node.files, file => file.name)"
     ) == [Path(path).name for path in paths]
     assert page.evaluate("window.submitted") is False
+
+
+PUBLISH_COMPOSER = """<div role="dialog">
+<div role="textbox" contenteditable="true"></div><input type="file" accept="image/*" multiple>
+<button onclick="window.savedText=document.querySelector('[role=textbox]').innerText;
+window.submitted=true;this.closest('[role=dialog]').remove();">Đăng</button>
+</div><script>window.submitted=false;</script>"""
+
+
+def test_prepare_opens_composer_and_keeps_final_submission_manual(page, store):
+    html = (
+        """<button onclick="document.getElementById('slot').innerHTML=document.getElementById('form').innerHTML">Viết gì đó...</button>
+    <main id="slot"></main><template id="form">"""
+        + PUBLISH_COMPOSER
+        + """</template><script>window.submitted=false;</script>"""
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "prepare", {"group_url": "https://facebook.com/groups/hr/", "body": "Tuyển kỹ sư", "images": []}
+    )
+    assert result["filled"]
+    assert page.get_by_role("textbox").inner_text() == "Tuyển kỹ sư"
+    assert page.evaluate("window.submitted") is False
+
+
+def test_explicit_publish_clicks_post_after_filling_and_records_submission_attempt(page, store):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=PUBLISH_COMPOSER),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://facebook.com/groups/hr/", "body": "Tuyển kế toán", "images": []}
+    )
+    assert result["filled"] and result["sent"] and result["submission_started"]
+    assert page.evaluate("window.savedText") == "Tuyển kế toán"
+    assert page.evaluate("window.submitted") is True
+    assert not result.get("uncertain")
+
+
+def test_publish_does_not_guess_when_composer_opener_is_missing(page, store):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html", body="<p>Group</p>"),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://facebook.com/groups/hr/", "body": "Tuyển", "images": []}
+    )
+    assert result["needs_composer"] and not result["sent"]
+    assert not result.get("submission_started")
+
+
+def test_publish_never_retries_when_post_click_outcome_is_unknown(page, store, monkeypatch):
+    from playwright.sync_api import Locator
+
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=PUBLISH_COMPOSER),
+    )
+    original = Locator.wait_for
+
+    def wait(locator, *args, **kwargs):
+        if kwargs.get("state") == "hidden":
+            raise TimeoutError("confirmation lost after clicking Post")
+        return original(locator, *args, **kwargs)
+
+    monkeypatch.setattr(Locator, "wait_for", wait)
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://facebook.com/groups/hr/", "body": "Tuyển", "images": []}
+    )
+    assert result["uncertain"] and not result["sent"] and result["submission_started"]
+    assert page.evaluate("window.submitted") is True

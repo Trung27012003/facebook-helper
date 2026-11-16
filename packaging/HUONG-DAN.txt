@@ -1,27 +1,48 @@
-FACEBOOK HELPER — BẢN CHẠY TRÊN WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.2 — WINDOWS 10/11 64-BIT
 
-1. Giải nén toàn bộ file FacebookHelper-Windows-x64.zip.
-2. Mở thư mục FacebookHelper vừa giải nén.
-3. Nhấp đúp FacebookHelper.exe để chạy.
+MỞ ỨNG DỤNG
+Giải nén toàn bộ ZIP, mở thư mục FacebookHelper, nhấp đúp FacebookHelper.exe.
+Không cần cài Python hoặc Chromium. Giữ nguyên thư mục _internal đi kèm.
 
-Không cần cài Python hay Chromium riêng. Giữ nguyên thư mục _internal đi kèm;
-không kéo riêng file .exe ra ngoài và không chạy trực tiếp bên trong file ZIP.
+1. SOẠN BÀI
+Bấm Tạo bài theo mẫu tuyển dụng, điền thông tin, tạo nội dung.
+Thêm ảnh, xem trước và lưu bài. Có thể sửa bài như bản nháp thông thường.
+Font/màu chỉ giữ trong bản nháp. Facebook nhận chữ thuần, giữ tiêu đề và dòng •.
 
-Sử dụng:
-- Tạo và lưu bài, thêm ảnh, thêm nhóm Facebook.
-- Tạo lượt đăng: một bài + một nhóm; tạo thêm lượt để dùng cho nhiều nhóm.
-- Đăng nhập Facebook trong trình duyệt của ứng dụng.
-- Mở nhóm, tự mở cửa sổ Tạo bài rồi bấm Điền bài trong ứng dụng.
-- Kiểm tra ảnh/nội dung trên Facebook và tự bấm Đăng.
-- Lưu link bài, cập nhật trạng thái và chụp minh chứng.
+2. NHÓM & NHÃN
+Thêm tên/link nhóm. Nhãn ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp.
+Nhiều nhóm có thể cùng nhãn; một nhóm có nhiều nhãn, ngăn cách bằng dấu phẩy.
+Nhãn chọn nơi đăng, không phải hashtag trong bài.
 
-Dữ liệu nằm trên máy, ngoài thư mục giải nén. Vào Dữ liệu & hướng dẫn để xem
-đường dẫn và tạo bản sao lưu ZIP. Không chia sẻ thư mục browser chứa phiên đăng nhập.
+3. ĐĂNG BÀI
+Bấm Đăng nhập Facebook ở đầu màn hình, đăng nhập trong trình duyệt riêng.
+Chọn bài, chọn một nhóm/nhiều nhóm/theo nhãn, kiểm tra các nhóm đã tích.
+Tạo danh sách đăng, rồi bấm Bắt đầu / tiếp tục.
 
-Bản này chưa ký mã số. Nếu Windows hiển thị cảnh báo nhà phát hành không xác định,
-hãy kiểm tra nguồn tải chính thức và mã SHA256 trước khi quyết định chạy.
+Mặc định: ứng dụng mở nhóm và điền bài; bạn kiểm tra, tự bấm Đăng trên Facebook,
+rồi bấm Đã gửi · sang nhóm sau và chọn kết quả.
 
-Đã có kiểm tra tự động khởi động ứng dụng và Chromium trên Windows. Chưa xác nhận
-khả năng thao tác Facebook thật; Facebook có thể thay đổi giao diện.
+Tự gửi: tích Tự bấm Đăng lần lượt trước khi bắt đầu và xác nhận danh sách.
+Ứng dụng cố gắng mở ô soạn, điền bài và bấm Đăng theo từng nhóm.
+Có thể Tạm dừng, Bỏ qua, hoặc Tiếp tục. Nếu không rõ bài đã gửi chưa, ứng dụng
+dừng để bạn kiểm tra trước khi thử lại; không tự gửi trùng.
 
-Mã nguồn và hướng dẫn: https://github.com/Trung27012003/facebook-helper
+Nếu không mở được ô soạn: tự bấm Viết gì đó/Tạo bài viết trên Facebook,
+quay lại ứng dụng và bấm Điền bài (nếu cần). Có thể dùng cách sao chép thủ công.
+
+LINK VÀ MINH CHỨNG
+Mở Link bài, trạng thái & ảnh minh chứng dưới bảng để lấy/copy link,
+cập nhật kết quả, mở link, chụp màn hình và xuất Excel.
+Đã bấm Đăng không có nghĩa bài đã được duyệt; hãy kiểm tra bài thật.
+
+DỮ LIỆU VÀ CẬP NHẬT
+Dữ liệu nằm ngoài thư mục giải nén; bản 0.2 tự giữ và nâng cấp dữ liệu 0.1.
+Vào Dữ liệu & hướng dẫn để xem đường dẫn và sao lưu ZIP. Không chia sẻ browser/.
+
+Bản này chưa ký mã số. Nếu Windows cảnh báo, kiểm tra nguồn tải chính thức và
+mã SHA256 trước khi quyết định chạy. Không cần tắt phần mềm bảo vệ máy.
+
+Đã kiểm tra khởi động ứng dụng và Chromium tự động trên Windows. Chưa xác nhận
+đăng bài trên Facebook thật; giao diện Facebook thay đổi có thể cần cập nhật.
+
+Mã nguồn, hướng dẫn và tải bản mới: https://github.com/Trung27012003/facebook-helper

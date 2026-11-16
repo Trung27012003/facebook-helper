@@ -8,7 +8,7 @@ from pathlib import Path
 
 from platformdirs import user_data_path
 
-from .domain import STATUSES, excel_text, normalize_group, post_url
+from .domain import STATUSES, excel_text, normalize_group, parse_tags, post_url
 
 
 def now():
@@ -43,8 +43,18 @@ class Store:
                 evidence TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL, updated_at TEXT NOT NULL
             );
-            PRAGMA user_version=1;
+            CREATE TABLE IF NOT EXISTS batches (
+                id INTEGER PRIMARY KEY, title TEXT NOT NULL, post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL,
+                audience TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+            );
         """)
+        columns = {row[1] for row in self.db.execute("PRAGMA table_info(jobs)")}
+        with self.db:
+            if "batch_id" not in columns:
+                self.db.execute("ALTER TABLE jobs ADD COLUMN batch_id INTEGER REFERENCES batches(id)")
+            if "position" not in columns:
+                self.db.execute("ALTER TABLE jobs ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+            self.db.execute("PRAGMA user_version=2")
 
     def posts(self):
         return [dict(row) for row in self.db.execute("SELECT * FROM posts ORDER BY updated_at DESC, id DESC")]
@@ -96,7 +106,7 @@ class Store:
     def save_group(self, group_id, name, url, category, notes):
         if not name.strip():
             raise ValueError("Nhập tên nhóm.")
-        values = (name.strip(), normalize_group(url), category.strip(), notes.strip())
+        values = (name.strip(), normalize_group(url), ", ".join(parse_tags(category)), notes.strip())
         try:
             with self.db:
                 if group_id is None:
@@ -119,23 +129,82 @@ class Store:
         group = self.db.execute("SELECT * FROM groups WHERE id=?", (group_id,)).fetchone()
         if group is None:
             raise ValueError("Nhóm không còn tồn tại.")
-        body = post["plain"] + ("\n\n" + post["tags"] if post["tags"] else "")
         with self.db:
-            return self.db.execute(
-                """INSERT INTO jobs(post_id,group_id,title,group_name,group_url,body,images,created_at,updated_at)
-                VALUES(?,?,?,?,?,?,?,?,?)""",
-                (
-                    post_id,
-                    group_id,
-                    post["title"],
-                    group["name"],
-                    group["url"],
-                    body,
-                    json.dumps(post["images"]),
-                    now(),
-                    now(),
-                ),
+            return self._insert_job(post, group)
+
+    def _insert_job(self, post, group, batch_id=None, position=0):
+        body = post["plain"] + ("\n\n" + post["tags"] if post["tags"] else "")
+        return self.db.execute(
+            """INSERT INTO jobs(post_id,group_id,title,group_name,group_url,body,images,
+            created_at,updated_at,batch_id,position) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                post["id"],
+                group["id"],
+                post["title"],
+                group["name"],
+                group["url"],
+                body,
+                json.dumps(post["images"]),
+                now(),
+                now(),
+                batch_id,
+                position,
+            ),
+        ).lastrowid
+
+    def group_tags(self):
+        labels = {}
+        for group in self.groups():
+            for tag in parse_tags(group["category"]):
+                labels.setdefault(tag.casefold(), tag)
+        return sorted(labels.values(), key=str.casefold)
+
+    def groups_by_tag(self, tag):
+        labels = parse_tags(tag)
+        if len(labels) != 1:
+            return []
+        key = labels[0].casefold()
+        return [
+            group
+            for group in self.groups()
+            if key in {label.casefold() for label in parse_tags(group["category"])}
+        ]
+
+    def create_batch(self, post_id, group_ids, title="", audience=""):
+        post = self.post(post_id)
+        ids = list(dict.fromkeys(group_ids))
+        if not ids:
+            raise ValueError("Chọn ít nhất một nhóm để đăng bài.")
+        groups = []
+        for group_id in ids:
+            group = self.db.execute("SELECT * FROM groups WHERE id=?", (group_id,)).fetchone()
+            if group is None:
+                raise ValueError("Một nhóm đã bị xóa. Hãy chọn lại danh sách nhóm.")
+            groups.append(group)
+        with self.db:
+            batch_id = self.db.execute(
+                "INSERT INTO batches(title,post_id,audience,created_at) VALUES(?,?,?,?)",
+                (title.strip() or post["title"], post_id, audience, now()),
             ).lastrowid
+            for position, group in enumerate(groups):
+                self._insert_job(post, group, batch_id, position)
+        return batch_id
+
+    def batches(self):
+        return [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT b.*, (SELECT count(*) FROM jobs j WHERE j.batch_id=b.id) AS total FROM batches b ORDER BY b.id DESC"
+            )
+        ]
+
+    def batch_jobs(self, batch_id):
+        return [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT * FROM jobs WHERE batch_id=? ORDER BY position,id", (batch_id,)
+            )
+        ]
 
     def jobs(self):
         return [dict(row) for row in self.db.execute("SELECT * FROM jobs ORDER BY id DESC")]

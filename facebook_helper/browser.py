@@ -1,6 +1,7 @@
 """Playwright lives entirely on one worker thread. No automatic final submission."""
 
 import queue
+import re
 import uuid
 from pathlib import Path
 
@@ -93,6 +94,58 @@ class BrowserWorker(QThread):
                 **payload,
                 "message": "Đã điền nội dung và đính kèm ảnh. Kiểm tra trên Facebook rồi tự bấm Đăng.",
             }
+        if action in {"prepare", "publish"}:
+            self.page.goto(normalize_group(payload["group_url"]), wait_until="domcontentloaded")
+            self.page.bring_to_front()
+            if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
+                raise ValueError(
+                    "Chưa vào được đúng nhóm. Hãy đăng nhập Facebook và kiểm tra quyền vào nhóm."
+                )
+            if not open_composer(self.page):
+                return {
+                    **payload,
+                    "filled": False,
+                    "sent": False,
+                    "needs_composer": True,
+                    "message": "Đã mở nhóm. Hãy bấm Viết gì đó/Tạo bài viết trên Facebook, rồi bấm Điền bài trong ứng dụng. Danh sách đã tạm dừng.",
+                }
+            fill_composer(self.page, payload["body"], payload["images"])
+            if action == "prepare":
+                return {
+                    **payload,
+                    "filled": True,
+                    "message": "Đã chuẩn bị bài. Kiểm tra trên Facebook, bấm Đăng rồi chọn Đã gửi · sang nhóm sau.",
+                }
+            dialog = self.page.get_by_role("dialog").filter(
+                has=self.page.locator('[role="textbox"][contenteditable="true"]')
+            )
+            submit = dialog.get_by_role("button", name=re.compile(r"^(Đăng|Post)$", re.I))
+            if submit.count() != 1:
+                raise ValueError(
+                    "Không xác định được nút Đăng. Danh sách đã dừng; hãy kiểm tra và đăng bằng tay."
+                )
+            # Readiness must be established before clicking, so a failed readiness check is retryable.
+            from playwright.sync_api import expect
+
+            expect(submit).to_be_enabled(timeout=30000)
+            payload["submission_started"] = True
+            try:
+                submit.click(timeout=10000)
+                dialog.wait_for(state="hidden", timeout=20000)
+            except Exception:
+                return {
+                    **payload,
+                    "filled": True,
+                    "sent": False,
+                    "uncertain": True,
+                    "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng.",
+                }
+            return {
+                **payload,
+                "filled": True,
+                "sent": True,
+                "message": "Đã gửi bài vào nhóm. Cần kiểm tra trạng thái duyệt, lấy link và lưu minh chứng sau.",
+            }
         if action == "read_link":
             url = post_url(self.page.url, payload["group_url"])
             return {**payload, "url": url, "message": "Đã lấy link bài đang mở. Bạn có thể bấm Copy link."}
@@ -151,3 +204,30 @@ def fill_composer(page, body, images):
             raise ValueError("Ô tải ảnh hiện tại không hỗ trợ nhiều ảnh. Hãy thêm ảnh thủ công.")
         inputs.first.set_input_files(images)
     editors.first.fill(body)
+
+
+def open_composer(page):
+    """Only click one recognizable group composer opener; otherwise request manual help."""
+    dialogs = page.get_by_role("dialog").filter(has=page.locator('[role="textbox"][contenteditable="true"]'))
+    if dialogs.count() == 1:
+        return True
+    if dialogs.count() > 1:
+        raise ValueError("Đang có nhiều cửa sổ soạn bài. Hãy đóng bớt trước khi tiếp tục.")
+    labels = re.compile(
+        r"^(Viết gì đó.*|Bạn viết gì đi.*|Bạn đang nghĩ gì.*|Write something.*|Create a post|Tạo bài viết)$",
+        re.I,
+    )
+    opener = page.get_by_role("button", name=labels)
+    if opener.count() == 0:
+        try:
+            opener.first.wait_for(state="visible", timeout=8000)
+        except Exception:
+            return False
+    if opener.count() != 1:
+        return False
+    opener.click()
+    try:
+        dialogs.wait_for(state="visible", timeout=8000)
+    except Exception:
+        return False
+    return True

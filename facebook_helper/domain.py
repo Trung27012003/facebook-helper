@@ -1,6 +1,7 @@
 """Validation shared by storage, browser automation and UI."""
 
 import re
+import unicodedata
 from urllib.parse import parse_qs, urlparse
 
 STATUSES = {
@@ -10,6 +11,10 @@ STATUSES = {
     "published": "Đã hiển thị (bạn xác nhận)",
     "rejected": "Bị từ chối",
     "error": "Có lỗi",
+    "sending": "Đang gửi · chưa có kết quả",
+    "submitted": "Đã gửi · cần kiểm tra",
+    "uncertain": "Chưa rõ kết quả · kiểm tra Facebook",
+    "skipped": "Đã bỏ qua",
 }
 
 
@@ -53,3 +58,13 @@ def excel_text(value):
     if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
         return "'" + value
     return value
+
+
+def parse_tags(value):
+    """Comma/semicolon-separated labels; spaces within a label are significant."""
+    result = {}
+    for part in re.split(r"[,;\n]+", value):
+        label = unicodedata.normalize("NFC", part.strip().lstrip("#").strip())
+        if label:
+            result.setdefault(label.casefold(), label)
+    return list(result.values())

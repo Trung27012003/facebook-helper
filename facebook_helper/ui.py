@@ -8,6 +8,8 @@ from PySide6.QtWidgets import (
     QApplication,
     QColorDialog,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
@@ -18,7 +20,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QMainWindow,
     QMessageBox,
-    QPushButton,
+    QScrollArea,
     QSpinBox,
     QSplitter,
     QTableWidget,
@@ -31,6 +33,9 @@ from PySide6.QtWidgets import (
 
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
+from .posting import SENT, PostingMixin
+from .templates import RecruitmentDialog
+from .widgets import button, hint, row
 
 STYLE = """
 QMainWindow, QWidget { background: #f6f8fc; color: #17243a; font-size: 13px; }
@@ -52,32 +57,11 @@ QLabel#hint { color: #52647e; }
 """
 
 
-def button(text, callback, primary=False):
-    widget = QPushButton(text)
-    widget.setProperty("primary", primary)
-    widget.clicked.connect(callback)
-    return widget
-
-
-def row(*widgets):
-    layout = QHBoxLayout()
-    for widget in widgets:
-        layout.addWidget(widget)
-    return layout
-
-
-def hint(text):
-    label = QLabel(text)
-    label.setObjectName("hint")
-    label.setWordWrap(True)
-    return label
-
-
 def local_time(value):
     return datetime.fromisoformat(value).astimezone().strftime("%d/%m/%Y %H:%M")
 
 
-class MainWindow(QMainWindow):
+class MainWindow(PostingMixin, QMainWindow):
     def __init__(self, store):
         super().__init__()
         self.store = store
@@ -106,9 +90,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(heading)
         layout.addWidget(hint("Không gian làm việc cá nhân · Soạn tin, chuẩn bị đăng và lưu minh chứng"))
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.build_editor(), "Bài tuyển dụng")
-        self.tabs.addTab(self.build_groups(), "Nhóm Facebook")
-        self.tabs.addTab(self.build_jobs(), "Đăng bài & minh chứng")
+        self.tabs.addTab(self.build_editor(), "1. Soạn bài")
+        self.tabs.addTab(self.build_groups(), "2. Nhóm & nhãn")
+        self.tabs.addTab(self.build_jobs(), "3. Đăng bài")
         self.tabs.addTab(self.build_settings(), "Dữ liệu & hướng dẫn")
         layout.addWidget(self.tabs)
         self.setCentralWidget(container)
@@ -156,6 +140,7 @@ class MainWindow(QMainWindow):
         self.post_list.itemClicked.connect(self.load_post)
         side.addWidget(self.post_list)
         side.addLayout(row(button("+ Bài mới", self.new_post, True), button("Nhân bản", self.duplicate_post)))
+        side.addWidget(button("Tạo bài theo mẫu tuyển dụng", self.create_from_template, True))
         side.addWidget(button("Xóa bài đang mở", self.delete_post))
         split.addWidget(sidebar)
         editor = QWidget()
@@ -164,9 +149,9 @@ class MainWindow(QMainWindow):
         self.title.setPlaceholderText("Tên quản lý bài · ví dụ: Kế toán — Quận 7")
         self.title.textChanged.connect(self.mark_dirty)
         main.addWidget(self.title)
-        self.bold = button("B", self.toggle_bold)
+        self.bold = button("Đậm", self.toggle_bold)
         self.bold.setCheckable(True)
-        self.italic = button("I", self.toggle_italic)
+        self.italic = button("Nghiêng", self.toggle_italic)
         self.italic.setCheckable(True)
         self.font_family = QComboBox()
         self.font_family.addItems(["Arial", "Times New Roman", "Calibri", "Verdana"])
@@ -210,11 +195,83 @@ class MainWindow(QMainWindow):
             )
         )
         self.save_button = button("Lưu bài", lambda: self.guard(self.save_post), True)
-        main.addLayout(row(self.save_button, button("Sao chép nội dung đăng", self.copy_editor)))
+        main.addLayout(
+            row(
+                self.save_button,
+                button("Xem trước bài", self.preview_article),
+                button("Sao chép nội dung đăng", self.copy_editor),
+            )
+        )
         split.addWidget(editor)
         split.setSizes([310, 850])
         layout.addWidget(split)
         return page
+
+    def create_from_template(self):
+        if (self.dirty or self.content.toPlainText().strip()) and not self.confirm_template_replace():
+            return
+        dialog = RecruitmentDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.post_id = None
+        self.images.clear()
+        self.title.setText(dialog.article["title"])
+        self.content.setHtml(dialog.article["html"])
+        self.tags.setText(dialog.article["tags"])
+        self.mark_dirty()
+        self.statusBar().showMessage("Đã tạo nội dung. Thêm ảnh, xem trước rồi bấm Lưu bài nhé.", 15000)
+
+    def confirm_template_replace(self):
+        return (
+            QMessageBox.question(
+                self,
+                "Tạo bài theo mẫu",
+                "Tạo nội dung mới thay cho bản đang mở? Hãy lưu bài cũ trước nếu cần giữ lại.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            == QMessageBox.StandardButton.Yes
+        )
+
+    def preview_article(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Xem trước nội dung tuyển dụng")
+        dialog.resize(680, 760)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(
+            hint(
+                "Bố cục bản nháp. Khi đăng, Facebook quyết định kiểu chữ và cách hiển thị ảnh. Nội dung chữ vẫn giữ tiêu đề và các dòng •."
+            )
+        )
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        body = QWidget()
+        content = QVBoxLayout(body)
+        text = QTextEdit()
+        text.setReadOnly(True)
+        from html import escape
+
+        text.setHtml(self.content.toHtml() + "<p style='color:#2563eb'>" + escape(self.tags.text()) + "</p>")
+        text.setMinimumHeight(350)
+        content.addWidget(text)
+        from PySide6.QtGui import QPixmap
+
+        for index in range(self.images.count()):
+            relative = self.images.item(index).data(Qt.ItemDataRole.UserRole)
+            image = QLabel()
+            image.setPixmap(
+                QPixmap(str(self.store.asset(relative))).scaledToWidth(
+                    570, Qt.TransformationMode.SmoothTransformation
+                )
+            )
+            content.addWidget(image)
+        scroll.setWidget(body)
+        layout.addWidget(scroll)
+        actions = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        actions.button(QDialogButtonBox.StandardButton.Close).setText("Đóng xem trước")
+        actions.rejected.connect(dialog.reject)
+        layout.addWidget(actions)
+        dialog.exec()
 
     def format_text(self, fmt):
         self.content.mergeCurrentCharFormat(fmt)
@@ -373,7 +430,14 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(page)
         self.group_list = QListWidget()
         self.group_list.itemClicked.connect(self.load_group)
-        layout.addWidget(self.group_list, 1)
+        sidebar = QWidget()
+        sidebar_layout = QVBoxLayout(sidebar)
+        self.group_search = QLineEdit()
+        self.group_search.setPlaceholderText("Tìm nhóm theo tên hoặc nhãn…")
+        self.group_search.textChanged.connect(self.filter_group_list)
+        sidebar_layout.addWidget(self.group_search)
+        sidebar_layout.addWidget(self.group_list)
+        layout.addWidget(sidebar, 1)
         form_widget = QWidget()
         form = QVBoxLayout(form_widget)
         fields = QFormLayout()
@@ -381,13 +445,13 @@ class MainWindow(QMainWindow):
         self.group_url = QLineEdit()
         self.group_url.setPlaceholderText("https://www.facebook.com/groups/…/")
         self.category = QLineEdit()
-        self.category.setPlaceholderText("Khu vực / ngành nghề / nhãn nội bộ")
+        self.category.setPlaceholderText("Ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp")
         self.group_notes = QTextEdit()
         self.group_notes.setAcceptRichText(False)
         self.group_notes.setPlaceholderText("Quy định nhóm, khung giờ, thông tin cần lưu ý…")
         fields.addRow("Tên nhóm", self.group_name)
         fields.addRow("Link nhóm", self.group_url)
-        fields.addRow("Phân loại", self.category)
+        fields.addRow("Nhãn nhóm", self.category)
         fields.addRow("Ghi chú", self.group_notes)
         form.addLayout(fields)
         form.addLayout(
@@ -397,7 +461,11 @@ class MainWindow(QMainWindow):
                 button("Xóa nhóm", self.delete_group),
             )
         )
-        form.addWidget(hint("Chỉ lưu link nhóm bạn sử dụng. Link bài cụ thể được lưu trong lịch sử đăng."))
+        form.addWidget(
+            hint(
+                "Nhiều nhóm có thể dùng cùng nhãn. Ngăn cách các nhãn bằng dấu phẩy, ví dụ: Hà Nội, Kỹ thuật. Nhãn dùng để chọn nơi đăng; không được đưa vào bài Facebook."
+            )
+        )
         layout.addWidget(form_widget, 2)
         return page
 
@@ -413,6 +481,14 @@ class MainWindow(QMainWindow):
         index = self.job_groups.findData(current)
         if index >= 0:
             self.job_groups.setCurrentIndex(index)
+        self.refresh_audience_tags()
+        self.filter_group_list()
+
+    def filter_group_list(self):
+        query = self.group_search.text().casefold()
+        for index in range(self.group_list.count()):
+            item = self.group_list.item(index)
+            item.setHidden(query not in item.text().casefold())
 
     def load_group(self, item):
         if not self.confirm_group_switch():
@@ -476,21 +552,7 @@ class MainWindow(QMainWindow):
     def build_jobs(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        self.job_posts = QComboBox()
-        self.job_groups = QComboBox()
-        layout.addWidget(
-            hint(
-                "1. Chọn bài và nhóm → Tạo lượt đăng → Mở nhóm → Mở ô Tạo bài trên Facebook → Điền bài.\n"
-                "2. Tự kiểm tra và bấm Đăng trên Facebook. Cập nhật Chờ duyệt hoặc Đã hiển thị theo thực tế."
-            )
-        )
-        layout.addLayout(
-            row(
-                self.job_posts,
-                self.job_groups,
-                button("Tạo lượt đăng", lambda: self.guard(self.create_job), True),
-            )
-        )
+        self.build_audience(layout)
         self.history_search = QLineEdit()
         self.history_search.setPlaceholderText("Lọc lịch sử theo bài, nhóm, trạng thái…")
         self.history_search.textChanged.connect(self.filter_jobs)
@@ -505,9 +567,18 @@ class MainWindow(QMainWindow):
         self.history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.history.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.history.itemSelectionChanged.connect(self.load_job)
+        self.history.setMinimumHeight(120)
         layout.addWidget(self.history, 1)
         self.job_detail = hint("Chọn một lượt đăng để thao tác.")
         layout.addWidget(self.job_detail)
+        self.extra_tools = QWidget()
+        toggle = button("Link bài, trạng thái & ảnh minh chứng ▾", lambda: None)
+        toggle.setCheckable(True)
+        toggle.toggled.connect(self.extra_tools.setVisible)
+        layout.addWidget(toggle)
+        layout.addWidget(self.extra_tools)
+        layout = QVBoxLayout(self.extra_tools)
+        self.extra_tools.hide()
         self.link = QLineEdit()
         self.link.setPlaceholderText("Dán link bài cụ thể: https://www.facebook.com/groups/…/posts/…/")
         layout.addLayout(
@@ -531,9 +602,7 @@ class MainWindow(QMainWindow):
         )
         layout.addLayout(
             row(
-                self.browser_button("Đăng nhập Facebook", "login"),
                 self.browser_button("Mở nhóm", "open_group"),
-                self.browser_button("Điền bài", "fill"),
                 button("Sao chép bài", self.copy_job),
                 button("Mở thư mục ảnh", self.open_job_images),
             )
@@ -553,7 +622,10 @@ class MainWindow(QMainWindow):
                 "Ảnh minh chứng chỉ chụp vùng trình duyệt đang hiển thị; hãy kiểm tra trước khi chụp."
             )
         )
-        return page
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(page)
+        return scroll
 
     def refresh_post_choices(self):
         current = self.job_posts.currentData()
@@ -604,6 +676,14 @@ class MainWindow(QMainWindow):
                 pass
         self.history.blockSignals(True)
         jobs = self.store.jobs()
+        active_batch = self.batch_filter.currentData()
+        if active_batch is not None:
+            jobs.sort(
+                key=lambda job: (
+                    job["batch_id"] != active_batch,
+                    job["position"] if job["batch_id"] == active_batch else -job["id"],
+                )
+            )
         self.history.setRowCount(len(jobs))
         selected_row = -1
         for index, job in enumerate(jobs):
@@ -617,20 +697,38 @@ class MainWindow(QMainWindow):
                     job["url"],
                 )
             ):
-                self.history.setItem(index, col, QTableWidgetItem(str(value)))
+                item = QTableWidgetItem(str(value))
+                if col == 0:
+                    item.setData(Qt.ItemDataRole.UserRole, job["batch_id"])
+                self.history.setItem(index, col, item)
             if job["id"] == selected_id:
                 selected_row = index
         self.history.blockSignals(False)
+        self.refresh_batches()
+        self.filter_jobs()
+        if selected_row < 0 or self.history.isRowHidden(selected_row):
+            selected_row = next(
+                (index for index in range(self.history.rowCount()) if not self.history.isRowHidden(index)), -1
+            )
         if selected_row >= 0:
             self.history.selectRow(selected_row)
             self.load_job()
-        self.filter_jobs()
+        else:
+            self.history.clearSelection()
+            self.history.setCurrentCell(-1, -1)
+            self.link.clear()
+            self.job_note.clear()
+            self.job_detail.setText("Chọn một lượt đăng để thao tác.")
 
     def filter_jobs(self):
         query = self.history_search.text().casefold()
         for index in range(self.history.rowCount()):
             text = " ".join(self.history.item(index, col).text() for col in range(self.history.columnCount()))
-            self.history.setRowHidden(index, query not in text.casefold())
+            batch_id = self.batch_filter.currentData()
+            matches_batch = (
+                batch_id is None or self.history.item(index, 0).data(Qt.ItemDataRole.UserRole) == batch_id
+            )
+            self.history.setRowHidden(index, not matches_batch or query not in text.casefold())
 
     def load_job(self):
         try:
@@ -646,6 +744,8 @@ class MainWindow(QMainWindow):
         )
 
     def save_link(self):
+        if self.queue_active and self.queue_auto:
+            self.pause_posting_queue(announce=False)
         job = self.current_job()
         self.store.update_job(job["id"], url=self.link.text().strip())
         self.refresh_jobs(job["id"])
@@ -661,6 +761,8 @@ class MainWindow(QMainWindow):
         self.guard(action)
 
     def save_status(self):
+        if self.queue_active and self.queue_auto:
+            self.pause_posting_queue(announce=False)
         job = self.current_job()
         status = self.status_choice.currentData()
         url = self.link.text().strip()
@@ -720,6 +822,10 @@ class MainWindow(QMainWindow):
         return widget
 
     def run_browser(self, action):
+        if action == "login" and self.queue_active:
+            self.pause_posting_queue(announce=False)
+        if self.queue_active and self.queue_auto and not self.queue_dispatching and action != "login":
+            raise ValueError("Bấm Tạm dừng trước khi thao tác một lượt khác bằng tay.")
         if self.busy:
             raise ValueError("Chờ thao tác trình duyệt hiện tại hoàn tất.")
         payload = {}
@@ -734,6 +840,8 @@ class MainWindow(QMainWindow):
             }
             if action in {"capture", "screenshot"} and not job["url"]:
                 raise ValueError("Hãy lưu link bài cụ thể trước.")
+        if action == "publish":
+            self.store.update_job(payload["job_id"], status="sending")
         self.busy = True
         for widget in self.browser_buttons:
             widget.setEnabled(False)
@@ -752,10 +860,16 @@ class MainWindow(QMainWindow):
         self.finish_browser()
 
         def save():
-            if action == "fill":
+            if action == "fill" or (action in {"prepare", "publish"} and result.get("filled")):
                 job = self.store.job(result["job_id"])
-                if job["status"] in {"draft", "error"}:
+                if job["status"] in {"draft", "error", "sending"}:
                     self.store.update_job(job["id"], status="prepared")
+            if action == "publish":
+                status = (
+                    "uncertain" if result.get("uncertain") else "submitted" if result.get("sent") else "error"
+                )
+                if self.store.job(result["job_id"])["status"] not in SENT:
+                    self.store.update_job(result["job_id"], status=status, note=result.get("message", ""))
             if action == "read_link":
                 self.store.update_job(result["job_id"], url=result["url"])
             if action == "screenshot":
@@ -768,11 +882,22 @@ class MainWindow(QMainWindow):
 
         if self.guard(save):
             self.statusBar().showMessage(result["message"], 20000)
+            self.queue_browser_done(action, result)
         else:
+            self.pause_posting_queue(announce=False)
             self.statusBar().showMessage("Chưa lưu được kết quả. Kiểm tra thông báo và thử lại.", 15000)
 
     def browser_failed(self, action, message, payload):
         self.finish_browser()
+        if action in {"publish", "prepare"}:
+            self.pause_posting_queue(announce=False)
+            if payload.get("job_id"):
+                self.store.update_job(
+                    payload["job_id"],
+                    status="uncertain" if payload.get("submission_started") else "error",
+                    note=message,
+                )
+                self.refresh_jobs()
         self.statusBar().showMessage("Thao tác trình duyệt chưa hoàn tất", 15000)
         QMessageBox.warning(self, "Thao tác Facebook cần kiểm tra", message)
 
@@ -791,29 +916,34 @@ class MainWindow(QMainWindow):
         guide = QTextEdit()
         guide.setReadOnly(True)
         guide.setHtml("""
-        <h2>Bắt đầu sử dụng</h2>
-        <ol><li>Tạo và lưu bài tuyển dụng, thêm ảnh theo thứ tự mong muốn.</li>
-        <li>Thêm nhóm Facebook và ghi lại quy định đăng.</li>
-        <li>Trong Đăng bài &amp; minh chứng, chọn bài và nhóm rồi tạo lượt đăng.</li>
-        <li>Bấm Đăng nhập Facebook, đăng nhập trực tiếp. Ứng dụng không yêu cầu mật khẩu.</li>
-        <li>Bấm Mở nhóm. Trên Facebook, tự mở cửa sổ Tạo bài viết. Quay lại bấm Điền bài.</li>
-        <li>Kiểm tra nội dung/ảnh và tự bấm Đăng trên Facebook. Nếu giao diện không tương thích,
-        dùng Sao chép bài và Mở thư mục ảnh để đăng thủ công.</li>
-        <li>Chọn Chờ duyệt nếu cần. Khi bài hiển thị, lấy liên kết từ thời gian đăng hoặc menu bài,
-        dán vào ứng dụng và Lưu link. Xác nhận trạng thái theo thực tế.</li>
-        <li>Bấm Mở link bài; kiểm tra bài đã tải và vị trí cuộn. Bấm Chụp màn hình rồi Xem ảnh minh chứng.</li></ol>
-        <h3>Những điều cần biết</h3>
-        <p>Không tự bấm nút Đăng, không đăng hàng loạt, không vượt CAPTCHA hoặc hạn chế tài khoản.
-        Giao diện Facebook có thể thay đổi; tự động điền có thể cần điều chỉnh selector.
-        Chụp màn hình không chứng minh bài đã được duyệt. Trạng thái do bạn xác nhận.</p>
-        <p>Font, màu và cỡ chữ chỉ được lưu trong bản nháp; nội dung điền Facebook là chữ thuần.
-        Bản đầu chưa có AI, hẹn giờ đăng, thiết kế poster hay tự phát hiện bài đã duyệt.</p>
-        <h3>Dữ liệu và sao lưu</h3>
-        <p>Bài viết, ảnh và lịch sử nằm trong thư mục dữ liệu bên dưới. Không xóa ảnh trong thư mục này.
-        Lịch sử giữ bản chụp nội dung tại thời điểm tạo lượt đăng; sửa bài gốc không đổi lịch sử.</p>
-        <p>Sao lưu ZIP chứa helper.db, images và evidence; không chứa phiên đăng nhập Facebook.
-        Để khôi phục: đóng ứng dụng, sao lưu dữ liệu hiện tại, giải nén bản ZIP do chính ứng dụng tạo
-        vào thư mục dữ liệu, rồi mở ứng dụng và đăng nhập lại Facebook trên máy mới.</p>
+        <h2>Ba bước để đăng tin tuyển dụng</h2>
+        <ol><li><b>Soạn bài:</b> chọn Tạo bài theo mẫu tuyển dụng, điền vị trí, công ty, công việc,
+        yêu cầu, quyền lợi và liên hệ. Thêm ảnh, Xem trước bài rồi Lưu bài.</li>
+        <li><b>Nhóm &amp; nhãn:</b> thêm link nhóm. Gắn nhãn như Hà Nội, Kỹ thuật. Nhiều nhóm có thể
+        dùng chung nhãn; một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy.</li>
+        <li><b>Đăng bài:</b> chọn bài, chọn một nhóm/nhiều nhóm/theo nhãn, kiểm tra nhóm đã chọn rồi
+        Tạo danh sách đăng. Đăng nhập Facebook một lần, sau đó Bắt đầu / tiếp tục.</li></ol>
+        <h3>Chọn cách thực hiện phù hợp</h3>
+        <p><b>Kiểm tra từng nhóm (mặc định):</b> ứng dụng mở nhóm và cố gắng điền bài. Bạn kiểm tra,
+        tự bấm Đăng trong Facebook rồi bấm Đã gửi · sang nhóm sau và chọn kết quả thực tế.</p>
+        <p><b>Tự gửi lần lượt:</b> tích Tự bấm Đăng lần lượt. Khi bắt đầu, xác nhận bài và danh sách nhóm.
+        Ứng dụng cố gắng mở ô soạn, điền bài và bấm Đăng cho từng nhóm, có thời gian chờ giữa các nhóm.
+        Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
+        <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
+        quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>
+        <h3>Link bài và minh chứng</h3>
+        <p>Đã bấm Đăng không có nghĩa bài đã được duyệt. Mở phần Link bài, trạng thái &amp; ảnh minh chứng. Mở bài thật để kiểm tra, lấy link đang mở
+        hoặc dán link bài, rồi lưu đúng trạng thái. Mở link bài, kiểm tra vị trí cuộn, Chụp màn hình
+        và Xem ảnh minh chứng. Đổi sang bài khác cần chụp và xác nhận lại.</p>
+        <p>Định dạng font và màu được lưu trong bản nháp. Nội dung điền Facebook là chữ thuần,
+        giữ các tiêu đề và dòng •; Facebook quyết định kiểu chữ và cách hiển thị ảnh.</p>
+        <h3>Dữ liệu của bạn</h3>
+        <p>Bài, ảnh, nhóm, nhãn, danh sách và lịch sử nằm trên máy. Sao lưu ZIP thường xuyên.
+        ZIP không chứa phiên đăng nhập Facebook. Đóng ứng dụng trước khi giải nén bản sao lưu
+        vào thư mục dữ liệu. Không chia sẻ thư mục browser chứa phiên đăng nhập.</p>
+        <p>Cập nhật ứng dụng bằng cách giải nén bản mới vào thư mục khác. Dữ liệu cũ tự được giữ lại.
+        Không có hẹn giờ hoặc tự phát hiện bài được duyệt. Facebook thay đổi có thể làm thao tác
+        tự động cần điều chỉnh; ứng dụng không vượt xác thực hoặc hạn chế tài khoản.</p>
         """)
         layout.addWidget(guide)
         location = QLineEdit(str(self.store.root))
@@ -846,6 +976,7 @@ class MainWindow(QMainWindow):
             self.close()
 
     def closeEvent(self, event):
+        self.pause_posting_queue(announce=False)
         if self.closing:
             if self.browser.isRunning():
                 event.ignore()
