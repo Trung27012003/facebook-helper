@@ -281,7 +281,7 @@ def test_formatted_html_reaches_composer_via_native_clipboard_paste(page, store)
     assert not page.evaluate("window.submitted")
 
 
-def test_facebook_plain_only_paste_stops_instead_of_silently_losing_format(page):
+def test_platform_format_change_does_not_block_received_text(page):
     page.route(
         "https://www.facebook.com/**",
         lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
@@ -290,8 +290,8 @@ def test_facebook_plain_only_paste_stops_instead_of_silently_losing_format(page)
     page.get_by_role("textbox").evaluate(
         "el=>el.addEventListener('paste',e=>{e.preventDefault();el.textContent=e.clipboardData.getData('text/plain')})"
     )
-    with pytest.raises(ValueError, match="không giữ đủ định dạng"):
-        fill_composer(page, "Tuyển kỹ sư", [], "<p><b>Tuyển kỹ sư</b></p>")
+    fill_composer(page, "Tuyển kỹ sư", [], "<p><b>Tuyển kỹ sư</b></p>")
+    assert page.get_by_role("textbox").inner_text() == "Tuyển kỹ sư"
     assert not page.evaluate("window.submitted")
 
 
@@ -369,22 +369,16 @@ def test_waits_for_delayed_paste_instead_of_reading_intermediate_placeholder(pag
     assert page.get_by_role("textbox").inner_text() == "Nội dung đủ"
 
 
-def test_real_missing_text_is_still_rejected(page):
+def test_readback_difference_no_longer_blocks_nonempty_composer(page):
     page.route(
         "https://www.facebook.com/**",
         lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
     )
     page.goto("https://www.facebook.com/groups/hr/")
-    page.get_by_role("textbox").evaluate(
-        """el=>el.addEventListener('paste',e=>{e.preventDefault();el.innerHTML='<b>Chỉ có tiêu đề</b>';})"""
-    )
-    with pytest.raises(ValueError, match="chưa khớp|khác bài"):
-        fill_composer(
-            page,
-            "Chỉ có tiêu đề\nCòn thiếu quyền lợi",
-            [],
-            "<p><b>Chỉ có tiêu đề</b></p><p>Còn thiếu quyền lợi</p>",
-        )
+    page.get_by_role("textbox").evaluate("""el=>el.addEventListener('paste',e=>{e.preventDefault();
+      el.innerHTML=e.clipboardData.getData('text/html')+'<span>Thông tin bổ sung của giao diện</span>';})""")
+    fill_composer(page, "Nội dung", [], "<p><b>Nội dung</b></p>")
+    assert "Nội dung" in page.get_by_role("textbox").inner_text()
     assert not page.evaluate("window.submitted")
 
 
@@ -425,18 +419,137 @@ def test_editor_rerender_after_photo_upload_is_verified_again(page, store, task_
     assert page.get_by_role("textbox").inner_text() == "Tuyển kỹ sư"
 
 
-def test_real_salary_change_is_rejected_after_normalization(page, monkeypatch):
+def test_no_saved_text_comparison_is_performed(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    # The caller's plain/HTML representations can differ; only receipt is a gate now.
+    fill_composer(page, "Bản chữ thuần dùng cho clipboard", [], "<p><b>Bản HTML có định dạng</b></p>")
+    assert "Bản HTML có định dạng" in page.get_by_role("textbox").inner_text()
+
+
+def test_empty_paste_stops_without_retry_or_posting(page, monkeypatch):
     from facebook_helper import composer
 
-    monkeypatch.setattr(composer, "SETTLE_TIMEOUT", 0.6)
+    monkeypatch.setattr(composer, "CONTENT_TIMEOUT", 0.5)
     page.route(
         "https://www.facebook.com/**",
         lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
     )
     page.goto("https://www.facebook.com/groups/hr/")
     page.get_by_role("textbox").evaluate(
-        """el=>el.addEventListener('paste',e=>{e.preventDefault();el.innerHTML='<b>Lương 25 triệu</b>';})"""
+        """el=>el.addEventListener('paste',e=>{e.preventDefault();window.pastes=(window.pastes||0)+1;})"""
     )
-    with pytest.raises(ValueError, match="chưa khớp"):
-        fill_composer(page, "Lương 15 triệu", [], "<p><b>Lương 15 triệu</b></p>")
+    with pytest.raises(ValueError, match="chưa nhận được phần chữ"):
+        fill_composer(page, "Nội dung", [], "<p>Nội dung</p>")
+    assert page.evaluate("window.pastes") == 1
     assert not page.evaluate("window.submitted")
+
+
+def test_long_post_with_images_reaches_post_button_despite_readback_difference(page, store, task_data):
+    long_body = "\n".join(
+        f"Dòng {i}: Tuyển kỹ sư tự động hóa PLC, HMI, Robot và cơ hội phát triển." for i in range(240)
+    )
+    markup = "<p><b>TUYỂN DỤNG</b></p>" + "".join("<p>" + line + "</p>" for line in long_body.splitlines())
+    html = (
+        PUBLISH_COMPOSER
+        + """<script>
+      window.readyImages=false;window.pasteCount=0;
+      const editor=document.querySelector('[role=textbox]');
+      editor.addEventListener('paste',e=>{e.preventDefault();window.pasteCount++;
+        editor.innerHTML=e.clipboardData.getData('text/html')+'<span contenteditable="false">Chữ bổ sung của giao diện ảnh</span>';});
+      document.querySelector('input').onchange=()=>{document.querySelector('button').disabled=true;
+        const progress=document.createElement('div');progress.setAttribute('role','progressbar');progress.style.height='10px';progress.style.width='100px';document.querySelector('[role=dialog]').appendChild(progress);
+        setTimeout(()=>{window.readyImages=true;progress.remove();document.querySelector('button').disabled=false},500);};
+      document.querySelector('button').addEventListener('click',()=>window.uploadDoneAtPost=window.readyImages);
+    </script>"""
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    images = [str(store.asset(store.post(post)["images"][0])) for post in task_data[0]]
+    result = worker.execute(
+        "publish",
+        {
+            "group_url": "https://www.facebook.com/groups/hr/",
+            "body": long_body,
+            "body_html": markup,
+            "images": images,
+        },
+    )
+    assert result["sent"] and page.evaluate("window.submitted")
+    assert page.evaluate("window.uploadDoneAtPost") and page.evaluate("window.pasteCount") == 1
+    assert long_body.splitlines()[-1] in page.evaluate("window.savedText")
+
+
+def test_upload_timeout_prevents_submission(page, store, task_data, monkeypatch):
+    from facebook_helper import composer
+
+    monkeypatch.setattr(composer, "UPLOAD_TIMEOUT", 0.6)
+    html = (
+        COMPOSER
+        + """<script>document.querySelector('input').onchange=()=>{const p=document.createElement('div');p.setAttribute('role','progressbar');p.style.height='10px';p.style.width='100px';document.querySelector('[role=dialog]').appendChild(p);};</script>"""
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    image = str(store.asset(store.post(task_data[0][0])["images"][0]))
+    with pytest.raises(ValueError, match="Ảnh vẫn đang tải"):
+        fill_composer(page, "Bài viết", [image], "<p>Bài viết</p>")
+    assert not page.evaluate("window.submitted")
+
+
+def test_existing_open_draft_can_be_published_without_pasting_again(page, store):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=PUBLISH_COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").fill("Bản đã có đủ chữ và ảnh do người dùng kiểm tra")
+    page.get_by_role("textbox").evaluate("el=>el.addEventListener('paste',()=>{window.unexpectedPaste=true})")
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish_current",
+        {"group_url": "https://www.facebook.com/groups/hr/", "body": "Không dán phần này", "images": []},
+    )
+    assert result["sent"] and page.evaluate("window.submitted")
+    assert page.evaluate("window.savedText") == "Bản đã có đủ chữ và ảnh do người dùng kiểm tra"
+    assert not page.evaluate("window.unexpectedPaste||false")
+
+
+def test_publish_open_draft_rejects_wrong_group(page, store):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=PUBLISH_COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/other/")
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    with pytest.raises(ValueError, match="không ở đúng nhóm"):
+        worker.execute("publish_current", {"group_url": "https://www.facebook.com/groups/hr/"})
+    assert not page.evaluate("window.submitted")
+
+
+def test_completed_progress_indicator_does_not_block_posting(page, store):
+    html = PUBLISH_COMPOSER.replace(
+        "</div><script>",
+        '<div role="progressbar" aria-valuenow="100" aria-valuemax="100" style="height:10px">Đã tải xong</div></div><script>',
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").fill("Bài đã sẵn sàng")
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute("publish_current", {"group_url": "https://www.facebook.com/groups/hr/"})
+    assert result["sent"] and page.evaluate("window.submitted")

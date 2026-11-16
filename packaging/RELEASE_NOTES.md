@@ -1,19 +1,21 @@
-**Facebook Helper 0.4.1 — Windows 10/11 64-bit**
+**Facebook Helper 0.4.2 — Windows 10/11 64-bit**
 
-Tải ZIP, giải nén toàn bộ rồi mở `FacebookHelper/FacebookHelper.exe`. Giữ nguyên `_internal`; không cần cài Python. Bài, ảnh, nhóm, nhãn và lịch sử cũ được giữ.
+Tải ZIP, giải nén toàn bộ, chạy `FacebookHelper/FacebookHelper.exe`. Đóng bản cũ trước khi mở; giữ nguyên `_internal`. Bài, nhóm, ảnh và lịch sử cũ được giữ.
 
-Sửa lỗi dừng với thông báo “Nội dung trong ô Facebook khác bài đã lưu sau khi dán” dù nhìn thấy đủ chữ:
+Luồng đăng mới:
 
-- Đối chiếu Unicode tiếng Việt tương đương và marker danh sách trên cả hai phía.
-- Chờ Facebook cập nhật xong; đọc lại DOM/Range, bỏ phần điều khiển không thuộc nội dung bài.
-- Dán chữ trước, đính kèm ảnh sau; kiểm tra lại nếu Facebook tạo lại ô soạn.
-- Vẫn chặn thiếu đoạn hoặc sai số tiền. Không bỏ kiểm tra nội dung, không dán lại gây trùng.
-- Bài đã chuẩn bị có hướng dẫn bước tiếp; hiển thị phiên bản ở tiêu đề ứng dụng.
+1. **Tự đăng bài** được bật sẵn. Chọn bài/nhóm, bấm **Bắt đầu tự đăng** và xác nhận.
+2. Ứng dụng dán HTML, đính kèm ảnh, chờ ảnh tải xong và nút Đăng sẵn sàng, rồi bấm **Đăng**.
+3. Sau gửi, xác nhận kết quả để tiếp tục nhóm sau. Chế độ tự đăng được giữ, không bị chuyển ngầm về chỉ chuẩn bị.
 
-**Chế độ mặc định:** bạn tự kiểm tra và bấm **Đăng** trong Facebook. Chỉ chuẩn bị bài không đồng nghĩa đã gửi. Nếu đã có một bản nháp đủ chữ/ảnh trong Facebook, bạn có thể kiểm tra và đăng thủ công rồi cập nhật kết quả; không bấm Bắt đầu nhiều lần để dán chồng.
+**Bỏ hẳn lỗi chặn “bản lưu 374 / Facebook 788”**: không còn so số ký tự, độ dài hay so khớp nội dung/định dạng đọc lại với bản lưu. Đây từng là điều kiện của ứng dụng, không phải giới hạn bài viết của Facebook. Chỉ kiểm tra chữ đã xuất hiện và trạng thái tải ảnh/nút bấm. Định dạng cuối cùng phụ thuộc Facebook và cần được người dùng kiểm tra.
 
-Summernote nguyên bản và dán HTML tiếp tục được giữ. Sau mỗi bài vẫn cần xác nhận kết quả trước khi chuyển nhóm; không có bảo đảm tránh Facebook kiểm duyệt/xóa bài.
+**Đăng bản đang mở**: nếu bản nháp Facebook đã có đủ chữ/ảnh, kiểm tra rồi chọn nút này để ứng dụng bấm Đăng, không dán thêm hoặc thêm lại ảnh. Kiểm tra đúng nhóm và xác nhận trước khi gửi.
 
-116 test tự động đạt; gói `.exe` được kiểm tra trên Windows trước phát hành. Kiểm thử luồng Facebook dùng mô phỏng, chưa xác minh trên tài khoản thật của người dùng. Nguồn sai khác cụ thể ở máy người dùng chưa được xác định chỉ từ ảnh.
+Bỏ chọn **Tự đăng bài** nếu chỉ muốn điền bài rồi tự bấm Đăng. Tiến trình hiển thị rõ các bước mở nhóm, dán, thêm ảnh, chờ nút và gửi.
 
-Bản chưa ký mã số. File SHA256 đi kèm để đối chiếu tính toàn vẹn.
+Vẫn dừng khi ô trống, ảnh chưa tải xong/thiếu tệp, sai nhóm, Facebook báo lỗi/hạn chế/xác thực hoặc kết quả gửi chưa rõ. Không tự bấm lại khi chưa rõ kết quả. Không có cam kết tránh kiểm duyệt hay xóa bài.
+
+125 test tự động đạt, có bài dài hơn 15.000 ký tự kèm nhiều ảnh, DOM đọc lại khác nguồn, chờ upload và đăng bản đang mở. Luồng Facebook kiểm tra bằng mô phỏng, chưa xác nhận trực tiếp trên tài khoản người dùng. Gói `.exe` được kiểm tra trên Windows trước phát hành.
+
+Bản chưa ký mã số; SHA256 đi kèm để kiểm tra tính toàn vẹn.

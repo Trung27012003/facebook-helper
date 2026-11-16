@@ -1,34 +1,27 @@
-FACEBOOK HELPER 0.4.1 — SUMMERNOTE — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.4.2 — WINDOWS 10/11 64-BIT
 
-Giải nén toàn bộ ZIP, chạy FacebookHelper.exe, giữ _internal đi kèm.
-Không cần cài Python hoặc tải thư viện soạn thảo riêng.
+Đóng bản cũ. Giải nén toàn bộ ZIP rồi mở FacebookHelper.exe.
+Giữ nguyên _internal đi kèm. Bài, nhóm, ảnh và lịch sử cũ được giữ.
 
-SOẠN BÀI
-Dùng Summernote (thư viện nguyên bản) để chỉnh nội dung. Ctrl+V giữ định dạng;
-Ctrl+Shift+V dán chữ thuần. Bài dán từ Facebook được bỏ nền tối và màu giao diện.
-Nguồn chỉ có chữ không thể phục hồi kiểu chữ. Dùng Thêm ảnh để đính kèm ảnh.
-Lưu bài, chọn nhóm/nhãn và tạo danh sách đăng mới để có HTML đi kèm lượt đăng.
+TỰ ĐĂNG (BẬT SẴN)
+Chọn bài/nhóm, tạo danh sách, bấm Bắt đầu tự đăng và xác nhận.
+Ứng dụng mở nhóm, dán bài, thêm ảnh, chờ ảnh tải xong và bấm Đăng.
+Đã bỏ toàn bộ đối chiếu ký tự/độ dài; không còn thông báo 374/788.
+Ứng dụng chỉ kiểm tra có chữ, ảnh tải xong và nút Đăng bấm được.
+Bạn cần kiểm tra nội dung cuối cùng trên Facebook.
 
-ĐĂNG BÀI
-Đăng nhập trực tiếp trong trình duyệt ứng dụng. Bắt đầu mở nhóm và dán HTML.
-Nếu ô Facebook mất định dạng, ứng dụng dừng trước khi gửi; bạn kiểm tra/chỉnh
-trong Facebook hoặc dùng Sao chép bài có định dạng và Ctrl+V thủ công.
-Facebook không hỗ trợ toàn bộ font, màu và bố cục Word.
+Nếu Facebook đang có bản soạn đủ chữ và ảnh, dùng Đăng bản đang mở.
+Sau xác nhận, ứng dụng bấm Đăng mà không dán hoặc thêm ảnh lại.
 
-Bản 0.4.1 sửa đối chiếu báo sai khi bài đã đủ chữ, nhất là Unicode/danh sách và bước tải ảnh.
-Mặc định bạn tự bấm Đăng. Nếu chọn ứng dụng bấm Đăng, sau mỗi bài vẫn dừng để
-kiểm tra bài còn hiển thị hoặc đang chờ duyệt. Xác nhận kết quả mới chuyển nhóm.
-Không gửi lại bài chưa rõ kết quả. Cảnh báo hạn chế/xác thực/gỡ bài sẽ dừng danh sách.
+Sau gửi, kiểm tra bài hiển thị/chờ duyệt và cập nhật kết quả để sang nhóm sau.
+Nếu vẫn bật Tự đăng, nhóm sau sẽ tiếp tục tự bấm Đăng.
+Bỏ chọn Tự đăng nếu chỉ muốn chuẩn bị bài và tự bấm Đăng bằng tay.
 
-Không có bảo đảm tránh bị quét/kiểm duyệt/xóa bài. Kiểm tra thông báo và quy định
-nhóm; nội dung tuyển dụng trong nhóm không đúng chủ đề cũng có thể bị gỡ.
-Không vượt CAPTCHA, che giấu tự động hóa hoặc xoay tài khoản để gửi tiếp.
+Vẫn dừng khi có lỗi thật: ô trống, sai nhóm, ảnh chưa tải xong, Facebook yêu cầu
+xác thực/hạn chế hoặc chưa rõ kết quả. Không tự gửi lại khi chưa rõ kết quả.
+Không có bảo đảm tránh Facebook/quản trị viên xóa bài.
 
-DỮ LIỆU
-Đóng bản cũ, giải nén bản mới vào thư mục khác rồi chạy. Dữ liệu cũ tự được giữ.
-Bài mới và danh sách mới lưu HTML. Lượt lịch sử chỉ có chữ thuần vẫn được giữ;
-không tự dựng lại kiểu chữ cho lịch sử đó. Sao lưu ZIP trong Dữ liệu & hướng dẫn.
-Không chia sẻ thư mục browser chứa phiên Facebook.
-
-Bản chưa ký mã số. Kiểm tra nguồn tải và SHA256 nếu Windows cảnh báo.
-Mã nguồn/hướng dẫn: https://github.com/Trung27012003/facebook-helper
+Summernote và định dạng HTML tiếp tục được giữ. Facebook có thể thay đổi
+định dạng hiển thị. Không có kiểm tra so khớp nội dung sau dán ở bản này.
+Sao lưu trong Dữ liệu & hướng dẫn. Không chia sẻ thư mục browser/.
+Nguồn: https://github.com/Trung27012003/facebook-helper

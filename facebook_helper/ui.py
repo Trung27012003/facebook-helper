@@ -696,7 +696,7 @@ class MainWindow(PostingMixin, QMainWindow):
         if job["status"] == "prepared":
             self.job_detail.setText(
                 self.job_detail.text()
-                + "\nBước tiếp: kiểm tra chữ và ảnh, bấm Đăng trên Facebook; sau đó chọn Đã gửi · sang nhóm sau."
+                + "\nBài đã sẵn sàng: chọn Đăng bản đang mở để ứng dụng gửi, hoặc tự bấm Đăng trên Facebook; sau đó cập nhật kết quả."
             )
 
     def save_link(self):
@@ -796,7 +796,7 @@ class MainWindow(PostingMixin, QMainWindow):
             }
             if action in {"capture", "screenshot"} and not job["url"]:
                 raise ValueError("Hãy lưu link bài cụ thể trước.")
-        if action == "publish":
+        if action in {"publish", "publish_current"}:
             self.store.update_job(payload["job_id"], status="sending")
         self.busy = True
         for widget in self.browser_buttons:
@@ -816,11 +816,13 @@ class MainWindow(PostingMixin, QMainWindow):
         self.finish_browser()
 
         def save():
-            if action == "fill" or (action in {"prepare", "publish"} and result.get("filled")):
+            if action == "fill" or (
+                action in {"prepare", "publish", "publish_current"} and result.get("filled")
+            ):
                 job = self.store.job(result["job_id"])
                 if job["status"] in {"draft", "error", "sending"}:
                     self.store.update_job(job["id"], status="prepared")
-            if action == "publish":
+            if action in {"publish", "publish_current"}:
                 status = (
                     "uncertain" if result.get("uncertain") else "submitted" if result.get("sent") else "error"
                 )
@@ -846,7 +848,7 @@ class MainWindow(PostingMixin, QMainWindow):
     def browser_failed(self, action, message, payload):
         self.finish_browser()
         self.pause_posting_queue(announce=False)
-        if action in {"publish", "prepare", "fill"}:
+        if action in {"publish", "publish_current", "prepare", "fill"}:
             self.pause_posting_queue(announce=False)
             if payload.get("job_id"):
                 self.store.update_job(
@@ -881,10 +883,10 @@ class MainWindow(PostingMixin, QMainWindow):
         <li><b>Đăng bài:</b> chọn bài, chọn một nhóm/nhiều nhóm/theo nhãn, kiểm tra nhóm đã chọn rồi
         Tạo danh sách đăng. Đăng nhập Facebook một lần, sau đó Bắt đầu / tiếp tục.</li></ol>
         <h3>Chọn cách thực hiện phù hợp</h3>
-        <p><b>Kiểm tra từng nhóm (mặc định):</b> ứng dụng mở nhóm và cố gắng điền bài. Bạn kiểm tra,
+        <p><b>Chỉ chuẩn bị (bỏ chọn Tự đăng bài):</b> ứng dụng mở nhóm và điền bài. Bạn kiểm tra,
         tự bấm Đăng trong Facebook rồi bấm Đã gửi · sang nhóm sau và chọn kết quả thực tế.</p>
-        <p><b>Tự gửi lần lượt:</b> tích Tự bấm Đăng lần lượt. Khi bắt đầu, xác nhận bài và danh sách nhóm.
-        Ứng dụng cố gắng mở ô soạn, dán định dạng và bấm Đăng cho nhóm đang làm. Sau mỗi bài luôn dừng để kiểm tra kết quả trước khi chuyển nhóm.
+        <p><b>Tự đăng bài (mặc định bật):</b> bấm Bắt đầu tự đăng, xác nhận bài và danh sách nhóm.
+        Ứng dụng mở ô soạn, dán HTML, đính kèm ảnh, chờ tải xong rồi bấm Đăng. Không so khớp ký tự hay độ dài nội dung đọc lại. Sau mỗi bài luôn dừng để kiểm tra kết quả trước khi chuyển nhóm.
         Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
         <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
         quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>

@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.4.1 · Summernote
+## Cách dùng bản 0.4.2 · Summernote
 
 ### 1. Soạn bài
 
@@ -40,8 +40,8 @@ Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiề
 2. Chọn một bài đã lưu, rồi chọn **Một nhóm**, **Nhiều nhóm** hoặc **Theo nhãn nhóm**.
 3. Kiểm tra danh sách đã tích; có thể bỏ bớt nhóm. Thứ tự thực hiện là từ trên xuống.
 4. Đặt tên danh sách nếu muốn → **Tạo danh sách đăng**. Mỗi nhóm có một lượt riêng, giữ bản nội dung/ảnh tại thời điểm tạo. Có thể tạo nhiều danh sách cho nhiều bài khác nhau trước khi bắt đầu.
-5. **Bắt đầu / tiếp tục** mở nhóm và dán bài qua clipboard HTML, giữ phần ngữ nghĩa như đậm/nghiêng/danh sách. Nếu ô Facebook không giữ định dạng, ứng dụng dừng trước khi bấm Đăng; không âm thầm đổi sang bản chữ thường. Bạn có thể tự dán bằng Ctrl+V và kiểm tra định dạng trực tiếp trên Facebook.
-6. Mặc định bạn tự bấm Đăng. Tùy chọn **Ứng dụng bấm Đăng · kiểm tra từng nhóm** chỉ gửi nhóm đang làm sau xác nhận. **Sau mỗi bài luôn dừng**, không tự chuyển nhóm chỉ vì cửa sổ soạn đã đóng.
+5. **Tự đăng bài** được bật sẵn. Bấm **Bắt đầu tự đăng**, xác nhận bài và nhóm: ứng dụng mở nhóm → dán HTML → đính kèm ảnh → chờ ảnh tải xong/nút Đăng sẵn sàng → tự bấm Đăng. Không so khớp nội dung hay số ký tự đọc lại; không có chặn “374/788”.
+6. Nếu chỉ muốn chuẩn bị, bỏ chọn **Tự đăng bài**; nút bắt đầu đổi thành **Chỉ chuẩn bị bài**. Nếu Facebook đã có bản soạn đủ chữ/ảnh, dùng **Đăng bản đang mở** sau khi kiểm tra: gửi bản đó mà không dán/đính kèm lại. **Sau mỗi bài vẫn dừng** để xác nhận kết quả trước khi sang nhóm tiếp theo.
 7. Kiểm tra bài còn hiển thị hay đang chờ duyệt. Bấm **Đã gửi · sang nhóm sau** và chọn kết quả đã kiểm tra. Chọn “cần kiểm tra lại” sẽ tiếp tục dừng. Nếu bài bị gỡ, ghi trạng thái/ghi chú phù hợp, kiểm tra thông báo và quy định nhóm trước khi quyết định bước tiếp.
 8. **Tạm dừng / Bỏ qua** vẫn dùng được. Khi Facebook báo hạn chế, xác thực hoặc xóa bài, ứng dụng dừng và lưu thông báo; không tự gửi lại. Tắt giữa lúc gửi cũng cần kiểm tra trước khi tiếp tục.
 
@@ -94,15 +94,17 @@ py -m venv .venv
 
 Lần sau dùng `start.bat`. Trên macOS/Linux dùng `python3 -m venv .venv` rồi các lệnh tương tự với `.venv/bin/python`. Linux cần thư viện Qt/Chromium và desktop. Có thể dùng `--data-dir /duong/dan/rieng` để tách dữ liệu thử nghiệm.
 
-## Sửa bước kiểm tra khi bài có đủ chữ nhưng vẫn bị dừng
+## Bản 0.4.2: bỏ chặn đối chiếu nội dung
 
-Bản 0.4.1 chờ nội dung ổn định, đối chiếu tiếng Việt NFC/NFD và marker danh sách trên cả hai phía. Dán chữ trước, đính kèm ảnh sau và kiểm tra lại nếu Facebook thay ô soạn. Bài thiếu chữ/sai số vẫn bị chặn. Không tự bấm Đăng nếu tùy chọn ứng dụng bấm Đăng đang bỏ chọn; sau chuẩn bị, bạn tự kiểm tra và bấm Đăng trên Facebook.
+Đã bỏ hoàn toàn việc so sánh bản lưu với văn bản đọc từ Facebook, kể cả độ dài, từng chữ, số và kiểu định dạng trong DOM. Các test cũ yêu cầu chặn sai số tiền/thiếu đoạn do đối chiếu không còn là hành vi của bản này. Ứng dụng chỉ chờ chữ được nhận, ảnh tải xong và nút Đăng bấm được; nội dung/định dạng cuối cùng cần được người dùng kiểm tra trong Facebook.
+
+Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi/hạn chế/xác thực hoặc chưa rõ kết quả sau bấm. Không tự dán lại hoặc bấm Đăng lần hai khi kết quả chưa rõ. Tự đăng được bật mặc định và được giữ cho nhóm tiếp theo sau khi xác nhận kết quả bài trước.
 
 ## Kiểm thử và đóng gói
 
 [Thư viện và giấy phép](docs/THIRD-PARTY.md). Thư viện được đóng kèm, không cần CDN khi chạy.
 
-Xem [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

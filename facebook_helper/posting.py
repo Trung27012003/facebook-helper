@@ -25,6 +25,7 @@ class PostingMixin:
         self.queue_auto = False
         self.queue_dispatching = False
         self.queue_batch_id = None
+        self.authorized_auto_batch = None
         self.queue_timer = QTimer(self)
         self.queue_timer.setSingleShot(True)
         self.queue_timer.timeout.connect(lambda: self.guard(self.queue_continue))
@@ -70,9 +71,10 @@ class PostingMixin:
         self.batch_filter = QComboBox()
         self.batch_filter.addItem("Tất cả lượt đăng", None)
         self.batch_filter.currentIndexChanged.connect(self.batch_changed)
-        self.auto_send = QCheckBox("Ứng dụng bấm Đăng · kiểm tra từng nhóm")
+        self.auto_send = QCheckBox("Tự đăng bài (ứng dụng bấm Đăng)")
+        self.auto_send.setChecked(True)
         self.auto_send.setToolTip(
-            "Ứng dụng sẽ gửi bài thay bạn sau khi bạn xác nhận danh sách. Bỏ chọn để kiểm tra từng nhóm."
+            "Đang bật: ứng dụng sẽ bấm Đăng sau khi bạn xác nhận. Bỏ chọn nếu chỉ muốn điền bài và tự bấm Đăng."
         )
         self.group_delay = QSpinBox()
         self.group_delay.setRange(5, 300)
@@ -87,17 +89,47 @@ class PostingMixin:
         begin = button("Bắt đầu / tiếp tục", lambda: self.guard(self.start_posting_queue), True)
         following = button("Đã gửi · sang nhóm sau", lambda: self.guard(self.complete_queue_job))
         skip = button("Bỏ qua nhóm này", lambda: self.guard(self.skip_queue_job))
+        self.begin_posting_button = begin
+        self.posting_mode_hint = hint("")
+        self.auto_send.toggled.connect(self.update_posting_mode)
+        self.update_posting_mode()
+        layout.addWidget(self.posting_mode_hint)
         self.browser_buttons.extend([begin, following, skip])
+        layout.addLayout(row(begin, button("Tạm dừng", self.pause_posting_queue), following, skip))
         layout.addLayout(
             row(
-                begin,
-                button("Tạm dừng", self.pause_posting_queue),
                 self.browser_button("Điền bài (nếu cần)", "fill"),
-                following,
-                skip,
+                button("Đăng bản đang mở", lambda: self.guard(self.publish_open_draft)),
             )
         )
         self.refresh_audience()
+
+    def publish_open_draft(self):
+        if self.busy:
+            raise ValueError("Chờ thao tác hiện tại hoàn tất trước nhé.")
+        job = self.current_job()
+        if (
+            QMessageBox.question(
+                self,
+                "Gửi bản đang mở trong Facebook",
+                f"Nhóm: {job['group_name']}\nỨng dụng sẽ bấm Đăng cho bản hiện đang mở; không dán lại chữ và không thêm lại ảnh.\nBạn đã kiểm tra nội dung và ảnh trong Facebook?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
+            return
+        self.pause_posting_queue(announce=False)
+        self.run_browser("publish_current")
+
+    def update_posting_mode(self, *args):
+        automatic = self.auto_send.isChecked()
+        self.begin_posting_button.setText("Bắt đầu tự đăng" if automatic else "Chỉ chuẩn bị bài")
+        self.posting_mode_hint.setText(
+            "TỰ ĐĂNG: mở nhóm → dán bài → tải ảnh → bấm Đăng. Sau đó kiểm tra kết quả để sang nhóm tiếp."
+            if automatic
+            else "CHỈ CHUẨN BỊ: ứng dụng điền bài; bạn tự bấm Đăng trên Facebook."
+        )
 
     def refresh_audience(self, *args):
         if not hasattr(self, "audience_list"):
@@ -274,15 +306,16 @@ class PostingMixin:
                 QMessageBox.question(
                     self,
                     "Xác nhận tự gửi bài",
-                    f"Bài: {job['title']}\nỨng dụng sẽ tự bấm Đăng lần lượt ở {len(jobs)} nhóm:\n"
+                    f"Bài: {job['title']}\nNhóm sắp đăng: {job['group_name']}\nDanh sách có {len(jobs)} nhóm còn lại:\n"
                     + names
-                    + "\n\nBạn đã kiểm tra bài, ảnh và quy định của các nhóm này?",
+                    + "\n\nSau mỗi bài, xác nhận kết quả rồi tiếp tục nhóm sau. Bạn đã kiểm tra bài, ảnh và các nhóm này?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.No,
                 )
                 != QMessageBox.StandardButton.Yes
             ):
                 return
+            self.authorized_auto_batch = batch_id
         self.queue_auto = automatic
         self.queue_batch_id = batch_id
         self.queue_active = True
@@ -330,16 +363,16 @@ class PostingMixin:
             )
 
     def queue_browser_done(self, action, result):
-        if action not in {"prepare", "publish"}:
+        if action not in {"prepare", "publish", "publish_current"}:
             return
         if (
             result.get("uncertain")
             or result.get("needs_composer")
-            or (action == "publish" and not result.get("sent"))
+            or (action in {"publish", "publish_current"} and not result.get("sent"))
         ):
             self.pause_posting_queue(announce=False)
             return
-        if action == "publish" and result.get("sent"):
+        if action in {"publish", "publish_current"} and result.get("sent"):
             self.pause_posting_queue(announce=False)
             self.statusBar().showMessage(
                 "Đã bấm Đăng. Kiểm tra bài còn hiển thị/chờ duyệt; chọn kết quả thực tế trước khi tiếp tục. Không tự gửi tiếp.",
@@ -384,8 +417,15 @@ class PostingMixin:
                 if not ok:
                     return
             self.store.update_job(job["id"], status=status, url=url, note=self.job_note.text())
-        self.queue_batch_id = job["batch_id"]
-        self.queue_auto = False
+        self.continue_after_result(job["batch_id"])
+
+    def continue_after_result(self, batch_id):
+        self.queue_batch_id = batch_id
+        self.queue_auto = self.auto_send.isChecked()
+        if self.queue_auto and self.authorized_auto_batch != batch_id:
+            self.queue_active = False
+            self.start_posting_queue()
+            return
         self.queue_active = True
         self.queue_continue()
 
@@ -408,7 +448,4 @@ class PostingMixin:
             return
         self.pause_posting_queue(announce=False)
         self.store.update_job(job["id"], status="skipped")
-        self.queue_batch_id = job["batch_id"]
-        self.queue_auto = False
-        self.queue_active = True
-        self.queue_continue()
+        self.continue_after_result(job["batch_id"])

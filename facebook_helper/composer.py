@@ -1,87 +1,73 @@
-"""Validate the actual editable text, allowing equivalent browser rendering."""
+"""Composer readiness checks. No body comparison, length check, or formatting gate."""
 
-import re
 import time
 import unicodedata
 
-SETTLE_TIMEOUT = 8.0
+CONTENT_TIMEOUT = 12.0
+UPLOAD_TIMEOUT = 90.0
 
 
-def canonical_text(text):
-    text = "".join(char for char in text if unicodedata.category(char) != "Cf")
-    text = unicodedata.normalize("NFC", text).casefold()
-    text = text.replace("\u2028", "\n").replace("\u2029", "\n").replace("\r", "\n")
-    # Normalize markers on BOTH sides; keep digits inside salaries, dates and contacts.
-    text = re.sub(r"(?m)^[\t \u00a0]*(?:[•●▪◦*-]|\d+[.)])[\t \u00a0]+", "", text)
-    letters = re.sub(r"[\W_]+", "", text)
-    return letters if letters else text.strip()
+def has_text(value):
+    return bool("".join(char for char in value if unicodedata.category(char) != "Cf").strip())
 
 
-SNAPSHOT = r"""el => {
- function walk(node) {
+EDITOR_TEXT = r"""el => {
+ function text(node) {
   if(node.nodeType===3)return node.textContent;
   if(node.nodeType!==1)return '';
-  if(node!==el) {
-   if(node.getAttribute('contenteditable')==='false'||node.getAttribute('aria-hidden')==='true'||
-      node.getAttribute('role')==='button'||node.hasAttribute('data-lexical-placeholder'))return '';
-   const style=getComputedStyle(node);if(style.display==='none'||style.visibility==='hidden')return '';
-  }
-  if(node.tagName==='BR')return '\n';
-  if(node.tagName==='IMG')return '';
-  const value=Array.from(node.childNodes).map(walk).join('');
-  return value+(/^(P|DIV|LI|H[1-6]|BLOCKQUOTE|TR)$/.test(node.tagName)?'\n':'');
+  if(node!==el && (node.getAttribute('contenteditable')==='false'||
+    node.getAttribute('aria-hidden')==='true'||['button','status','alert'].includes(node.getAttribute('role'))||
+    node.hasAttribute('data-lexical-placeholder')))return '';
+  if(node.nodeType===1&&['IMG','SVG'].includes(node.tagName))return '';
+  if(node!==el){const s=getComputedStyle(node);if(s.display==='none'||s.visibility==='hidden')return '';}
+  return Array.from(node.childNodes).map(text).join('');
  }
- const range=document.createRange();range.selectNodeContents(el);
- const nodes=[el,...el.querySelectorAll('*')];
- return {texts:[el.innerText,range.toString(),walk(el)],
- bold:nodes.some(n=>Number(getComputedStyle(n).fontWeight)>=600),
- italic:nodes.some(n=>getComputedStyle(n).fontStyle==='italic'),
- list:!!el.querySelector('ul,ol,[role=list]')};
+ return text(el);
 }"""
 
 
-def wait_for_composer(page, dialog, body, markup=None):
-    """Read back repeatedly until content AND formatting have settled. Never paste again."""
-    expected = canonical_text(body)
-    required = {
-        "bold": bool(markup and re.search(r"<(?:b|strong|h[1-3])[ >]", markup)),
-        "italic": bool(markup and re.search(r"<(?:i|em)[ >]", markup)),
-        "list": bool(markup and re.search(r"<(?:ul|ol)[ >]", markup)),
-    }
-    deadline = time.monotonic() + SETTLE_TIMEOUT
-    streak = 0
-    last_match = None
-    longest = 0
+def wait_for_editor_content(page, dialog):
+    """Only wait for Facebook to receive text. Never compare it with the saved article."""
+    deadline = time.monotonic() + CONTENT_TIMEOUT
     while time.monotonic() < deadline:
-        matching = None
-        last_match = None
         for editor in dialog.locator('[role="textbox"][contenteditable="true"]').all():
             try:
-                if not editor.is_visible():
-                    continue
-                snapshot = editor.evaluate(SNAPSHOT)
+                if editor.is_visible() and has_text(editor.evaluate(EDITOR_TEXT)):
+                    return
             except Exception:
-                continue  # Facebook can replace the textbox after attaching a photo.
-            values = [canonical_text(value) for value in snapshot["texts"]]
-            longest = max(longest, *(len(value) for value in values))
-            if expected in values:
-                last_match = snapshot
-                if all(not needed or snapshot[key] for key, needed in required.items()):
-                    matching = snapshot
-                    break
-        if matching:
-            streak += 1
-            if streak >= 2:
-                return
+                continue
+        page.wait_for_timeout(100)
+    raise ValueError("Facebook chưa nhận được phần chữ. Đã dừng để tránh đăng bài trống; không tự dán lại.")
+
+
+def wait_for_uploads(page, dialog, check_notice=None):
+    """Wait for explicit photo-upload progress, with a finite deadline."""
+    deadline = time.monotonic() + UPLOAD_TIMEOUT
+    idle_reads = 0
+    while time.monotonic() < deadline:
+        if check_notice:
+            check_notice()
+        busy = False
+        for progress in dialog.locator('[role="progressbar"], progress, [data-uploading="true"]').all():
+            try:
+                if progress.is_visible():
+                    complete = progress.evaluate("""el=>{
+                      if(el.tagName==='PROGRESS')return el.value>=el.max;
+                      const value=el.getAttribute('aria-valuenow'),max=el.getAttribute('aria-valuemax');
+                      return value!==null&&max!==null&&Number(value)>=Number(max);
+                    }""")
+                    if not complete:
+                        busy = True
+                        break
+            except Exception:
+                busy = True
+        if busy:
+            idle_reads = 0
         else:
-            streak = 0
-        page.wait_for_timeout(120)
-    if last_match:
-        raise ValueError(
-            "Ô đăng Facebook không giữ đủ định dạng của bài. Đã dừng trước khi bấm Đăng; hãy kiểm tra định dạng trong Facebook."
-        )
+            idle_reads += 1
+            if idle_reads >= 3:
+                return
+        page.wait_for_timeout(200)
     raise ValueError(
-        "Phần chữ trong ô Facebook chưa khớp bài đã lưu sau khi chờ cập nhật. "
-        f"Bản lưu: {len(expected)} ký tự đối chiếu; đã đọc tối đa: {longest}. "
-        "Đã dừng trước khi Đăng và giữ nguyên bản đang soạn để bạn kiểm tra; không tự dán lại."
+        "Ảnh vẫn đang tải lên Facebook. Đã dừng, chưa bấm Đăng; kiểm tra kết nối và ảnh trong Facebook."
     )

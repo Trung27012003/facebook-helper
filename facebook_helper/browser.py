@@ -1,4 +1,4 @@
-"""Playwright lives entirely on one worker thread. No automatic final submission."""
+"""One browser worker; publishing is an explicit, confirmed action."""
 
 import queue
 import re
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from .composer import canonical_text, wait_for_composer
+from .composer import has_text, wait_for_editor_content, wait_for_uploads
 from .domain import normalize_group, post_url
 from .formatting import facebook_html
 
@@ -95,13 +95,16 @@ class BrowserWorker(QThread):
             check_platform_notice(self.page)
             if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
                 raise ValueError("Trình duyệt chưa ở đúng nhóm. Bấm Mở nhóm trước.")
-            fill_composer(self.page, payload["body"], payload["images"], payload.get("body_html"))
+            fill_composer(
+                self.page, payload["body"], payload["images"], payload.get("body_html"), self.progress.emit
+            )
             self.page.bring_to_front()
             return {
                 **payload,
                 "message": "Đã điền nội dung và đính kèm ảnh. Kiểm tra trên Facebook rồi tự bấm Đăng.",
             }
         if action in {"prepare", "publish"}:
+            self.progress.emit("Đang mở nhóm Facebook…")
             self.page.goto(normalize_group(payload["group_url"]), wait_until="domcontentloaded")
             self.page.bring_to_front()
             check_platform_notice(self.page)
@@ -117,47 +120,21 @@ class BrowserWorker(QThread):
                     "needs_composer": True,
                     "message": "Đã mở nhóm. Hãy bấm Viết gì đó/Tạo bài viết trên Facebook, rồi bấm Điền bài trong ứng dụng. Danh sách đã tạm dừng.",
                 }
-            fill_composer(self.page, payload["body"], payload["images"], payload.get("body_html"))
+            fill_composer(
+                self.page, payload["body"], payload["images"], payload.get("body_html"), self.progress.emit
+            )
             if action == "prepare":
                 return {
                     **payload,
                     "filled": True,
                     "message": "Đã chuẩn bị bài. Kiểm tra trên Facebook, bấm Đăng rồi chọn Đã gửi · sang nhóm sau.",
                 }
-            dialog = self.page.get_by_role("dialog").filter(
-                has=self.page.locator('[role="textbox"][contenteditable="true"]')
-            )
-            submit = dialog.get_by_role("button", name=re.compile(r"^(Đăng|Post)$", re.I))
-            if submit.count() != 1:
-                raise ValueError(
-                    "Không xác định được nút Đăng. Danh sách đã dừng; hãy kiểm tra và đăng bằng tay."
-                )
-            # Readiness must be established before clicking, so a failed readiness check is retryable.
-            from playwright.sync_api import expect
-
-            expect(submit).to_be_enabled(timeout=30000)
+            return self.publish_dialog(payload)
+        if action == "publish_current":
             check_platform_notice(self.page)
-            payload["submission_started"] = True
-            try:
-                submit.click(timeout=10000)
-                dialog.wait_for(state="hidden", timeout=20000)
-                self.page.wait_for_timeout(1500)
-                check_platform_notice(self.page)
-            except Exception as exc:
-                return {
-                    **payload,
-                    "filled": True,
-                    "sent": False,
-                    "uncertain": True,
-                    "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng. "
-                    + str(exc)[:600],
-                }
-            return {
-                **payload,
-                "filled": True,
-                "sent": True,
-                "message": "Đã bấm Đăng. Danh sách đã tạm dừng: kiểm tra bài còn hiển thị hoặc chờ duyệt trước khi chuyển nhóm.",
-            }
+            if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
+                raise ValueError("Bản đang mở không ở đúng nhóm đã chọn. Hãy kiểm tra nhóm trước khi gửi.")
+            return self.publish_dialog(payload)
         if action == "read_link":
             url = post_url(self.page.url, payload["group_url"])
             return {**payload, "url": url, "message": "Đã lấy link bài đang mở. Bạn có thể bấm Copy link."}
@@ -185,9 +162,53 @@ class BrowserWorker(QThread):
             }
         raise ValueError("Thao tác trình duyệt không hợp lệ.")
 
+    def publish_dialog(self, payload):
+        dialog = self.page.get_by_role("dialog").filter(
+            has=self.page.get_by_role("button", name=re.compile(r"^(Đăng|Post)$", re.I))
+        )
+        if dialog.count() != 1:
+            raise ValueError("Hãy mở đúng một cửa sổ Tạo bài viết trước khi gửi bản đang mở.")
+        wait_for_editor_content(self.page, dialog)
+        wait_for_uploads(self.page, dialog, lambda: check_platform_notice(self.page))
+        submit = dialog.get_by_role("button", name=re.compile(r"^(Đăng|Post)$", re.I))
+        if submit.count() != 1:
+            raise ValueError(
+                "Không xác định được nút Đăng. Danh sách đã dừng; hãy kiểm tra và đăng bằng tay."
+            )
+        # Readiness must be established before clicking, so a failed readiness check is retryable.
+        from playwright.sync_api import expect
 
-def fill_composer(page, body, images, html=None):
+        self.progress.emit("Nội dung và ảnh đã chuẩn bị; đang chờ nút Đăng…")
+        expect(submit).to_be_enabled(timeout=90000)
+        check_platform_notice(self.page)
+        self.progress.emit("Đang bấm Đăng…")
+        payload["submission_started"] = True
+        try:
+            submit.click(timeout=10000)
+            dialog.wait_for(state="hidden", timeout=20000)
+            self.page.wait_for_timeout(1500)
+            check_platform_notice(self.page)
+        except Exception as exc:
+            return {
+                **payload,
+                "filled": True,
+                "sent": False,
+                "uncertain": True,
+                "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng. "
+                + str(exc)[:600],
+            }
+        return {
+            **payload,
+            "filled": True,
+            "sent": True,
+            "message": "Đã bấm Đăng. Danh sách đã tạm dừng: kiểm tra bài còn hiển thị hoặc chờ duyệt trước khi chuyển nhóm.",
+        }
+
+
+def fill_composer(page, body, images, html=None, progress=None):
     """Require an already opened, unambiguous composer; never click the Post button."""
+    progress = progress or (lambda message: None)
+    progress("Đang mở ô soạn và chuẩn bị nội dung…")
     check_platform_notice(page)
     dialogs = page.get_by_role("dialog").filter(has=page.locator('[role="textbox"][contenteditable="true"]'))
     if dialogs.count() != 1:
@@ -196,8 +217,10 @@ def fill_composer(page, body, images, html=None):
     editors = dialog.locator('[role="textbox"][contenteditable="true"]')
     if editors.count() != 1:
         raise ValueError("Không xác định được ô nội dung. Bạn có thể dùng nút Sao chép để dán thủ công.")
-    if canonical_text(editors.first.inner_text()):
-        raise ValueError("Ô Facebook đang có nội dung. Xóa nội dung cũ hoặc dán thủ công để tránh ghi đè.")
+    if has_text(editors.first.evaluate("el=>el.innerText")):
+        raise ValueError(
+            "Ô Facebook đang có nội dung. Chọn Đăng bản đang mở sau khi kiểm tra, hoặc đóng bản đó trước khi chuẩn bị bài mới; không dán chồng nội dung."
+        )
     # Validate image access before changing anything in the composer.
     for path in images:
         if not Path(path).is_file():
@@ -236,20 +259,21 @@ def fill_composer(page, body, images, html=None):
             )
             editors.first.click()
             editors.first.press("ControlOrMeta+V")
-            from playwright.sync_api import expect
-
-            expect(editors.first).not_to_be_empty(timeout=5000)
         except Exception as exc:
             raise ValueError(
                 "Chưa dán được định dạng vào Facebook. Danh sách đã dừng; dùng Sao chép bài có định dạng rồi Ctrl+V trong ô Facebook. Không tự chuyển sang chữ thuần."
             ) from exc
-        wait_for_composer(page, dialog, body, markup)
+        wait_for_editor_content(page, dialog)
     else:
         editors.first.fill(body)
-        wait_for_composer(page, dialog, body)
+        wait_for_editor_content(page, dialog)
     if image_input is not None:
+        progress(f"Đang đính kèm {len(images)} ảnh…")
         image_input.set_input_files(images)
-        wait_for_composer(page, dialog, body, markup if html else None)
+        progress("Đang chờ Facebook tải ảnh…")
+        wait_for_uploads(page, dialog, lambda: check_platform_notice(page))
+        wait_for_editor_content(page, dialog)
+        check_platform_notice(page)
 
 
 def open_composer(page):

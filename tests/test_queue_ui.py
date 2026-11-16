@@ -45,6 +45,7 @@ def test_guided_queue_prepares_in_order_and_resume_skips_finished_groups(
     window, store, task_data, monkeypatch
 ):
     batch, jobs = batch_for_window(window, store, task_data)
+    window.auto_send.setChecked(False)
     sent = []
     with monkeypatch.context() as patch:
         patch.setattr(window.browser, "submit", lambda action, payload: sent.append((action, payload)))
@@ -216,3 +217,51 @@ def test_pause_during_publish_does_not_advance_when_result_arrives(window, store
     assert store.job(jobs[0]["id"])["status"] == "submitted"
     assert store.job(jobs[1]["id"])["status"] == "draft"
     assert not window.queue_active and not window.queue_timer.isActive()
+
+
+def test_auto_mode_is_default_and_button_explains_its_action(window):
+    assert window.auto_send.isChecked()
+    assert window.begin_posting_button.text() == "Bắt đầu tự đăng"
+    assert "TỰ ĐĂNG" in window.posting_mode_hint.text()
+    window.auto_send.setChecked(False)
+    assert window.begin_posting_button.text() == "Chỉ chuẩn bị bài"
+
+
+def test_confirming_first_auto_post_keeps_auto_mode_for_the_next_group(window, store, task_data, monkeypatch):
+    _, jobs = batch_for_window(window, store, task_data)
+    commands = []
+    with monkeypatch.context() as patch:
+        patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
+        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
+        patch.setattr(QInputDialog, "getItem", lambda *args: ("Đã gửi, đang chờ duyệt", True))
+        window.start_posting_queue()
+        window.browser_done(
+            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
+        )
+        window.complete_queue_job()
+        assert [command[0] for command in commands] == ["publish", "publish"]
+        assert commands[1][1]["job_id"] == jobs[1]["id"]
+        window.finish_browser()
+        window.pause_posting_queue()
+
+
+def test_publish_open_draft_requires_confirmation_and_uses_recovery_action(
+    window, store, task_data, monkeypatch
+):
+    _, jobs = batch_for_window(window, store, task_data)
+    window.refresh_jobs(jobs[0]["id"])
+    commands = []
+    with monkeypatch.context() as patch:
+        patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
+        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.No)
+        window.publish_open_draft()
+        assert commands == []
+        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
+        window.publish_open_draft()
+        assert commands[0][0] == "publish_current"
+        assert store.job(jobs[0]["id"])["status"] == "sending"
+        window.browser_done(
+            "publish_current", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
+        )
+        assert store.job(jobs[0]["id"])["status"] == "submitted"
+        assert not window.queue_active
