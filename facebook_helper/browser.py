@@ -216,7 +216,9 @@ def fill_composer(page, body, images, html=None):
         markup = facebook_html(html)
         try:
             origin = "https://" + page.url.split("/")[2]
-            page.context.grant_permissions(["clipboard-read", "clipboard-write"], origin=origin)
+            page.context.grant_permissions(["clipboard-write"], origin=origin)
+            page.bring_to_front()
+            editors.first.click()
             page.evaluate(
                 """async ({html,text}) => {
                 await navigator.clipboard.write([new ClipboardItem({
