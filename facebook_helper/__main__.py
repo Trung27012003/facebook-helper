@@ -11,6 +11,7 @@ from .ui import MainWindow
 def main():
     parser = argparse.ArgumentParser(description="Facebook Helper — HR")
     parser.add_argument("--data-dir", help="Thư mục dữ liệu riêng (mặc định theo hệ điều hành)")
+    parser.add_argument("--smoke-test", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     app = QApplication(sys.argv[:1])
     app.setApplicationName("Facebook Helper")
@@ -22,9 +23,13 @@ def main():
         QMessageBox.warning(None, "Ứng dụng đang mở", "Chỉ mở một ứng dụng với cùng thư mục dữ liệu.")
         store.close()
         return 1
-    window = MainWindow(store)
-    window.show()
     try:
+        if args.smoke_test:
+            from .smoke import run_smoke
+
+            return run_smoke(app, store)
+        window = MainWindow(store)
+        window.show()
         return app.exec()
     finally:
         store.close()

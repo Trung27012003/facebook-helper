@@ -1,10 +1,19 @@
 name: Build Windows
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional release tag to publish (for example v0.1.0)'
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
     env:
       PLAYWRIGHT_BROWSERS_PATH: '0'
     steps:
@@ -16,8 +25,38 @@ jobs:
       - run: python -m pip install -e '.[build]'
       - run: python -m playwright install chromium
       - run: python -m PyInstaller --noconfirm --windowed --onedir --name FacebookHelper --collect-all playwright --collect-all facebook_helper launcher.py
-      - run: Copy-Item README.md dist/FacebookHelper/README.md
+      - name: Test packaged executable and bundled Chromium
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          $smokeDir = Join-Path $env:RUNNER_TEMP 'facebook-helper-smoke'
+          $process = Start-Process -FilePath 'dist/FacebookHelper/FacebookHelper.exe' -ArgumentList @('--smoke-test', '--data-dir', "`"$smokeDir`"") -PassThru
+          if (-not $process.WaitForExit(120000)) {
+            $process.Kill()
+            throw 'Packaged application did not exit within 120 seconds'
+          }
+          if (Test-Path "$smokeDir/smoke-result.json") { Get-Content "$smokeDir/smoke-result.json" }
+          if ($process.ExitCode -ne 0) { throw "Packaged application failed: $($process.ExitCode)" }
+          $result = Get-Content "$smokeDir/smoke-result.json" -Raw | ConvertFrom-Json
+          if (-not $result.ok) { throw 'Packaged smoke check failed' }
+      - run: python packaging/build_zip.py
       - uses: actions/upload-artifact@v4
         with:
-          name: FacebookHelper-Windows
-          path: dist/FacebookHelper/
+          name: FacebookHelper-Windows-x64
+          path: release/*
+          compression-level: 0
+      - name: Publish downloadable release
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: pwsh
+        run: |
+          gh release create "$env:RELEASE_TAG" release/FacebookHelper-Windows-x64.zip release/SHA256SUMS.txt --title "Facebook Helper $env:RELEASE_TAG - Windows" --notes-file packaging/RELEASE_NOTES.md --target "$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Windows-smoke-evidence
+          path: ${{ runner.temp }}/facebook-helper-smoke/

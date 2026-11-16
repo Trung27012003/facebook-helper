@@ -1,0 +1,27 @@
+FACEBOOK HELPER — BẢN CHẠY TRÊN WINDOWS 10/11 64-BIT
+
+1. Giải nén toàn bộ file FacebookHelper-Windows-x64.zip.
+2. Mở thư mục FacebookHelper vừa giải nén.
+3. Nhấp đúp FacebookHelper.exe để chạy.
+
+Không cần cài Python hay Chromium riêng. Giữ nguyên thư mục _internal đi kèm;
+không kéo riêng file .exe ra ngoài và không chạy trực tiếp bên trong file ZIP.
+
+Sử dụng:
+- Tạo và lưu bài, thêm ảnh, thêm nhóm Facebook.
+- Tạo lượt đăng: một bài + một nhóm; tạo thêm lượt để dùng cho nhiều nhóm.
+- Đăng nhập Facebook trong trình duyệt của ứng dụng.
+- Mở nhóm, tự mở cửa sổ Tạo bài rồi bấm Điền bài trong ứng dụng.
+- Kiểm tra ảnh/nội dung trên Facebook và tự bấm Đăng.
+- Lưu link bài, cập nhật trạng thái và chụp minh chứng.
+
+Dữ liệu nằm trên máy, ngoài thư mục giải nén. Vào Dữ liệu & hướng dẫn để xem
+đường dẫn và tạo bản sao lưu ZIP. Không chia sẻ thư mục browser chứa phiên đăng nhập.
+
+Bản này chưa ký mã số. Nếu Windows hiển thị cảnh báo nhà phát hành không xác định,
+hãy kiểm tra nguồn tải chính thức và mã SHA256 trước khi quyết định chạy.
+
+Đã có kiểm tra tự động khởi động ứng dụng và Chromium trên Windows. Chưa xác nhận
+khả năng thao tác Facebook thật; Facebook có thể thay đổi giao diện.
+
+Mã nguồn và hướng dẫn: https://github.com/Trung27012003/facebook-helper
