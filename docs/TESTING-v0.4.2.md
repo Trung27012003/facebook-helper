@@ -22,3 +22,11 @@ Thay đổi theo yêu cầu người dùng: loại bỏ kiểm tra so khớp s�
 Các test liên quan nằm trong `tests/test_browser.py` và `tests/test_queue_ui.py`. Summernote, SQLite, nhãn nhóm, dữ liệu và sao lưu tiếp tục được kiểm tra.
 
 Kiểm thử Facebook chạy Chromium với HTML mô phỏng, không đăng trên tài khoản thật. Bộ kiểm tra readiness không khẳng định nội dung cuối cùng giống bản lưu; cần xem lại trên Facebook. Không có bảo đảm bài không bị kiểm duyệt/gỡ.
+
+## Gói Windows
+
+Workflow [Build Windows #43886381208](https://github.com/Trung27012003/facebook-helper/actions/runs/43886381208) thành công từ mã `8430b664fb19bb6f613f33708f62c712cd3b67f8`: kiểm tra `.exe`, Summernote, clipboard và Chromium. CI mã nguồn đã thành công trước phát hành.
+
+[Tải 0.4.2](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.4.2). ZIP 620.902.651 byte; SHA256 `57f74d6034f4189bc64f7b547d96c890376e81353357d69d11fb722a704c83ae`.
+
+Không suy diễn kiểm thử mô phỏng thành xác nhận hoạt động trên tài khoản Facebook thật của người dùng.
