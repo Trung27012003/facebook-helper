@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "facebook-helper-hr"
-version = "0.3.0"
+version = "0.4.0"
 description = "Trợ lý tuyển dụng Facebook cho một người dùng"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -33,3 +33,6 @@ line-length = 110
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.setuptools.package-data]
+facebook_helper = ["assets/**/*"]

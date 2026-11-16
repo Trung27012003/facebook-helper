@@ -4,8 +4,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 *.egg-info/
-build/
-dist/
+/build/
+/dist/
 work/
 *.db
 *.db-shm

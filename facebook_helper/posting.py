@@ -70,7 +70,7 @@ class PostingMixin:
         self.batch_filter = QComboBox()
         self.batch_filter.addItem("Tất cả lượt đăng", None)
         self.batch_filter.currentIndexChanged.connect(self.batch_changed)
-        self.auto_send = QCheckBox("Tự bấm Đăng lần lượt")
+        self.auto_send = QCheckBox("Ứng dụng bấm Đăng · kiểm tra từng nhóm")
         self.auto_send.setToolTip(
             "Ứng dụng sẽ gửi bài thay bạn sau khi bạn xác nhận danh sách. Bỏ chọn để kiểm tra từng nhóm."
         )
@@ -78,6 +78,7 @@ class PostingMixin:
         self.group_delay.setRange(5, 300)
         self.group_delay.setValue(15)
         self.group_delay.setSuffix(" giây giữa các nhóm")
+        self.group_delay.hide()
         layout.addLayout(
             row(QLabel("Danh sách đang làm"), self.batch_filter, self.auto_send, self.group_delay)
         )
@@ -227,8 +228,8 @@ class PostingMixin:
                 "Chọn một danh sách để bắt đầu. Bạn có thể lưu nhiều danh sách cho nhiều bài khác nhau."
             )
             return
-        done = sum(job["status"] in SENT for job in jobs)
-        errors = sum(job["status"] in {"error", "uncertain", "sending"} for job in jobs)
+        done = sum(job["status"] in {"pending", "published", "rejected", "skipped"} for job in jobs)
+        errors = sum(job["status"] in {"error", "uncertain", "sending", "submitted"} for job in jobs)
         suffix = (
             " · Đang thực hiện"
             if self.queue_active
@@ -242,7 +243,7 @@ class PostingMixin:
 
     def next_queue_job(self, batch_id):
         for job in self.store.batch_jobs(batch_id):
-            if job["status"] in {"uncertain", "sending"}:
+            if job["status"] in {"uncertain", "sending", "submitted"}:
                 if job["status"] == "sending":
                     self.store.update_job(job["id"], status="uncertain")
                 self.refresh_jobs(job["id"])
@@ -338,12 +339,11 @@ class PostingMixin:
         ):
             self.pause_posting_queue(announce=False)
             return
-        if action == "publish" and result.get("sent") and self.queue_active and self.queue_auto:
-            self.queue_timer.start(self.group_delay.value() * 1000)
+        if action == "publish" and result.get("sent"):
+            self.pause_posting_queue(announce=False)
             self.statusBar().showMessage(
-                f"Đã gửi vào nhóm. Chuyển nhóm tiếp theo sau {self.group_delay.value()} giây; "
-                "bạn có thể bấm Tạm dừng.",
-                20000,
+                "Đã bấm Đăng. Kiểm tra bài còn hiển thị/chờ duyệt; chọn kết quả thực tế trước khi tiếp tục. Không tự gửi tiếp.",
+                30000,
             )
         self.update_queue_progress()
 
@@ -355,7 +355,7 @@ class PostingMixin:
         job = self.current_job()
         if job["batch_id"] is None:
             raise ValueError("Lượt này chưa thuộc danh sách. Bạn có thể lưu kết quả bằng nút Lưu trạng thái.")
-        if job["status"] not in SENT:
+        if job["status"] not in SENT or job["status"] == "submitted":
             answer, ok = QInputDialog.getItem(
                 self,
                 "Bạn đã bấm Đăng trên Facebook?",
@@ -369,6 +369,15 @@ class PostingMixin:
             status = {"Đã gửi, cần kiểm tra lại": "submitted", "Đã gửi, đang chờ duyệt": "pending"}.get(
                 answer, "published"
             )
+            if status == "submitted":
+                self.store.update_job(
+                    job["id"],
+                    status="submitted",
+                    note="Người dùng báo đã bấm Đăng; cần kiểm tra trước khi tiếp tục.",
+                )
+                self.pause_posting_queue(announce=False)
+                self.refresh_jobs(job["id"])
+                return
             url = self.link.text().strip()
             if status == "published" and not url:
                 url, ok = QInputDialog.getText(self, "Link bài đã hiển thị", "Dán link của bài vừa đăng:")

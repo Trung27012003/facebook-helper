@@ -3,10 +3,9 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, QUrl
-from PySide6.QtGui import QColor, QDesktopServices, QFont, QIcon, QTextCharFormat
+from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
-    QColorDialog,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -32,8 +31,8 @@ from PySide6.QtWidgets import (
 
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
+from .editor import SummernoteEditor
 from .posting import SENT, PostingMixin
-from .richtext import RichTextEdit, RichTextToolbar
 from .templates import RecruitmentDialog
 from .widgets import button, hint, row
 
@@ -149,20 +148,14 @@ class MainWindow(PostingMixin, QMainWindow):
         self.title.setPlaceholderText("Tên quản lý bài · ví dụ: Kế toán — Quận 7")
         self.title.textChanged.connect(self.mark_dirty)
         main.addWidget(self.title)
-        self.content = RichTextEdit()
-        self.editor_toolbar = RichTextToolbar(self.content)
-        self.bold = self.editor_toolbar.bold
-        self.italic = self.editor_toolbar.italic
-        self.font_family = self.editor_toolbar.family
-        self.font_size = self.editor_toolbar.size
+        self.content = SummernoteEditor()
         self.content.notice = lambda message: self.statusBar().showMessage(message, 15000)
-        main.addWidget(self.editor_toolbar)
         self.content.setPlaceholderText("Vị trí tuyển dụng, mức lương, yêu cầu, quyền lợi, cách ứng tuyển…")
         self.content.textChanged.connect(self.mark_dirty)
         main.addWidget(self.content, 1)
         main.addWidget(
             hint(
-                "Ctrl+V để dán giữ định dạng; Ctrl+Shift+V để dán chữ thuần. Khi tự điền Facebook dùng chữ thuần; "
+                "Summernote · Ctrl+V giữ định dạng và tự bỏ nền tối Facebook. Khi dán sang Facebook giữ phần định dạng được hỗ trợ; "
                 "Facebook quyết định định dạng hiển thị."
             )
         )
@@ -261,37 +254,6 @@ class MainWindow(PostingMixin, QMainWindow):
         actions.rejected.connect(dialog.reject)
         layout.addWidget(actions)
         dialog.exec()
-
-    def format_text(self, fmt):
-        self.content.mergeCurrentCharFormat(fmt)
-        self.content.setFocus()
-
-    def toggle_bold(self):
-        fmt = QTextCharFormat()
-        fmt.setFontWeight(QFont.Weight.Bold if self.bold.isChecked() else QFont.Weight.Normal)
-        self.format_text(fmt)
-
-    def toggle_italic(self):
-        fmt = QTextCharFormat()
-        fmt.setFontItalic(self.italic.isChecked())
-        self.format_text(fmt)
-
-    def change_size(self, value):
-        fmt = QTextCharFormat()
-        fmt.setFontPointSize(value)
-        self.format_text(fmt)
-
-    def change_family(self, value):
-        fmt = QTextCharFormat()
-        fmt.setFontFamilies([value])
-        self.format_text(fmt)
-
-    def change_color(self):
-        color = QColorDialog.getColor(QColor("#17243a"), self, "Chọn màu chữ")
-        if color.isValid():
-            fmt = QTextCharFormat()
-            fmt.setForeground(color)
-            self.format_text(fmt)
 
     def refresh_posts(self):
         self.post_list.clear()
@@ -877,7 +839,8 @@ class MainWindow(PostingMixin, QMainWindow):
 
     def browser_failed(self, action, message, payload):
         self.finish_browser()
-        if action in {"publish", "prepare"}:
+        self.pause_posting_queue(announce=False)
+        if action in {"publish", "prepare", "fill"}:
             self.pause_posting_queue(announce=False)
             if payload.get("job_id"):
                 self.store.update_job(
@@ -915,7 +878,7 @@ class MainWindow(PostingMixin, QMainWindow):
         <p><b>Kiểm tra từng nhóm (mặc định):</b> ứng dụng mở nhóm và cố gắng điền bài. Bạn kiểm tra,
         tự bấm Đăng trong Facebook rồi bấm Đã gửi · sang nhóm sau và chọn kết quả thực tế.</p>
         <p><b>Tự gửi lần lượt:</b> tích Tự bấm Đăng lần lượt. Khi bắt đầu, xác nhận bài và danh sách nhóm.
-        Ứng dụng cố gắng mở ô soạn, điền bài và bấm Đăng cho từng nhóm, có thời gian chờ giữa các nhóm.
+        Ứng dụng cố gắng mở ô soạn, dán định dạng và bấm Đăng cho nhóm đang làm. Sau mỗi bài luôn dừng để kiểm tra kết quả trước khi chuyển nhóm.
         Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
         <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
         quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>
@@ -923,8 +886,7 @@ class MainWindow(PostingMixin, QMainWindow):
         <p>Đã bấm Đăng không có nghĩa bài đã được duyệt. Mở phần Link bài, trạng thái &amp; ảnh minh chứng. Mở bài thật để kiểm tra, lấy link đang mở
         hoặc dán link bài, rồi lưu đúng trạng thái. Mở link bài, kiểm tra vị trí cuộn, Chụp màn hình
         và Xem ảnh minh chứng. Đổi sang bài khác cần chụp và xác nhận lại.</p>
-        <p>Định dạng font và màu được lưu trong bản nháp. Nội dung điền Facebook là chữ thuần,
-        giữ các tiêu đề và dòng •; Facebook quyết định kiểu chữ và cách hiển thị ảnh.</p>
+<p>Summernote là thư viện soạn thảo có sẵn. Dán từ Facebook sẽ bỏ nền tối, giữ đậm/nghiêng/danh sách. Luồng dán sang Facebook dùng HTML; nếu không giữ được định dạng, ứng dụng dừng để bạn kiểm tra. Facebook không hỗ trợ đầy đủ màu và font như Word.</p>
         <h3>Dữ liệu của bạn</h3>
         <p>Bài, ảnh, nhóm, nhãn, danh sách và lịch sử nằm trên máy. Sao lưu ZIP thường xuyên.
         ZIP không chứa phiên đăng nhập Facebook. Đóng ứng dụng trước khi giải nén bản sao lưu

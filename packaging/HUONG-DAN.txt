@@ -1,53 +1,33 @@
-FACEBOOK HELPER 0.3 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.4 — SUMMERNOTE — WINDOWS 10/11 64-BIT
 
-MỞ ỨNG DỤNG
-Giải nén toàn bộ ZIP, mở thư mục FacebookHelper, nhấp đúp FacebookHelper.exe.
-Không cần cài Python hoặc Chromium. Giữ nguyên thư mục _internal đi kèm.
+Giải nén toàn bộ ZIP, chạy FacebookHelper.exe, giữ _internal đi kèm.
+Không cần cài Python hoặc tải thư viện soạn thảo riêng.
 
-1. SOẠN BÀI
-Bấm Tạo bài theo mẫu tuyển dụng, điền thông tin, tạo nội dung.
-Thêm ảnh, xem trước và lưu bài. Có thể sửa bài như bản nháp thông thường.
-Có thể copy bài từ Word/trang web và Ctrl+V để giữ định dạng được hỗ trợ.
-Thanh công cụ có đậm/nghiêng/gạch chân, font, cỡ chữ, màu, tô nền, danh sách,
-căn lề, chèn liên kết, bảng, hoàn tác và xóa định dạng.
-Ctrl+Shift+V dán chữ thuần. Nút Sao chép bài có định dạng sao chép cả HTML và chữ.
-Ảnh trong nội dung dán cần thêm bằng Thêm ảnh. Nguồn chỉ có chữ sẽ không tự lấy được kiểu chữ.
-Font/màu chỉ giữ trong bản nháp khi dùng tính năng tự điền Facebook. Facebook nhận chữ thuần, giữ tiêu đề và dòng •.
+SOẠN BÀI
+Dùng Summernote (thư viện nguyên bản) để chỉnh nội dung. Ctrl+V giữ định dạng;
+Ctrl+Shift+V dán chữ thuần. Bài dán từ Facebook được bỏ nền tối và màu giao diện.
+Nguồn chỉ có chữ không thể phục hồi kiểu chữ. Dùng Thêm ảnh để đính kèm ảnh.
+Lưu bài, chọn nhóm/nhãn và tạo danh sách đăng mới để có HTML đi kèm lượt đăng.
 
-2. NHÓM & NHÃN
-Thêm tên/link nhóm. Nhãn ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp.
-Nhiều nhóm có thể cùng nhãn; một nhóm có nhiều nhãn, ngăn cách bằng dấu phẩy.
-Nhãn chọn nơi đăng, không phải hashtag trong bài.
+ĐĂNG BÀI
+Đăng nhập trực tiếp trong trình duyệt ứng dụng. Bắt đầu mở nhóm và dán HTML.
+Nếu ô Facebook mất định dạng, ứng dụng dừng trước khi gửi; bạn kiểm tra/chỉnh
+trong Facebook hoặc dùng Sao chép bài có định dạng và Ctrl+V thủ công.
+Facebook không hỗ trợ toàn bộ font, màu và bố cục Word.
 
-3. ĐĂNG BÀI
-Bấm Đăng nhập Facebook ở đầu màn hình, đăng nhập trong trình duyệt riêng.
-Chọn bài, chọn một nhóm/nhiều nhóm/theo nhãn, kiểm tra các nhóm đã tích.
-Tạo danh sách đăng, rồi bấm Bắt đầu / tiếp tục.
+Mặc định bạn tự bấm Đăng. Nếu chọn ứng dụng bấm Đăng, sau mỗi bài vẫn dừng để
+kiểm tra bài còn hiển thị hoặc đang chờ duyệt. Xác nhận kết quả mới chuyển nhóm.
+Không gửi lại bài chưa rõ kết quả. Cảnh báo hạn chế/xác thực/gỡ bài sẽ dừng danh sách.
 
-Mặc định: ứng dụng mở nhóm và điền bài; bạn kiểm tra, tự bấm Đăng trên Facebook,
-rồi bấm Đã gửi · sang nhóm sau và chọn kết quả.
+Không có bảo đảm tránh bị quét/kiểm duyệt/xóa bài. Kiểm tra thông báo và quy định
+nhóm; nội dung tuyển dụng trong nhóm không đúng chủ đề cũng có thể bị gỡ.
+Không vượt CAPTCHA, che giấu tự động hóa hoặc xoay tài khoản để gửi tiếp.
 
-Tự gửi: tích Tự bấm Đăng lần lượt trước khi bắt đầu và xác nhận danh sách.
-Ứng dụng cố gắng mở ô soạn, điền bài và bấm Đăng theo từng nhóm.
-Có thể Tạm dừng, Bỏ qua, hoặc Tiếp tục. Nếu không rõ bài đã gửi chưa, ứng dụng
-dừng để bạn kiểm tra trước khi thử lại; không tự gửi trùng.
+DỮ LIỆU
+Đóng bản cũ, giải nén bản mới vào thư mục khác rồi chạy. Dữ liệu cũ tự được giữ.
+Bài mới và danh sách mới lưu HTML. Lượt lịch sử chỉ có chữ thuần vẫn được giữ;
+không tự dựng lại kiểu chữ cho lịch sử đó. Sao lưu ZIP trong Dữ liệu & hướng dẫn.
+Không chia sẻ thư mục browser chứa phiên Facebook.
 
-Nếu không mở được ô soạn: tự bấm Viết gì đó/Tạo bài viết trên Facebook,
-quay lại ứng dụng và bấm Điền bài (nếu cần). Có thể dùng cách sao chép thủ công.
-
-LINK VÀ MINH CHỨNG
-Mở Link bài, trạng thái & ảnh minh chứng dưới bảng để lấy/copy link,
-cập nhật kết quả, mở link, chụp màn hình và xuất Excel.
-Đã bấm Đăng không có nghĩa bài đã được duyệt; hãy kiểm tra bài thật.
-
-DỮ LIỆU VÀ CẬP NHẬT
-Dữ liệu nằm ngoài thư mục giải nén; bản 0.3 giữ dữ liệu 0.2 và nâng cấp dữ liệu 0.1.
-Vào Dữ liệu & hướng dẫn để xem đường dẫn và sao lưu ZIP. Không chia sẻ browser/.
-
-Bản này chưa ký mã số. Nếu Windows cảnh báo, kiểm tra nguồn tải chính thức và
-mã SHA256 trước khi quyết định chạy. Không cần tắt phần mềm bảo vệ máy.
-
-Đã kiểm tra khởi động ứng dụng và Chromium tự động trên Windows. Chưa xác nhận
-đăng bài trên Facebook thật; giao diện Facebook thay đổi có thể cần cập nhật.
-
-Mã nguồn, hướng dẫn và tải bản mới: https://github.com/Trung27012003/facebook-helper
+Bản chưa ký mã số. Kiểm tra nguồn tải và SHA256 nếu Windows cảnh báo.
+Mã nguồn/hướng dẫn: https://github.com/Trung27012003/facebook-helper

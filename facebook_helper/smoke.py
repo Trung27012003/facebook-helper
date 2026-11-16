@@ -4,7 +4,6 @@ import json
 import traceback
 
 from PySide6.QtCore import QCoreApplication, QEvent, QMimeData, QTimer
-from PySide6.QtGui import QFont, QTextCursor
 
 from .ui import MainWindow
 
@@ -31,10 +30,9 @@ def run_smoke(app, store):
         mime.setText("Kiểm tra dán định dạng\nPLC\nRobot")
         app.clipboard().setMimeData(mime)
         window.content.paste()
-        cursor = QTextCursor(window.content.document())
-        cursor.movePosition(QTextCursor.MoveOperation.NextCharacter, QTextCursor.MoveMode.KeepAnchor)
-        assert cursor.charFormat().fontWeight() == QFont.Weight.Bold
-        assert cursor.charFormat().foreground().color().name() == "#2456ab"
+        assert window.content.evaluate("$.summernote.version") == "0.9.1"
+        assert window.content.evaluate("!!document.querySelector('.note-toolbar')")
+        assert "<b" in window.content.toHtml()
         assert "1. PLC" in window.content.toPlainText()
         window.copy_editor()
         assert app.clipboard().mimeData().hasHtml()
@@ -47,6 +45,7 @@ def run_smoke(app, store):
         code = app.exec()
         assert code == 0 and not window.browser.isRunning()
         tabs = window.tabs.count()
+        window.content.release()
         window.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         result.update(ok=True, tabs=tabs, qt_started=True, worker_stopped=True)

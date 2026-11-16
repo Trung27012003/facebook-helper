@@ -10,6 +10,7 @@ release = Path("release")
 release.mkdir(exist_ok=True)
 shutil.copy2("packaging/HUONG-DAN.txt", root / "HUONG-DAN.txt")
 shutil.copy2("README.md", root / "README.md")
+shutil.copy2("docs/THIRD-PARTY.md", root / "THIRD-PARTY.md")
 target = release / "FacebookHelper-Windows-x64.zip"
 with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
     for path in sorted(root.rglob("*")):

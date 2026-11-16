@@ -24,7 +24,7 @@ def test_guided_template_generates_editable_draft_with_reference_sections(window
         assert section in text
     assert window.tags.text() == "#TuyenDung #PLC"
     post = store.post(window.save_post())
-    assert "font-weight:700" in post["html"]
+    assert "<b>" in post["html"]
     assert "15–25 triệu/tháng" in post["plain"]
 
 

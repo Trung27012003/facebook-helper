@@ -1,7 +1,6 @@
 import time
 
 from PySide6.QtCore import QCoreApplication, QElapsedTimer, QEvent
-from PySide6.QtGui import QFont
 
 from facebook_helper.ui import MainWindow
 
@@ -15,14 +14,13 @@ def test_editor_groups_history_and_shutdown(app, store):
         window.title.setText("Nhân viên kinh doanh")
         window.content.setPlainText("Ứng tuyển ngay\nLương thỏa thuận")
         window.content.selectAll()
-        window.bold.setChecked(True)
-        window.toggle_bold()
-        window.change_size(18)
+        window.content.evaluate("editorApi.command('bold')")
+        window.content.evaluate("editorApi.command('fontSize',18)")
         window.tags.setText("#tuyendung")
         assert window.dirty
         post_id = window.save_post()
-        assert "font-weight:700" in store.post(post_id)["html"]
-        assert window.content.currentCharFormat().fontWeight() == QFont.Weight.Bold
+        assert "<b>" in store.post(post_id)["html"]
+        assert window.content.evaluate("!!document.querySelector('.note-editable b')")
         assert not window.dirty
         window.group_name.setText("Việc làm Hà Nội")
         window.group_url.setText("https://facebook.com/groups/hr-hanoi/")
@@ -41,7 +39,7 @@ def test_editor_groups_history_and_shutdown(app, store):
         window.new_post()
         window.load_post(window.post_list.item(0))
         assert window.content.toPlainText() == "Ứng tuyển ngay\nLương thỏa thuận"
-        assert "font-weight:700" in window.content.toHtml()
+        assert "<b>" in window.content.toHtml()
         window.history_search.setText("không tồn tại")
         assert window.history.isRowHidden(0)
     finally:
@@ -56,5 +54,6 @@ def test_editor_groups_history_and_shutdown(app, store):
         assert not window.browser.isRunning()
         app.processEvents()
         assert not window.isVisible()
+        window.content.release()
         window.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)

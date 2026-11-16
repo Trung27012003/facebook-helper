@@ -79,7 +79,7 @@ def test_migrating_existing_v1_database_preserves_history(tmp_path):
             assert upgraded.job(1)["note"] == "Ghi chú cũ"
             assert upgraded.job(1)["status"] == "pending"
             assert upgraded.job(1)["batch_id"] is None
-            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 2
+            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 3
         finally:
             upgraded.close()
 
@@ -124,3 +124,13 @@ def test_recruitment_template_matches_reference_layout_and_escapes_input(app):
 def test_recruitment_template_requires_position_and_company():
     with pytest.raises(ValueError):
         recruitment_article({"position": "Kỹ sư"})
+
+
+def test_job_snapshots_html_not_only_plain_text(store):
+    post = store.save_post(None, "HTML", "<p><b>Đậm</b></p><ul><li>PLC</li></ul>", "Đậm\n• PLC", "#HR", [])
+    group = store.save_group(None, "Nhóm", "https://facebook.com/groups/hr/", "", "")
+    job = store.create_job(post, group)
+    assert "<b>Đậm</b>" in store.job(job)["body_html"]
+    assert "<ul>" in store.job(job)["body_html"] and "#HR" in store.job(job)["body_html"]
+    store.save_post(post, "Đã sửa", "<p>Nội dung khác</p>", "Nội dung khác", "", [])
+    assert "<b>Đậm</b>" in store.job(job)["body_html"]

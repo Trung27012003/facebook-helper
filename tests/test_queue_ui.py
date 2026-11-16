@@ -64,7 +64,7 @@ def test_guided_queue_prepares_in_order_and_resume_skips_finished_groups(
         window.pause_posting_queue()
 
 
-def test_automatic_queue_requires_confirmation_and_pauses_between_groups(
+def test_automatic_queue_requires_confirmation_then_verification_after_each_post(
     window, store, task_data, monkeypatch
 ):
     _, jobs = batch_for_window(window, store, task_data)
@@ -77,15 +77,14 @@ def test_automatic_queue_requires_confirmation_and_pauses_between_groups(
         assert commands == []
         patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
         window.start_posting_queue()
-        assert commands[0][0] == "publish"
-        assert store.job(jobs[0]["id"])["status"] == "sending"
-        window.browser_done("publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã gửi"})
-        assert store.job(jobs[0]["id"])["status"] == "submitted"
-        assert window.queue_timer.isActive()
-        window.pause_posting_queue()
-        assert not window.queue_timer.isActive()
-        window.queue_continue()
+        window.browser_done(
+            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
+        )
+        assert not window.queue_active and not window.queue_timer.isActive()
+        with pytest.raises(ValueError, match="kiểm tra"):
+            window.start_posting_queue()
         assert len(commands) == 1
+        store.update_job(jobs[0]["id"], status="pending")
         window.start_posting_queue()
         assert commands[1][1]["job_id"] == jobs[1]["id"]
         window.finish_browser()
@@ -136,7 +135,7 @@ def test_switching_batch_pauses_auto_timer_and_keeps_tasks_separate(window, stor
     assert visible == [store.batch_jobs(second)[0]["id"]]
 
 
-def test_automatic_queue_completes_three_groups_once_in_order(window, store, task_data, monkeypatch):
+def test_automatic_queue_never_advances_to_second_group_without_review(window, store, task_data, monkeypatch):
     _, jobs = batch_for_window(window, store, task_data)
     commands = []
     window.auto_send.setChecked(True)
@@ -144,17 +143,12 @@ def test_automatic_queue_completes_three_groups_once_in_order(window, store, tas
         patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
         patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
         window.start_posting_queue()
-        for index, job in enumerate(jobs):
-            assert commands[index][1]["job_id"] == job["id"]
-            window.browser_done(
-                "publish", {**commands[index][1], "filled": True, "sent": True, "message": "Đã gửi"}
-            )
-            window.queue_timer.stop()
-            window.queue_continue()
-        assert len(commands) == 3
-        assert not window.queue_active
-        assert all(store.job(job["id"])["status"] == "submitted" for job in jobs)
-        assert "3/3" in window.queue_progress.text()
+        window.browser_done(
+            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
+        )
+        window.queue_continue()
+        assert len(commands) == 1
+        assert store.job(jobs[1]["id"])["status"] == "draft"
 
 
 def test_skip_group_continues_only_current_batch(window, store, task_data, monkeypatch):

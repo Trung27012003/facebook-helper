@@ -8,6 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import QThread, Signal
 
 from .domain import normalize_group, post_url
+from .formatting import facebook_html
 
 
 class BrowserWorker(QThread):
@@ -86,9 +87,10 @@ class BrowserWorker(QThread):
             self.page.bring_to_front()
             return {**payload, "message": "Đã mở nhóm. Hãy mở ô tạo bài trên Facebook, rồi bấm Điền bài."}
         if action == "fill":
+            check_platform_notice(self.page)
             if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
                 raise ValueError("Trình duyệt chưa ở đúng nhóm. Bấm Mở nhóm trước.")
-            fill_composer(self.page, payload["body"], payload["images"])
+            fill_composer(self.page, payload["body"], payload["images"], payload.get("body_html"))
             self.page.bring_to_front()
             return {
                 **payload,
@@ -97,6 +99,7 @@ class BrowserWorker(QThread):
         if action in {"prepare", "publish"}:
             self.page.goto(normalize_group(payload["group_url"]), wait_until="domcontentloaded")
             self.page.bring_to_front()
+            check_platform_notice(self.page)
             if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
                 raise ValueError(
                     "Chưa vào được đúng nhóm. Hãy đăng nhập Facebook và kiểm tra quyền vào nhóm."
@@ -109,7 +112,7 @@ class BrowserWorker(QThread):
                     "needs_composer": True,
                     "message": "Đã mở nhóm. Hãy bấm Viết gì đó/Tạo bài viết trên Facebook, rồi bấm Điền bài trong ứng dụng. Danh sách đã tạm dừng.",
                 }
-            fill_composer(self.page, payload["body"], payload["images"])
+            fill_composer(self.page, payload["body"], payload["images"], payload.get("body_html"))
             if action == "prepare":
                 return {
                     **payload,
@@ -128,23 +131,27 @@ class BrowserWorker(QThread):
             from playwright.sync_api import expect
 
             expect(submit).to_be_enabled(timeout=30000)
+            check_platform_notice(self.page)
             payload["submission_started"] = True
             try:
                 submit.click(timeout=10000)
                 dialog.wait_for(state="hidden", timeout=20000)
-            except Exception:
+                self.page.wait_for_timeout(1500)
+                check_platform_notice(self.page)
+            except Exception as exc:
                 return {
                     **payload,
                     "filled": True,
                     "sent": False,
                     "uncertain": True,
-                    "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng.",
+                    "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng. "
+                    + str(exc)[:600],
                 }
             return {
                 **payload,
                 "filled": True,
                 "sent": True,
-                "message": "Đã gửi bài vào nhóm. Cần kiểm tra trạng thái duyệt, lấy link và lưu minh chứng sau.",
+                "message": "Đã bấm Đăng. Danh sách đã tạm dừng: kiểm tra bài còn hiển thị hoặc chờ duyệt trước khi chuyển nhóm.",
             }
         if action == "read_link":
             url = post_url(self.page.url, payload["group_url"])
@@ -174,8 +181,9 @@ class BrowserWorker(QThread):
         raise ValueError("Thao tác trình duyệt không hợp lệ.")
 
 
-def fill_composer(page, body, images):
+def fill_composer(page, body, images, html=None):
     """Require an already opened, unambiguous composer; never click the Post button."""
+    check_platform_notice(page)
     dialogs = page.get_by_role("dialog").filter(has=page.locator('[role="textbox"][contenteditable="true"]'))
     if dialogs.count() != 1:
         raise ValueError("Hãy mở cửa sổ Tạo bài viết trên Facebook và đóng các cửa sổ soạn khác.")
@@ -203,7 +211,52 @@ def fill_composer(page, body, images):
         if len(images) > 1 and inputs.first.get_attribute("multiple") is None:
             raise ValueError("Ô tải ảnh hiện tại không hỗ trợ nhiều ảnh. Hãy thêm ảnh thủ công.")
         inputs.first.set_input_files(images)
-    editors.first.fill(body)
+    check_platform_notice(page)
+    if html:
+        markup = facebook_html(html)
+        try:
+            origin = "https://" + page.url.split("/")[2]
+            page.context.grant_permissions(["clipboard-read", "clipboard-write"], origin=origin)
+            page.evaluate(
+                """async ({html,text}) => {
+                await navigator.clipboard.write([new ClipboardItem({
+                  'text/html': new Blob([html], {type:'text/html'}),
+                  'text/plain': new Blob([text], {type:'text/plain'})
+                })]);
+            }""",
+                {"html": markup, "text": body},
+            )
+            editors.first.click()
+            editors.first.press("ControlOrMeta+V")
+            from playwright.sync_api import expect
+
+            expect(editors.first).not_to_be_empty(timeout=5000)
+        except Exception as exc:
+            raise ValueError(
+                "Chưa dán được định dạng vào Facebook. Danh sách đã dừng; dùng Sao chép bài có định dạng rồi Ctrl+V trong ô Facebook. Không tự chuyển sang chữ thuần."
+            ) from exc
+        expected = re.sub(r"(?m)^\s*(?:[•*-]|\d+[.)])\s*", "", body)
+        expected = re.sub(r"[\W_]+", "", expected).casefold()
+        actual = re.sub(r"[\W_]+", "", editors.first.inner_text()).casefold()
+        if expected != actual:
+            raise ValueError(
+                "Nội dung trong ô Facebook khác bài đã lưu sau khi dán. Đã dừng trước khi Đăng; hãy kiểm tra lại bài."
+            )
+        features = editors.first.evaluate("""el => ({
+            bold: Array.from(el.querySelectorAll('*')).some(n=>Number(getComputedStyle(n).fontWeight)>=600),
+            italic: Array.from(el.querySelectorAll('*')).some(n=>getComputedStyle(n).fontStyle==='italic'),
+            list: !!el.querySelector('ul,ol,[role=list]')
+        })""")
+        if (
+            (re.search(r"<(?:b|strong|h[1-3])[ >]", markup) and not features["bold"])
+            or (re.search(r"<(?:i|em)[ >]", markup) and not features["italic"])
+            or (re.search(r"<(?:ul|ol)[ >]", markup) and not features["list"])
+        ):
+            raise ValueError(
+                "Ô đăng Facebook không giữ đủ định dạng của bài. Đã dừng trước khi bấm Đăng. Kiểm tra hoặc chỉnh định dạng trong cửa sổ Facebook; không tự đăng bản mất định dạng."
+            )
+    else:
+        editors.first.fill(body)
 
 
 def open_composer(page):
@@ -231,3 +284,21 @@ def open_composer(page):
     except Exception:
         return False
     return True
+
+
+def check_platform_notice(page):
+    if re.search(r"/(?:checkpoint|challenge|login)(?:/|\?|$)", page.url):
+        raise ValueError("Facebook yêu cầu đăng nhập/xác thực. Đã dừng; hãy xử lý trực tiếp trên Facebook.")
+    pattern = re.compile(
+        r"temporarily blocked|we limit how often|automated behavio|couldn.t post|post.{0,60}(?:removed|deleted)|tạm thời bị chặn|hạn chế.{0,40}đăng|không thể đăng|bài viết.{0,60}(?:bị xóa|đã bị gỡ|đã bị xóa)",
+        re.I,
+    )
+    for notice in page.locator('[role="alert"], [role="alertdialog"], [role="status"]').all():
+        if notice.is_visible():
+            text = notice.inner_text()
+            if pattern.search(text):
+                raise ValueError(
+                    "Facebook đang báo: "
+                    + text[:600]
+                    + "\nĐã dừng, không gửi lại hoặc chuyển nhóm tự động. Hãy kiểm tra thông báo và quy định nhóm."
+                )

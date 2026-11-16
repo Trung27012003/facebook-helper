@@ -262,3 +262,59 @@ def test_publish_never_retries_when_post_click_outcome_is_unknown(page, store, m
     )
     assert result["uncertain"] and not result["sent"] and result["submission_started"]
     assert page.evaluate("window.submitted") is True
+
+
+def test_formatted_html_reaches_composer_via_native_clipboard_paste(page, store):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    fill_composer(
+        page,
+        "Tuyển kỹ sư\n• PLC\n• Robot",
+        [],
+        "<p><b>Tuyển kỹ sư</b></p><ul><li>PLC</li><li>Robot</li></ul>",
+    )
+    assert page.get_by_role("textbox").locator("b,strong").count() > 0
+    assert page.get_by_role("textbox").locator("ul li").count() == 2
+    assert not page.evaluate("window.submitted")
+
+
+def test_facebook_plain_only_paste_stops_instead_of_silently_losing_format(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").evaluate(
+        "el=>el.addEventListener('paste',e=>{e.preventDefault();el.textContent=e.clipboardData.getData('text/plain')})"
+    )
+    with pytest.raises(ValueError, match="không giữ đủ định dạng"):
+        fill_composer(page, "Tuyển kỹ sư", [], "<p><b>Tuyển kỹ sư</b></p>")
+    assert not page.evaluate("window.submitted")
+
+
+def test_facebook_restriction_notice_stops_before_filling(page):
+    page.set_content(COMPOSER + '<div role="alert">Bạn tạm thời bị chặn đăng bài</div>')
+    with pytest.raises(ValueError, match="Facebook đang báo"):
+        fill_composer(page, "Nội dung", [])
+    assert page.get_by_role("textbox").inner_text() == ""
+
+
+def test_removal_notice_after_click_stops_and_does_not_claim_published(page, store):
+    html = PUBLISH_COMPOSER.replace(
+        "window.submitted=true;",
+        "window.submitted=true;const n=document.createElement('div');n.setAttribute('role','alert');n.innerText='Your post was removed';document.body.appendChild(n);",
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://www.facebook.com/groups/hr/", "body": "Nội dung", "images": []}
+    )
+    assert result["uncertain"] and not result["sent"]
+    assert "removed" in result["message"]

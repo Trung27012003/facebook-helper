@@ -3,6 +3,8 @@ import os
 import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
+os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-gpu")
 
 
 @pytest.fixture(scope="session")
@@ -55,6 +57,7 @@ def window(app, store):
             time.sleep(0.02)
         assert not value.browser.isRunning(), "Browser worker did not stop"
         assert not value.isVisible(), "Window did not close"
+        value.content.release()
         value.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
 
@@ -75,7 +78,11 @@ def task_data(app, store, tmp_path):
         source = tmp_path / f"post-{index}.png"
         assert image.save(str(source))
         relative = store.import_image(source)
-        posts.append(store.save_post(None, title, f"<p>{text}</p>", text, f"#vitri{index}", [relative]))
+        posts.append(
+            store.save_post(
+                None, title, "<p>" + text.replace("\n", "<br>") + "</p>", text, f"#vitri{index}", [relative]
+            )
+        )
     groups = [
         store.save_group(None, f"Nhóm {index}", f"https://facebook.com/groups/hr-{index}/", "HR", "")
         for index in range(3)

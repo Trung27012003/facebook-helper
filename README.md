@@ -8,17 +8,17 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.3
+## Cách dùng bản 0.4 · Summernote
 
 ### 1. Soạn bài
 
 - Chọn **Tạo bài theo mẫu tuyển dụng**. Điền vị trí, công ty, khu vực, thu nhập, công việc, yêu cầu, quyền lợi, địa điểm, thời gian và liên hệ. Mục không cần có thể để trống.
 - Mẫu tạo tiêu đề, các phần **CƠ HỘI DÀNH CHO BẠN / YÊU CẦU / QUYỀN LỢI / ỨNG TUYỂN NGAY** và các dòng `•`, giống bố cục bài tuyển dụng tham khảo.
-- **Dán bài có định dạng:** copy từ Word/trang web → nhấn **Ctrl+V** hoặc **Dán giữ định dạng**. Giữ các định dạng Qt hỗ trợ: đậm/nghiêng/gạch chân, font, cỡ chữ, màu, nền, tiêu đề, danh sách, căn lề, liên kết và bảng. Nguồn cần cung cấp HTML; clipboard chỉ có chữ thuần sẽ không khôi phục được kiểu chữ.
-- Thanh soạn thảo có định dạng tiêu đề, danh sách `•`/đánh số, màu chữ/tô nền, căn lề, chèn link/bảng, xóa định dạng, hoàn tác/làm lại. **Ctrl+Shift+V** dán chữ thuần. **Sao chép bài có định dạng** sao chép cả HTML và chữ thuần kèm hashtag để nơi nhận chọn định dạng hỗ trợ.
-- Ảnh nằm trong nội dung dán không tự được tải/import. Dùng **Thêm ảnh** để đính kèm; ứng dụng không tự đọc ảnh từ đường dẫn trong HTML.
-- Sửa nội dung trực tiếp, chọn nhiều ảnh, sắp xếp thứ tự, thêm hashtag, **Xem trước bài** rồi **Lưu bài**. Tiêu đề quản lý không được tự chèn lần nữa vào nội dung.
-- Font, cỡ chữ, màu và chữ đậm/nghiêng/gạch chân được lưu trong bản nháp. Khi điền Facebook dùng chữ thuần, giữ tiêu đề, xuống dòng, dấu đầu dòng, số thứ tự và chuyển bảng thành các hàng chữ đọc được. Facebook quyết định kiểu chữ/ảnh; không cam kết giữ nguyên định dạng Word. Ảnh thiết kế tuyển dụng do bạn tải lên, không tự tạo từ mẫu chữ.
+- Dùng **Summernote 0.9.1 nguyên bản** (thanh công cụ của thư viện), đóng kèm jQuery và DOMPurify, chạy offline trong Qt WebEngine. Không còn thanh nút rich text tự ghép.
+- **Ctrl+V** từ Word/Facebook giữ các định dạng hỗ trợ. Khi dán từ Facebook, tự bỏ nền tối và màu chữ của giao diện để bài đọc được trên nền trắng; giữ đậm/nghiêng, tiêu đề, danh sách. Bản nháp Qt cũ có nền tối cũng được làm sạch khi mở.
+- Thanh thư viện có font, cỡ, màu, đậm/nghiêng/gạch chân, danh sách, bảng, liên kết, mã HTML, fullscreen, undo/redo. **Ctrl+Shift+V** dán chữ thuần. **Sao chép bài có định dạng** sao chép HTML và chữ kèm hashtag.
+- Ảnh trong nội dung dán không tự nhập; dùng **Thêm ảnh** để đính kèm. Nguồn chỉ có chữ thuần không thể tự khôi phục kiểu chữ.
+- Sửa bài, thêm/sắp xếp ảnh, xem trước và lưu. Facebook chỉ hỗ trợ một phần định dạng; không hỗ trợ toàn bộ font/màu/bố cục Word.
 
 ### 2. Nhóm & nhãn
 
@@ -40,14 +40,12 @@ Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiề
 2. Chọn một bài đã lưu, rồi chọn **Một nhóm**, **Nhiều nhóm** hoặc **Theo nhãn nhóm**.
 3. Kiểm tra danh sách đã tích; có thể bỏ bớt nhóm. Thứ tự thực hiện là từ trên xuống.
 4. Đặt tên danh sách nếu muốn → **Tạo danh sách đăng**. Mỗi nhóm có một lượt riêng, giữ bản nội dung/ảnh tại thời điểm tạo. Có thể tạo nhiều danh sách cho nhiều bài khác nhau trước khi bắt đầu.
-5. Chọn cách thực hiện rồi **Bắt đầu / tiếp tục**:
-   - **Mặc định kiểm tra từng nhóm:** ứng dụng mở nhóm, cố gắng mở cửa sổ tạo bài và điền nội dung/ảnh. Bạn kiểm tra, tự bấm Đăng trên Facebook, rồi bấm **Đã gửi · sang nhóm sau** và chọn kết quả thực tế.
-   - **Tự bấm Đăng lần lượt:** tích tùy chọn này, chọn thời gian giữa các nhóm rồi bắt đầu. Ứng dụng hỏi xác nhận bài và các nhóm trước khi tự điền/bấm Đăng. Gửi xong sẽ chờ trước khi chuyển nhóm.
-6. **Tạm dừng** dừng việc chuyển nhóm tiếp theo; thao tác hiện tại vẫn hoàn tất. **Bỏ qua nhóm này** bỏ qua trong danh sách hiện tại. Tiếp tục sẽ bỏ qua các lượt đã gửi hoặc đã xử lý.
-7. Nếu không nhận diện được ô soạn: danh sách dừng; tự mở **Viết gì đó / Tạo bài viết** trên Facebook, quay lại bấm **Điền bài (nếu cần)**. Có thể mở phần công cụ bổ sung để sao chép chữ và mở thư mục ảnh để đăng thủ công.
-8. Nếu chưa rõ kết quả sau khi bấm Đăng, ứng dụng dừng và yêu cầu kiểm tra. Không tự gửi lại. Nếu lần trước đang gửi thì ứng dụng bị tắt, cũng phải kiểm tra trước khi tiếp tục.
+5. **Bắt đầu / tiếp tục** mở nhóm và dán bài qua clipboard HTML, giữ phần ngữ nghĩa như đậm/nghiêng/danh sách. Nếu ô Facebook không giữ định dạng, ứng dụng dừng trước khi bấm Đăng; không âm thầm đổi sang bản chữ thường. Bạn có thể tự dán bằng Ctrl+V và kiểm tra định dạng trực tiếp trên Facebook.
+6. Mặc định bạn tự bấm Đăng. Tùy chọn **Ứng dụng bấm Đăng · kiểm tra từng nhóm** chỉ gửi nhóm đang làm sau xác nhận. **Sau mỗi bài luôn dừng**, không tự chuyển nhóm chỉ vì cửa sổ soạn đã đóng.
+7. Kiểm tra bài còn hiển thị hay đang chờ duyệt. Bấm **Đã gửi · sang nhóm sau** và chọn kết quả đã kiểm tra. Chọn “cần kiểm tra lại” sẽ tiếp tục dừng. Nếu bài bị gỡ, ghi trạng thái/ghi chú phù hợp, kiểm tra thông báo và quy định nhóm trước khi quyết định bước tiếp.
+8. **Tạm dừng / Bỏ qua** vẫn dùng được. Khi Facebook báo hạn chế, xác thực hoặc xóa bài, ứng dụng dừng và lưu thông báo; không tự gửi lại. Tắt giữa lúc gửi cũng cần kiểm tra trước khi tiếp tục.
 
-**Đã gửi không đồng nghĩa đã được duyệt.** Ứng dụng không tự xác định bài đã hiển thị. Chỉ xác nhận đã hiển thị sau khi mở bài thật và có permalink.
+**Không có bảo đảm tránh phát hiện, tránh kiểm duyệt hoặc tránh xóa bài.** Bài bị xóa có thể do nội dung, quy định nhóm, quản trị viên, trạng thái tài khoản hoặc nền tảng. Chưa xác minh nguyên nhân nếu không có thông báo thực tế. Các kiểm tra cảnh báo trong ứng dụng là hỗ trợ, không phát hiện được mọi trường hợp bài bị gỡ âm thầm.
 
 ### Link, ảnh minh chứng và báo cáo
 
@@ -59,13 +57,13 @@ Mở **Link bài, trạng thái & ảnh minh chứng** bên dưới bảng. Dán
 
 ## Giao diện bản mới
 
-![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.3.png)
+![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.4.png)
 
 ![Chọn nhóm theo nhãn và thực hiện danh sách lần lượt](docs/images/posting-v0.2.png)
 
 ## Cập nhật, dữ liệu và sao lưu
 
-Bản 0.3 đọc dữ liệu 0.2 và tự nâng cấp dữ liệu 0.1, giữ bài, ảnh, nhóm và lịch sử cũ. Giải nén bản mới vào thư mục khác rồi chạy; dữ liệu nằm ngoài thư mục ứng dụng. Nên sao lưu ZIP trước khi cập nhật.
+Bản 0.4 giữ dữ liệu cũ và bổ sung HTML vào các lượt đăng mới, giữ bài, ảnh, nhóm và lịch sử cũ. Giải nén bản mới vào thư mục khác rồi chạy; dữ liệu nằm ngoài thư mục ứng dụng. Nên sao lưu ZIP trước khi cập nhật.
 
 Tab **Dữ liệu & hướng dẫn** cho biết đường dẫn chính xác và có nút mở thư mục/sao lưu:
 
@@ -98,16 +96,18 @@ Lần sau dùng `start.bat`. Trên macOS/Linux dùng `python3 -m venv .venv` r�
 
 ## Kiểm thử và đóng gói
 
-Xem [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+[Thư viện và giấy phép](docs/THIRD-PARTY.md). Thư viện được đóng kèm, không cần CDN khi chạy.
+
+Xem [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'
 python -m playwright install chromium
 ruff check .
 ruff format --check .
-QT_QPA_PLATFORM=offscreen pytest -q
+QT_QPA_PLATFORM=offscreen QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu pytest -q
 ```
 
-PowerShell: đặt `$env:QT_QPA_PLATFORM = 'offscreen'` rồi chạy `python -m pytest -q`.
+Các biến Qt offscreen/sandbox trong lệnh trên chỉ dùng cho môi trường kiểm thử Linux dạng container; không thiết lập chúng để né kiểm tra của Facebook. Bản Windows dùng Qt native và sandbox mặc định.
 
 Workflow **Build Windows** tạo gói portable, chạy file `.exe` với Qt và Chromium trên Windows, rồi chỉ phát hành khi kiểm tra thành công. Chạy thủ công ở Actions; trường `release_tag` cho phép phát hành phiên bản mới. Hướng dẫn từng gói nằm trong `HUONG-DAN.txt` đi kèm.

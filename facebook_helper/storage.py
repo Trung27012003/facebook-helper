@@ -9,6 +9,7 @@ from pathlib import Path
 from platformdirs import user_data_path
 
 from .domain import STATUSES, excel_text, normalize_group, parse_tags, post_url
+from .formatting import article_html
 
 
 def now():
@@ -54,7 +55,9 @@ class Store:
                 self.db.execute("ALTER TABLE jobs ADD COLUMN batch_id INTEGER REFERENCES batches(id)")
             if "position" not in columns:
                 self.db.execute("ALTER TABLE jobs ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
-            self.db.execute("PRAGMA user_version=2")
+            if "body_html" not in columns:
+                self.db.execute("ALTER TABLE jobs ADD COLUMN body_html TEXT NOT NULL DEFAULT ''")
+            self.db.execute("PRAGMA user_version=3")
 
     def posts(self):
         return [dict(row) for row in self.db.execute("SELECT * FROM posts ORDER BY updated_at DESC, id DESC")]
@@ -136,7 +139,7 @@ class Store:
         body = post["plain"] + ("\n\n" + post["tags"] if post["tags"] else "")
         return self.db.execute(
             """INSERT INTO jobs(post_id,group_id,title,group_name,group_url,body,images,
-            created_at,updated_at,batch_id,position) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+            created_at,updated_at,batch_id,position,body_html) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 post["id"],
                 group["id"],
@@ -149,6 +152,7 @@ class Store:
                 now(),
                 batch_id,
                 position,
+                article_html(post["html"], post["tags"]),
             ),
         ).lastrowid
 

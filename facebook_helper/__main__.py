@@ -34,6 +34,7 @@ def main():
         return app.exec()
     finally:
         if window is not None:
+            window.content.release()
             window.deleteLater()
             QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         store.close()
