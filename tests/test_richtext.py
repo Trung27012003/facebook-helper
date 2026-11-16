@@ -127,3 +127,16 @@ def test_user_chosen_highlight_survives_save_snapshot(window):
         '<p><span style="background-color:rgb(10,20,180);color:rgb(255,255,255)">Tô màu có chủ ý</span></p>'
     )
     assert "background-color" in window.content.toHtml()
+
+
+def test_library_font_and_color_commands_survive_save_cleanup(window):
+    window.content.setPlainText("Kiểu chữ")
+    window.content.selectAll()
+    window.content.evaluate("editorApi.command('fontName','Tahoma')")
+    window.content.evaluate("editorApi.command('fontSize','24')")
+    window.content.evaluate("editorApi.command('foreColor','#ff0000')")
+    window.content.evaluate("editorApi.command('backColor','#ffff00')")
+    html = window.content.toHtml()
+    assert "font-family: Tahoma" in html and "font-size: 24px" in html
+    assert "color: rgb(255, 0, 0)" in html
+    assert "background-color: rgb(255, 255, 0)" in html

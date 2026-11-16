@@ -10,9 +10,17 @@ function luminance(color) {
  return .2126*Number(channels[0])+.7152*Number(channels[1])+.0722*Number(channels[2]);
 }
 function cleanHTML(html, pasted=false) {
- const clean=DOMPurify.sanitize(html,{ALLOWED_TAGS:['p','div','span','b','strong','i','em','u','s','sub','sup','br','hr','h1','h2','h3','h4','h5','h6','blockquote','pre','code','ul','ol','li','table','thead','tbody','tfoot','tr','td','th','a'],
- ALLOWED_ATTR:['style','href','colspan','rowspan','start'],ALLOW_DATA_ATTR:false});
+ const clean=DOMPurify.sanitize(html,{ALLOWED_TAGS:['p','div','span','b','strong','i','em','u','s','sub','sup','br','hr','h1','h2','h3','h4','h5','h6','blockquote','pre','code','ul','ol','li','table','thead','tbody','tfoot','tr','td','th','a','font'],
+ ALLOWED_ATTR:['style','href','colspan','rowspan','start','color','face','size'],ALLOW_DATA_ATTR:false});
  const root=document.createElement('div');root.innerHTML=clean;
+ // Summernote/Chromium's foreground-color command legitimately emits <font color>.
+ for(const font of root.querySelectorAll('font')) {
+  const span=document.createElement('span');span.style.cssText=font.style.cssText;
+  if(font.hasAttribute('color'))span.style.color=font.getAttribute('color');
+  if(font.hasAttribute('face'))span.style.fontFamily=font.getAttribute('face');
+  const size=Number(font.getAttribute('size'));if(size>=1&&size<=7)span.style.fontSize=[0,10,13,16,18,24,32,48][size]+'px';
+  while(font.firstChild)span.appendChild(font.firstChild);font.replaceWith(span);
+ }
  let darkTheme=false;
  for(const el of root.querySelectorAll('[style]')) {
   const bg=el.style.backgroundColor;
