@@ -182,12 +182,16 @@ class BrowserWorker(QThread):
         expect(submit).to_be_enabled(timeout=90000)
         check_platform_notice(self.page)
         self.progress.emit("Đang bấm Đăng…")
+        before_notices = set(self.page.locator('[role="status"], [role="alert"]').all_text_contents())
         before_url = self.page.url
-        before_links = set(
-            self.page.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
-                "nodes=>nodes.map(n=>n.href)"
-            )
-        )
+        before_links = set()
+        for href in self.page.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
+            "nodes=>nodes.map(n=>n.href)"
+        ):
+            try:
+                before_links.add(post_url(href, payload["group_url"]))
+            except ValueError:
+                pass
         payload["submission_started"] = True
         try:
             submit.click(timeout=10000)
@@ -210,16 +214,24 @@ class BrowserWorker(QThread):
             "status": "submitted",
             "message": "Đã gửi; đang tự chuyển nhóm. Chưa xác nhận hiển thị công khai.",
         }
+        result.pop("url", None)
         notices = self.page.locator('[role="status"], [role="alert"]').all_text_contents()
         if any(
             re.search(r"pending approval|submitted for approval|chờ.{0,25}(duyệt|phê duyệt)", text, re.I)
             for text in notices
+            if text not in before_notices
         ):
             result["status"] = "pending"
             result["message"] = "Facebook thông báo bài đang chờ duyệt. Tiếp tục nhóm tiếp theo."
         try:
+            try:
+                previous_post = post_url(before_url, payload["group_url"])
+            except ValueError:
+                previous_post = None
             if self.page.url != before_url:
-                result["url"] = post_url(self.page.url, payload["group_url"])
+                current_post = post_url(self.page.url, payload["group_url"])
+                if current_post != previous_post:
+                    result["url"] = current_post
             needle = next(
                 (line.strip() for line in payload.get("body", "").splitlines() if line.strip()), ""
             )[:70]
@@ -230,11 +242,12 @@ class BrowserWorker(QThread):
                     for href in article.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
                         "nodes=>nodes.map(n=>n.href)"
                     ):
-                        if href not in before_links:
-                            try:
-                                candidates.add(post_url(href, payload["group_url"]))
-                            except ValueError:
-                                pass
+                        try:
+                            canonical = post_url(href, payload["group_url"])
+                            if canonical not in before_links:
+                                candidates.add(canonical)
+                        except ValueError:
+                            pass
                 if len(candidates) == 1:
                     result["url"] = candidates.pop()
                     result["status"] = "published"

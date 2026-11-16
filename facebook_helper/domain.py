@@ -8,11 +8,11 @@ STATUSES = {
     "draft": "Chưa chuẩn bị",
     "prepared": "Đã chuẩn bị · chưa xác nhận đăng",
     "pending": "Chờ duyệt",
-    "published": "Đã hiển thị (bạn xác nhận)",
+    "published": "Đã hiển thị",
     "rejected": "Bị từ chối",
     "error": "Có lỗi",
     "sending": "Đang gửi · chưa có kết quả",
-    "submitted": "Đã gửi · cần kiểm tra",
+    "submitted": "Đã gửi · chưa xác minh hiển thị",
     "uncertain": "Chưa rõ kết quả · kiểm tra Facebook",
     "skipped": "Đã bỏ qua",
 }

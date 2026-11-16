@@ -572,3 +572,46 @@ def test_new_visible_post_gets_published_status_and_permalink(page, store):
     )
     assert result["status"] == "published"
     assert result["url"].endswith("/posts/777/")
+
+
+def test_existing_post_tracking_url_change_is_not_a_new_publication(page, store):
+    html = (
+        PUBLISH_COMPOSER.replace(
+            "window.submitted=true;",
+            "window.submitted=true;document.querySelector('a').href='https://www.facebook.com/groups/hr/posts/111/?ref=new';",
+        )
+        + '<article role="article"><p>Cùng nội dung</p><a href="https://www.facebook.com/groups/hr/posts/111/?ref=old">Hôm qua</a></article>'
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://www.facebook.com/groups/hr/", "body": "Cùng nội dung", "images": []}
+    )
+    assert result["status"] == "submitted" and not result.get("url")
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_pending_status_requires_new_facebook_notice(page, store, existing):
+    notice = "<div role=status>Submitted for approval</div>"
+    html = PUBLISH_COMPOSER
+    if existing:
+        html += notice
+    else:
+        html = html.replace(
+            "window.submitted=true;",
+            "window.submitted=true;const n=document.createElement('div');n.setAttribute('role','status');n.innerText='Submitted for approval';document.body.appendChild(n);",
+        )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": "https://www.facebook.com/groups/hr/", "body": "Nội dung", "images": []}
+    )
+    assert result["status"] == ("submitted" if existing else "pending")

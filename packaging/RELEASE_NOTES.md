@@ -10,6 +10,6 @@
 
 Summernote, dán HTML và các lựa chọn một/nhiều nhóm/theo nhãn được giữ. Không kiểm tra so khớp số ký tự sau dán.
 
-127 test toàn bộ đã đạt; sau thêm thanh tiến độ, 18 test luồng tự động và tab quản lý cũng đạt. Gói `.exe` kiểm tra trên Windows trước phát hành. Luồng Facebook kiểm thử bằng mô phỏng, chưa xác nhận trên tài khoản thật. Không bảo đảm mọi link đều nhận diện được hoặc mọi bài đều được duyệt; không tự vượt kiểm duyệt hay xác thực.
+130 test toàn bộ đã đạt, gồm luồng tự động và tab quản lý. Gói `.exe` kiểm tra trên Windows trước phát hành. Luồng Facebook kiểm thử bằng mô phỏng, chưa xác nhận trên tài khoản thật. Không bảo đảm mọi link đều nhận diện được hoặc mọi bài đều được duyệt; không tự vượt kiểm duyệt hay xác thực.
 
 Bản chưa ký mã số. SHA256 đi kèm.

@@ -1,6 +1,6 @@
 # Kiểm thử 0.5.0
 
-16/11/2026 (Asia/Saigon). Bộ đầy đủ: **127 passed, 72.57 giây**. Sau thay đổi thanh tiến độ, nhóm test queue/manager: **18 passed, 9.15 giây**. Log: [toàn bộ](test-output-v0.5.0.txt), [queue và manager](test-queue-manager-v0.5.0.txt).
+16/11/2026 (Asia/Saigon). Bộ đầy đủ: **130 passed, 82.36 giây**. Kiểm tra bổ sung bao gồm link cũ đổi tham số và thông báo chờ duyệt đã có từ trước. Nhóm test queue/manager: **18 passed, 9.15 giây**. Log: [toàn bộ](test-output-v0.5.0.txt), [queue và manager](test-queue-manager-v0.5.0.txt).
 
 Đã kiểm tra tự chạy ba nhóm theo đúng thứ tự, gửi một lần cho từng nhóm, tự cập nhật trạng thái, bỏ qua bài đã gửi khi tiếp tục, dừng khi kết quả chưa rõ; không yêu cầu xác nhận giữa bài. Kiểm tra nhận diện bài mới cùng permalink và lưu status/url nguyên tử (không ghi published khi chưa có link). Giữ tạm dừng giữa thao tác và không tự chạy khi người dùng đã dừng.
 

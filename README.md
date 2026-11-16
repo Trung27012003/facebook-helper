@@ -66,7 +66,7 @@ Mở **Link bài, trạng thái & ảnh minh chứng** bên dưới bảng. Dán
 
 ![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.4.png)
 
-![Chọn nhóm theo nhãn và thực hiện danh sách lần lượt](docs/images/posting-v0.2.png)
+![Quản lý bài đăng, tìm từ khóa và lọc ngày](docs/images/manager-v0.5.png)
 
 ## Cập nhật, dữ liệu và sao lưu
 
