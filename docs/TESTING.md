@@ -2,7 +2,7 @@
 
 Ngày kiểm tra: **16/11/2026 (Asia/Saigon)**.
 
-Kết quả: **59 passed, 0 failed, 0 skipped** trong **13.22 giây**. Kiểm tra mã `ruff check .`, định dạng `ruff format --check .` và `git diff --check` đều đạt.
+Kết quả: **60 passed, 0 failed, 0 skipped** trong **15.73 giây**. Kiểm tra mã `ruff check .`, định dạng `ruff format --check .` và `git diff --check` đều đạt.
 
 Môi trường: Linux, Python 3.12.14, PySide6 6.12.0 (Qt offscreen), Playwright 1.65.2 với Chromium headless, pytest 9.2.0, openpyxl 3.1.5. Các ca giao diện dùng widget Qt thật; các ca trình duyệt chạy Chromium thật với trang HTML mô phỏng. Không đăng nhập hay đăng bài lên Facebook thật.
 
@@ -10,7 +10,7 @@ Mỗi **lượt đăng/task hiện tại là một bài + một nhóm**. Một b
 
 ## Danh sách kiểm tra đã chạy
 
-Một dòng có thể bao gồm nhiều test tham số hóa; tổng số thực tế do pytest báo là 59. “Đạt” dưới đây chỉ áp dụng cho phạm vi tự động đã nêu.
+Một dòng có thể bao gồm nhiều test tham số hóa; tổng số thực tế do pytest báo là 60. “Đạt” dưới đây chỉ áp dụng cho phạm vi tự động đã nêu.
 
 | Mã | Cần kiểm tra | Kết quả mong đợi | Kết quả | Test đối chiếu |
 |---|---|---|---|---|
@@ -50,6 +50,8 @@ Một dòng có thể bao gồm nhiều test tham số hóa; tổng số thực 
 | A34 | Xuất Excel nhiều task và dữ liệu giống công thức | Đủ sáu lượt, không trộn nội dung, chuỗi công thức không chạy | Đạt | `test_tasks.py::test_excel_exports_each_post_group_pair_once`, `test_storage.py::test_export_neutralizes_formula_and_keeps_unicode` |
 | A35 | Sao lưu/khôi phục và bảo vệ tệp dữ liệu | Khôi phục đủ sáu lượt và ảnh; ZIP không chứa phiên Facebook; chặn đường dẫn ngoài dữ liệu | Đạt | `test_tasks.py::test_backup_restore_keeps_all_tasks_and_uploaded_images`, `test_storage.py::test_backup_consistent_and_excludes_session`, `test_images_are_owned_and_preserved` |
 | A36 | Đóng giao diện khi worker đang chạy | Worker kết thúc trước khi cửa sổ bị hủy | Đạt | `test_ui.py::test_editor_groups_history_and_shutdown` và fixture `window` |
+
+Kiểm tra bổ sung khi đóng gói: `test_packaging.py::test_packaging_smoke_exits_cleanly_with_qt_and_chromium` chạy ứng dụng trong tiến trình riêng, kiểm tra Qt mở/đóng, Chromium tải trang, tạo ảnh PNG và tiến trình thoát với mã 0. Ca này chạy từ mã Python trên Linux; kiểm tra file `.exe` thực tế trên Windows là bước riêng trong workflow **Build Windows** và kết quả nằm tại trang phát hành.
 
 ## Lỗi đã tái hiện và sửa
 

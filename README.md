@@ -2,6 +2,14 @@
 
 Ứng dụng desktop tiếng Việt cho **một người dùng**, hỗ trợ chuẩn bị tin tuyển dụng trên nhóm Facebook. Công nghệ: **Python + PySide6 + Playwright + SQLite**.
 
+## Tải bản chạy sẵn cho Windows
+
+**[Tải FacebookHelper-Windows-x64.zip](https://github.com/Trung27012003/facebook-helper/releases/latest/download/FacebookHelper-Windows-x64.zip)** · [Trang phát hành và SHA256](https://github.com/Trung27012003/facebook-helper/releases/latest)
+
+Dành cho **Windows 10/11 64-bit**. Giải nén toàn bộ ZIP, mở thư mục `FacebookHelper`, nhấp đúp **`FacebookHelper.exe`**. Không cần cài Python hay Chromium riêng. Giữ nguyên thư mục `_internal`; không chạy ứng dụng trực tiếp bên trong file ZIP. Có hướng dẫn tiếng Việt trong `HUONG-DAN.txt` đi kèm.
+
+Bản portable chưa ký mã số. Xem thông tin kiểm tra Windows và giới hạn Facebook ở trang phát hành.
+
 ## Bản 0.1 có gì?
 
 - Kho bài tuyển dụng: lưu, tìm, nhân bản, xóa; font, cỡ chữ, màu, in đậm/in nghiêng trong bản nháp.
@@ -77,7 +85,7 @@ Các thư mục: `helper.db` (SQLite), `images/`, `evidence/`, `browser/` (phiê
 
 ## Phát triển và kiểm tra
 
-Xem **[danh sách kiểm thử và kết quả](docs/TESTING.md)**: 59 test tự động, các lỗi đã sửa và các ca cần kiểm tra trên Facebook thật/Windows.
+Xem **[danh sách kiểm thử và kết quả](docs/TESTING.md)**: 60 test tự động, các lỗi đã sửa và các ca cần kiểm tra trên Facebook thật/Windows.
 
 ```bash
 python -m pip install -e '.[dev]'
