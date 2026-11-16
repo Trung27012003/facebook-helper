@@ -1,27 +1,26 @@
-FACEBOOK HELPER 0.4.2 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.5.0 — WINDOWS 10/11 64-BIT
 
-Đóng bản cũ. Giải nén toàn bộ ZIP rồi mở FacebookHelper.exe.
-Giữ nguyên _internal đi kèm. Bài, nhóm, ảnh và lịch sử cũ được giữ.
+Đóng bản cũ, giải nén toàn bộ ZIP rồi mở FacebookHelper.exe.
+Giữ _internal đi kèm. Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
 
-TỰ ĐĂNG (BẬT SẴN)
-Chọn bài/nhóm, tạo danh sách, bấm Bắt đầu tự đăng và xác nhận.
-Ứng dụng mở nhóm, dán bài, thêm ảnh, chờ ảnh tải xong và bấm Đăng.
-Đã bỏ toàn bộ đối chiếu ký tự/độ dài; không còn thông báo 374/788.
-Ứng dụng chỉ kiểm tra có chữ, ảnh tải xong và nút Đăng bấm được.
-Bạn cần kiểm tra nội dung cuối cùng trên Facebook.
+TỰ ĐĂNG TOÀN BỘ DANH SÁCH
+Soạn/lưu bài, thêm nhóm và nhãn. Chọn bài + nhóm/nhãn, tạo danh sách.
+Bật Tự đăng, chọn thời gian giữa nhóm, bấm Bắt đầu và xác nhận một lần.
+Hệ thống tự gửi, tự cập nhật kết quả và chuyển nhóm, không cần xác nhận từng bài.
+Có thể Tạm dừng/Tiếp tục/Bỏ qua; thanh tiến độ hiển thị số nhóm đã xử lý.
+Bài chờ duyệt vẫn tiếp tục nhóm sau. Lỗi hoặc chưa rõ đã gửi chưa thì dừng,
+không tự gửi lại để tránh trùng.
 
-Nếu Facebook đang có bản soạn đủ chữ và ảnh, dùng Đăng bản đang mở.
-Sau xác nhận, ứng dụng bấm Đăng mà không dán hoặc thêm ảnh lại.
+QUẢN LÝ BÀI ĐĂNG
+Tab 4 tìm từ khóa trong bài/nhóm/link/ghi chú, lọc khoảng ngày tạo lượt và trạng thái.
+Khoảng ngày bao gồm cả ngày đầu và ngày cuối, theo giờ trên máy.
+Có thể mở bài và copy link. Trạng thái và bảng tự cập nhật khi đăng.
+Link tự lưu nếu nhận diện được bài mới; nếu chưa xác định được thì để trống.
+Đã gửi không đồng nghĩa đã hiển thị. Quản trị viên nhóm vẫn quyết định duyệt bài.
 
-Sau gửi, kiểm tra bài hiển thị/chờ duyệt và cập nhật kết quả để sang nhóm sau.
-Nếu vẫn bật Tự đăng, nhóm sau sẽ tiếp tục tự bấm Đăng.
-Bỏ chọn Tự đăng nếu chỉ muốn chuẩn bị bài và tự bấm Đăng bằng tay.
+Có thể dùng Đăng bản đang mở để gửi bản nháp Facebook đã chuẩn bị;
+không dán hoặc thêm ảnh lại. Bỏ chọn Tự đăng nếu chỉ muốn chuẩn bị bài.
+Summernote và dữ liệu cũ được giữ. Không còn kiểm tra số ký tự sau dán.
 
-Vẫn dừng khi có lỗi thật: ô trống, sai nhóm, ảnh chưa tải xong, Facebook yêu cầu
-xác thực/hạn chế hoặc chưa rõ kết quả. Không tự gửi lại khi chưa rõ kết quả.
-Không có bảo đảm tránh Facebook/quản trị viên xóa bài.
-
-Summernote và định dạng HTML tiếp tục được giữ. Facebook có thể thay đổi
-định dạng hiển thị. Không có kiểm tra so khớp nội dung sau dán ở bản này.
-Sao lưu trong Dữ liệu & hướng dẫn. Không chia sẻ thư mục browser/.
+Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper

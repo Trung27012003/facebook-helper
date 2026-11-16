@@ -182,6 +182,12 @@ class BrowserWorker(QThread):
         expect(submit).to_be_enabled(timeout=90000)
         check_platform_notice(self.page)
         self.progress.emit("Đang bấm Đăng…")
+        before_url = self.page.url
+        before_links = set(
+            self.page.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
+                "nodes=>nodes.map(n=>n.href)"
+            )
+        )
         payload["submission_started"] = True
         try:
             submit.click(timeout=10000)
@@ -197,12 +203,45 @@ class BrowserWorker(QThread):
                 "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng. "
                 + str(exc)[:600],
             }
-        return {
+        result = {
             **payload,
             "filled": True,
             "sent": True,
-            "message": "Đã bấm Đăng. Danh sách đã tạm dừng: kiểm tra bài còn hiển thị hoặc chờ duyệt trước khi chuyển nhóm.",
+            "status": "submitted",
+            "message": "Đã gửi; đang tự chuyển nhóm. Chưa xác nhận hiển thị công khai.",
         }
+        notices = self.page.locator('[role="status"], [role="alert"]').all_text_contents()
+        if any(
+            re.search(r"pending approval|submitted for approval|chờ.{0,25}(duyệt|phê duyệt)", text, re.I)
+            for text in notices
+        ):
+            result["status"] = "pending"
+            result["message"] = "Facebook thông báo bài đang chờ duyệt. Tiếp tục nhóm tiếp theo."
+        try:
+            if self.page.url != before_url:
+                result["url"] = post_url(self.page.url, payload["group_url"])
+            needle = next(
+                (line.strip() for line in payload.get("body", "").splitlines() if line.strip()), ""
+            )[:70]
+            if needle and result["status"] != "pending":
+                articles = self.page.get_by_role("article").filter(has_text=needle)
+                candidates = set()
+                for article in articles.all():
+                    for href in article.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
+                        "nodes=>nodes.map(n=>n.href)"
+                    ):
+                        if href not in before_links:
+                            try:
+                                candidates.add(post_url(href, payload["group_url"]))
+                            except ValueError:
+                                pass
+                if len(candidates) == 1:
+                    result["url"] = candidates.pop()
+                    result["status"] = "published"
+                    result["message"] = "Đã thấy bài mới hiển thị và lưu link; tiếp tục nhóm tiếp theo."
+        except Exception:
+            pass  # Optional status enrichment must never repeat or block a successful send.
+        return result
 
 
 def fill_composer(page, body, images, html=None, progress=None):

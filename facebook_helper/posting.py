@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMessageBox,
+    QProgressBar,
     QSpinBox,
 )
 
@@ -80,12 +81,15 @@ class PostingMixin:
         self.group_delay.setRange(5, 300)
         self.group_delay.setValue(15)
         self.group_delay.setSuffix(" giây giữa các nhóm")
-        self.group_delay.hide()
+        self.group_delay.show()
         layout.addLayout(
             row(QLabel("Danh sách đang làm"), self.batch_filter, self.auto_send, self.group_delay)
         )
         self.queue_progress = hint("Tạo danh sách đăng để theo dõi từng nhóm và tiếp tục khi cần.")
         layout.addWidget(self.queue_progress)
+        self.queue_progress_bar = QProgressBar()
+        self.queue_progress_bar.setRange(0, 1)
+        layout.addWidget(self.queue_progress_bar)
         begin = button("Bắt đầu / tiếp tục", lambda: self.guard(self.start_posting_queue), True)
         following = button("Đã gửi · sang nhóm sau", lambda: self.guard(self.complete_queue_job))
         skip = button("Bỏ qua nhóm này", lambda: self.guard(self.skip_queue_job))
@@ -126,7 +130,7 @@ class PostingMixin:
         automatic = self.auto_send.isChecked()
         self.begin_posting_button.setText("Bắt đầu tự đăng" if automatic else "Chỉ chuẩn bị bài")
         self.posting_mode_hint.setText(
-            "TỰ ĐĂNG: mở nhóm → dán bài → tải ảnh → bấm Đăng. Sau đó kiểm tra kết quả để sang nhóm tiếp."
+            "TỰ ĐĂNG: mở nhóm → dán bài → tải ảnh → bấm Đăng. Tự cập nhật kết quả và chuyển nhóm tiếp theo."
             if automatic
             else "CHỈ CHUẨN BỊ: ứng dụng điền bài; bạn tự bấm Đăng trên Facebook."
         )
@@ -256,12 +260,18 @@ class PostingMixin:
         batch_id = self.batch_filter.currentData()
         jobs = self.store.batch_jobs(batch_id) if batch_id is not None else []
         if not jobs:
+            self.queue_progress_bar.setRange(0, 1)
+            self.queue_progress_bar.setValue(0)
             self.queue_progress.setText(
                 "Chọn một danh sách để bắt đầu. Bạn có thể lưu nhiều danh sách cho nhiều bài khác nhau."
             )
             return
-        done = sum(job["status"] in {"pending", "published", "rejected", "skipped"} for job in jobs)
-        errors = sum(job["status"] in {"error", "uncertain", "sending", "submitted"} for job in jobs)
+        done = sum(
+            job["status"] in {"submitted", "pending", "published", "rejected", "skipped"} for job in jobs
+        )
+        self.queue_progress_bar.setRange(0, len(jobs))
+        self.queue_progress_bar.setValue(done)
+        errors = sum(job["status"] in {"error", "uncertain"} for job in jobs)
         suffix = (
             " · Đang thực hiện"
             if self.queue_active
@@ -275,7 +285,7 @@ class PostingMixin:
 
     def next_queue_job(self, batch_id):
         for job in self.store.batch_jobs(batch_id):
-            if job["status"] in {"uncertain", "sending", "submitted"}:
+            if job["status"] in {"uncertain", "sending"}:
                 if job["status"] == "sending":
                     self.store.update_job(job["id"], status="uncertain")
                 self.refresh_jobs(job["id"])
@@ -308,7 +318,7 @@ class PostingMixin:
                     "Xác nhận tự gửi bài",
                     f"Bài: {job['title']}\nNhóm sắp đăng: {job['group_name']}\nDanh sách có {len(jobs)} nhóm còn lại:\n"
                     + names
-                    + "\n\nSau mỗi bài, xác nhận kết quả rồi tiếp tục nhóm sau. Bạn đã kiểm tra bài, ảnh và các nhóm này?",
+                    + "\n\nỨng dụng tự cập nhật kết quả gửi và chuyển nhóm tiếp theo. Bạn đã kiểm tra bài, ảnh và các nhóm này?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.No,
                 )
@@ -372,11 +382,15 @@ class PostingMixin:
         ):
             self.pause_posting_queue(announce=False)
             return
-        if action in {"publish", "publish_current"} and result.get("sent"):
-            self.pause_posting_queue(announce=False)
+        if (
+            action in {"publish", "publish_current"}
+            and result.get("sent")
+            and self.queue_active
+            and self.queue_auto
+        ):
+            self.queue_timer.start(self.group_delay.value() * 1000)
             self.statusBar().showMessage(
-                "Đã bấm Đăng. Kiểm tra bài còn hiển thị/chờ duyệt; chọn kết quả thực tế trước khi tiếp tục. Không tự gửi tiếp.",
-                30000,
+                f"Đã gửi. Tự chuyển nhóm sau {self.group_delay.value()} giây; có thể Tạm dừng.", 30000
             )
         self.update_queue_progress()
 

@@ -553,3 +553,22 @@ def test_completed_progress_indicator_does_not_block_posting(page, store):
     worker.page = page
     result = worker.execute("publish_current", {"group_url": "https://www.facebook.com/groups/hr/"})
     assert result["sent"] and page.evaluate("window.submitted")
+
+
+def test_new_visible_post_gets_published_status_and_permalink(page, store):
+    html = PUBLISH_COMPOSER.replace(
+        "window.submitted=true;",
+        "window.submitted=true;const a=document.createElement('article');a.setAttribute('role','article');a.innerHTML='<p>Tuyển kỹ sư mới</p><a href=https://www.facebook.com/groups/hr/posts/777/>Vừa xong</a>';document.body.appendChild(a);",
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish",
+        {"group_url": "https://www.facebook.com/groups/hr/", "body": "Tuyển kỹ sư mới", "images": []},
+    )
+    assert result["status"] == "published"
+    assert result["url"].endswith("/posts/777/")

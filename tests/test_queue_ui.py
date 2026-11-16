@@ -65,31 +65,27 @@ def test_guided_queue_prepares_in_order_and_resume_skips_finished_groups(
         window.pause_posting_queue()
 
 
-def test_automatic_queue_requires_confirmation_then_verification_after_each_post(
+def test_automatic_queue_runs_all_groups_without_confirmation_between_posts(
     window, store, task_data, monkeypatch
 ):
     _, jobs = batch_for_window(window, store, task_data)
     commands = []
-    window.auto_send.setChecked(True)
     with monkeypatch.context() as patch:
         patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
-        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.No)
-        window.start_posting_queue()
-        assert commands == []
         patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
         window.start_posting_queue()
-        window.browser_done(
-            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
-        )
-        assert not window.queue_active and not window.queue_timer.isActive()
-        with pytest.raises(ValueError, match="kiểm tra"):
-            window.start_posting_queue()
-        assert len(commands) == 1
-        store.update_job(jobs[0]["id"], status="pending")
-        window.start_posting_queue()
-        assert commands[1][1]["job_id"] == jobs[1]["id"]
-        window.finish_browser()
-        window.pause_posting_queue()
+        for index, job in enumerate(jobs):
+            assert commands[index][1]["job_id"] == job["id"]
+            window.browser_done(
+                "publish", {**commands[index][1], "filled": True, "sent": True, "message": "Đã gửi"}
+            )
+            assert window.queue_timer.isActive()
+            window.queue_timer.stop()
+            window.queue_continue()
+        assert len(commands) == len(jobs)
+        assert window.queue_progress_bar.value() == len(jobs)
+        assert not window.queue_active
+        assert all(store.job(j["id"])["status"] == "submitted" for j in jobs)
 
 
 def test_uncertain_submission_stops_and_blocks_automatic_retry(window, store, task_data, monkeypatch):
@@ -136,20 +132,10 @@ def test_switching_batch_pauses_auto_timer_and_keeps_tasks_separate(window, stor
     assert visible == [store.batch_jobs(second)[0]["id"]]
 
 
-def test_automatic_queue_never_advances_to_second_group_without_review(window, store, task_data, monkeypatch):
-    _, jobs = batch_for_window(window, store, task_data)
-    commands = []
-    window.auto_send.setChecked(True)
-    with monkeypatch.context() as patch:
-        patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
-        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
-        window.start_posting_queue()
-        window.browser_done(
-            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
-        )
-        window.queue_continue()
-        assert len(commands) == 1
-        assert store.job(jobs[1]["id"])["status"] == "draft"
+def test_submitted_post_is_skipped_when_resuming_queue(window, store, task_data):
+    batch, jobs = batch_for_window(window, store, task_data)
+    store.update_job(jobs[0]["id"], status="submitted")
+    assert window.next_queue_job(batch)["id"] == jobs[1]["id"]
 
 
 def test_skip_group_continues_only_current_batch(window, store, task_data, monkeypatch):
@@ -227,24 +213,6 @@ def test_auto_mode_is_default_and_button_explains_its_action(window):
     assert window.begin_posting_button.text() == "Chỉ chuẩn bị bài"
 
 
-def test_confirming_first_auto_post_keeps_auto_mode_for_the_next_group(window, store, task_data, monkeypatch):
-    _, jobs = batch_for_window(window, store, task_data)
-    commands = []
-    with monkeypatch.context() as patch:
-        patch.setattr(window.browser, "submit", lambda action, payload: commands.append((action, payload)))
-        patch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
-        patch.setattr(QInputDialog, "getItem", lambda *args: ("Đã gửi, đang chờ duyệt", True))
-        window.start_posting_queue()
-        window.browser_done(
-            "publish", {**commands[0][1], "filled": True, "sent": True, "message": "Đã bấm Đăng"}
-        )
-        window.complete_queue_job()
-        assert [command[0] for command in commands] == ["publish", "publish"]
-        assert commands[1][1]["job_id"] == jobs[1]["id"]
-        window.finish_browser()
-        window.pause_posting_queue()
-
-
 def test_publish_open_draft_requires_confirmation_and_uses_recovery_action(
     window, store, task_data, monkeypatch
 ):
@@ -265,3 +233,21 @@ def test_publish_open_draft_requires_confirmation_and_uses_recovery_action(
         )
         assert store.job(jobs[0]["id"])["status"] == "submitted"
         assert not window.queue_active
+
+
+def test_verified_publication_saves_status_and_url_atomically(window, store, task_data):
+    _, jobs = batch_for_window(window, store, task_data)
+    store.update_job(jobs[0]["id"], status="sending")
+    window.browser_done(
+        "publish",
+        {
+            "job_id": jobs[0]["id"],
+            "filled": True,
+            "sent": True,
+            "status": "published",
+            "url": "https://www.facebook.com/groups/hr-0/posts/999/",
+            "message": "Đã thấy bài",
+        },
+    )
+    saved = store.job(jobs[0]["id"])
+    assert saved["status"] == "published" and saved["url"].endswith("/posts/999/")

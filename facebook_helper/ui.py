@@ -33,6 +33,7 @@ from . import __version__
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
 from .editor import SummernoteEditor
+from .manager import PostManager
 from .posting import SENT, PostingMixin
 from .templates import RecruitmentDialog
 from .widgets import button, hint, row
@@ -93,12 +94,15 @@ class MainWindow(PostingMixin, QMainWindow):
         self.tabs.addTab(self.build_editor(), "1. Soạn bài")
         self.tabs.addTab(self.build_groups(), "2. Nhóm & nhãn")
         self.tabs.addTab(self.build_jobs(), "3. Đăng bài")
+        self.post_manager = PostManager(store, self)
+        self.tabs.addTab(self.post_manager, "4. Quản lý bài đăng")
         self.tabs.addTab(self.build_settings(), "Dữ liệu & hướng dẫn")
         layout.addWidget(self.tabs)
         self.setCentralWidget(container)
         self.refresh_posts()
         self.refresh_groups()
         self.refresh_jobs()
+        self.tabs.currentChanged.connect(lambda *_: self.post_manager.refresh())
         self.statusBar().showMessage("Sẵn sàng · Dữ liệu được lưu trên máy này")
 
     def guard(self, callback):
@@ -827,7 +831,18 @@ class MainWindow(PostingMixin, QMainWindow):
                     "uncertain" if result.get("uncertain") else "submitted" if result.get("sent") else "error"
                 )
                 if self.store.job(result["job_id"])["status"] not in SENT:
-                    self.store.update_job(result["job_id"], status=status, note=result.get("message", ""))
+                    self.store.update_job(
+                        result["job_id"],
+                        status=result["status"]
+                        if result.get("sent")
+                        and not result.get("uncertain")
+                        and result.get("status") in {"submitted", "pending", "published"}
+                        else status,
+                        note=result.get("message", ""),
+                        **({"url": result["url"]} if result.get("sent") and result.get("url") else {}),
+                    )
+            if action in {"publish", "publish_current"} and result.get("url") and result.get("sent"):
+                self.store.update_job(result["job_id"], url=result["url"])
             if action == "read_link":
                 self.store.update_job(result["job_id"], url=result["url"])
             if action == "screenshot":
@@ -836,6 +851,7 @@ class MainWindow(PostingMixin, QMainWindow):
                     raise ValueError("Link bài đã thay đổi trong khi chụp. Hãy mở link mới và chụp lại.")
                 self.store.update_job(result["job_id"], evidence=result["evidence"])
             self.refresh_jobs()
+            self.post_manager.refresh()
             return True
 
         if self.guard(save):
@@ -886,7 +902,7 @@ class MainWindow(PostingMixin, QMainWindow):
         <p><b>Chỉ chuẩn bị (bỏ chọn Tự đăng bài):</b> ứng dụng mở nhóm và điền bài. Bạn kiểm tra,
         tự bấm Đăng trong Facebook rồi bấm Đã gửi · sang nhóm sau và chọn kết quả thực tế.</p>
         <p><b>Tự đăng bài (mặc định bật):</b> bấm Bắt đầu tự đăng, xác nhận bài và danh sách nhóm.
-        Ứng dụng mở ô soạn, dán HTML, đính kèm ảnh, chờ tải xong rồi bấm Đăng. Không so khớp ký tự hay độ dài nội dung đọc lại. Sau mỗi bài luôn dừng để kiểm tra kết quả trước khi chuyển nhóm.
+        Ứng dụng mở ô soạn, dán HTML, đính kèm ảnh, chờ tải xong rồi bấm Đăng. Không so khớp ký tự hay độ dài nội dung đọc lại. Tự cập nhật kết quả gửi rồi chuyển sang nhóm tiếp theo; chỉ dừng khi có lỗi hoặc kết quả chưa rõ.
         Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
         <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
         quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>

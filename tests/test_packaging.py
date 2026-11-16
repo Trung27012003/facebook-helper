@@ -16,5 +16,5 @@ def test_packaging_smoke_exits_cleanly_with_qt_and_chromium(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     data = json.loads((tmp_path / "smoke-result.json").read_text(encoding="utf-8"))
     assert data["ok"] and data["qt_started"] and data["worker_stopped"]
-    assert data["tabs"] == 4 and data["chromium"]
+    assert data["tabs"] == 5 and data["chromium"]
     assert (tmp_path / "packaged-browser.png").read_bytes().startswith(b"\x89PNG\r\n\x1a\n")

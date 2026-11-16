@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.4.2 · Summernote
+## Cách dùng bản 0.5.0 · Summernote
 
 ### 1. Soạn bài
 
@@ -41,9 +41,16 @@ Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiề
 3. Kiểm tra danh sách đã tích; có thể bỏ bớt nhóm. Thứ tự thực hiện là từ trên xuống.
 4. Đặt tên danh sách nếu muốn → **Tạo danh sách đăng**. Mỗi nhóm có một lượt riêng, giữ bản nội dung/ảnh tại thời điểm tạo. Có thể tạo nhiều danh sách cho nhiều bài khác nhau trước khi bắt đầu.
 5. **Tự đăng bài** được bật sẵn. Bấm **Bắt đầu tự đăng**, xác nhận bài và nhóm: ứng dụng mở nhóm → dán HTML → đính kèm ảnh → chờ ảnh tải xong/nút Đăng sẵn sàng → tự bấm Đăng. Không so khớp nội dung hay số ký tự đọc lại; không có chặn “374/788”.
-6. Nếu chỉ muốn chuẩn bị, bỏ chọn **Tự đăng bài**; nút bắt đầu đổi thành **Chỉ chuẩn bị bài**. Nếu Facebook đã có bản soạn đủ chữ/ảnh, dùng **Đăng bản đang mở** sau khi kiểm tra: gửi bản đó mà không dán/đính kèm lại. **Sau mỗi bài vẫn dừng** để xác nhận kết quả trước khi sang nhóm tiếp theo.
-7. Kiểm tra bài còn hiển thị hay đang chờ duyệt. Bấm **Đã gửi · sang nhóm sau** và chọn kết quả đã kiểm tra. Chọn “cần kiểm tra lại” sẽ tiếp tục dừng. Nếu bài bị gỡ, ghi trạng thái/ghi chú phù hợp, kiểm tra thông báo và quy định nhóm trước khi quyết định bước tiếp.
-8. **Tạm dừng / Bỏ qua** vẫn dùng được. Khi Facebook báo hạn chế, xác thực hoặc xóa bài, ứng dụng dừng và lưu thông báo; không tự gửi lại. Tắt giữa lúc gửi cũng cần kiểm tra trước khi tiếp tục.
+6. Nếu chỉ muốn chuẩn bị, bỏ chọn **Tự đăng bài**; nút bắt đầu đổi thành **Chỉ chuẩn bị bài**. Nếu Facebook đã có bản soạn đủ chữ/ảnh, dùng **Đăng bản đang mở** sau khi kiểm tra: gửi bản đó mà không dán/đính kèm lại. **Sau mỗi bài tự cập nhật trạng thái và chuyển nhóm tiếp theo** sau thời gian chờ đã chọn, không yêu cầu xác nhận từng bài.
+7. **Không cần xác nhận giữa các nhóm.** Bài được ghi đã gửi, chờ duyệt khi Facebook có thông báo, hoặc đã hiển thị khi nhận diện được bài mới cùng link. Bài chờ duyệt không làm dừng danh sách. Lỗi hoặc chưa rõ kết quả sẽ dừng để tránh gửi trùng.
+8. Xem thanh tiến độ để biết số nhóm đã xử lý. Có thể Tạm dừng/Tiếp tục/Bỏ qua. Tốc độ giữa nhóm được chỉnh ở ô thời gian chờ.
+
+### Quản lý bài đăng
+
+Tab **4. Quản lý bài đăng** hiển thị lịch sử tách biệt với danh sách đang chạy. Tìm theo từ khóa trong tiêu đề, nội dung, tên nhóm, ghi chú hoặc link; kết hợp trạng thái và khoảng ngày tạo lượt (theo giờ trên máy, bao gồm cả ngày đầu và ngày cuối). Có nút mở bài và copy link. Các kết quả mới tự làm mới bảng trong lúc chạy.
+
+Link được lưu tự động khi nhận diện được link bài mới đúng nhóm; không lấy link bài cũ có sẵn trước lúc gửi. Nếu không nhận diện được, trạng thái giữ là đã gửi và link để trống, không tự bịa link hoặc đánh dấu đã hiển thị. Việc quản trị viên duyệt bài vẫn do nhóm quyết định.
+
 
 **Không có bảo đảm tránh phát hiện, tránh kiểm duyệt hoặc tránh xóa bài.** Bài bị xóa có thể do nội dung, quy định nhóm, quản trị viên, trạng thái tài khoản hoặc nền tảng. Chưa xác minh nguyên nhân nếu không có thông báo thực tế. Các kiểm tra cảnh báo trong ứng dụng là hỗ trợ, không phát hiện được mọi trường hợp bài bị gỡ âm thầm.
 
@@ -98,13 +105,13 @@ Lần sau dùng `start.bat`. Trên macOS/Linux dùng `python3 -m venv .venv` r�
 
 Đã bỏ hoàn toàn việc so sánh bản lưu với văn bản đọc từ Facebook, kể cả độ dài, từng chữ, số và kiểu định dạng trong DOM. Các test cũ yêu cầu chặn sai số tiền/thiếu đoạn do đối chiếu không còn là hành vi của bản này. Ứng dụng chỉ chờ chữ được nhận, ảnh tải xong và nút Đăng bấm được; nội dung/định dạng cuối cùng cần được người dùng kiểm tra trong Facebook.
 
-Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi/hạn chế/xác thực hoặc chưa rõ kết quả sau bấm. Không tự dán lại hoặc bấm Đăng lần hai khi kết quả chưa rõ. Tự đăng được bật mặc định và được giữ cho nhóm tiếp theo sau khi xác nhận kết quả bài trước.
+Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi/hạn chế/xác thực hoặc chưa rõ kết quả sau bấm. Không tự dán lại hoặc bấm Đăng lần hai khi kết quả chưa rõ. Tự đăng được bật mặc định; nhóm tiếp theo được thực hiện tự động khi bài trước gửi xong.
 
 ## Kiểm thử và đóng gói
 
 [Thư viện và giấy phép](docs/THIRD-PARTY.md). Thư viện được đóng kèm, không cần CDN khi chạy.
 
-Xem [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

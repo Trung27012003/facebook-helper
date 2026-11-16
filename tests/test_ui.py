@@ -10,7 +10,7 @@ def test_editor_groups_history_and_shutdown(app, store):
     try:
         window.show()
         app.processEvents()
-        assert window.tabs.count() == 4
+        assert window.tabs.count() == 5
         window.title.setText("Nhân viên kinh doanh")
         window.content.setPlainText("Ứng tuyển ngay\nLương thỏa thuận")
         window.content.selectAll()
