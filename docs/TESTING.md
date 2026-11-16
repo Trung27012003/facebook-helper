@@ -62,16 +62,24 @@ Kiểm tra bổ sung khi đóng gói: `test_packaging.py::test_packaging_smoke_e
 
 Ba lỗi đầu được tái hiện bằng lượt chạy 22 test mới: **19 đạt, 3 lỗi** trước khi sửa. Lỗi thứ tư được tái hiện sau đó trong test trình duyệt của nhánh mở nút tải ảnh. Các ca tương ứng đều đạt trong lượt chạy cuối.
 
+## Kết quả gói Windows v0.1.0
+
+Workflow [Build Windows #43845312660](https://github.com/Trung27012003/facebook-helper/actions/runs/43845312660) đã thành công trên `windows-latest` ở mã nguồn `45040167b42eef414ed87227cc791e754b2f7287`.
+
+File `.exe` đã qua kiểm tra tự động: `ok=true`, `qt_started=true`, `tabs=4`, `worker_stopped=true`; Chromium đóng kèm phiên bản `159.0.8154.6` mở được trang thử và tạo PNG. Kiểm tra dùng Qt offscreen trên runner Windows; chưa thay thế thử nghiệm tương tác trên máy cá nhân hoặc đăng bài Facebook thật.
+
+[Tải ZIP Windows 64-bit](https://github.com/Trung27012003/facebook-helper/releases/download/v0.1.0/FacebookHelper-Windows-x64.zip), dung lượng **445.825.127 byte** (khoảng 425 MiB). SHA256: `78c1c6d17b2be97bbc3767d0ec54d661369673d318f79f61a622be54ec95376b`.
+
 ## Danh sách cần kiểm tra trên Facebook thật / Windows
 
-**Chưa thực hiện** vì phiên kiểm thử này không có tài khoản Facebook đã đăng nhập và nhóm dùng thử, đồng thời môi trường chạy là Linux. Không đánh dấu các ca này là đạt dựa trên mô phỏng.
+**Chưa hoàn tất kiểm tra tương tác thực tế** vì phiên này không có tài khoản Facebook đã đăng nhập và nhóm dùng thử. Gói `.exe` và Chromium đã qua kiểm tra khởi động trên runner Windows như ghi ở trên; các ca dưới đây cần thao tác thực tế bổ sung.
 
 Chuẩn bị: một máy Windows, tài khoản của người kiểm thử, hai nhóm được phép thử đăng (một nhóm duyệt trực tiếp, một nhóm chờ duyệt), hai bài thử khác nhau với hai ảnh mỗi bài. Chỉ đăng sau khi người kiểm thử xác nhận trong Facebook.
 
 | Mã | Thao tác cần thử | Tiêu chí đạt | Trạng thái |
 |---|---|---|---|
 | M01 | Cài mới bằng README; chạy `start.bat`; mở lại | Qt mở được, Chromium khởi động, dữ liệu còn sau khi mở lại | Chưa test Windows |
-| M02 | Tạo bản `.exe` bằng workflow và chạy trên máy không cài Python | Không thiếu Qt/Chromium; mở được giao diện và trình duyệt | Chưa test Windows |
+| M02 | Tạo bản `.exe` bằng workflow và chạy trên máy không cài Python | Không thiếu Qt/Chromium; mở được giao diện và trình duyệt | Đã qua khởi động tự động trên runner Windows; chưa test trên máy cá nhân không cài Python |
 | M03 | Đăng nhập, đóng/mở lại ứng dụng, rồi đăng xuất | Phiên được giữ trong hồ sơ riêng; đăng xuất có hiệu lực | Chưa test Facebook thật |
 | M04 | Bài A → hai nhóm, từng nhóm một | Nội dung, xuống dòng, ảnh và thứ tự đúng; task/link/ảnh minh chứng độc lập | Chưa test Facebook thật |
 | M05 | Bài A → nhóm 1; bài B → nhóm 2 | Không lẫn chữ, ảnh và hashtag giữa hai bài | Chưa test Facebook thật |
