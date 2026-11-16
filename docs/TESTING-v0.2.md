@@ -32,3 +32,11 @@ Các ca mới nằm trong `tests/test_batches.py`, `tests/test_queue_ui.py`, `te
 - Lấy permalink, chụp đúng bài, phân biệt gửi xong/chờ duyệt/đã hiển thị.
 
 Các ca Facebook thật ở trên **chưa thực hiện** vì không có tài khoản và nhóm thử trong môi trường này. Kết quả mô phỏng không khẳng định tương thích với giao diện Facebook hiện hành.
+
+## Gói Windows đã phát hành
+
+Workflow [Build Windows #43854153302](https://github.com/Trung27012003/facebook-helper/actions/runs/43854153302) thành công trên `windows-latest`, từ mã nguồn `b8f6d81f401e11fe6f01c75c6ced838e22816d1f`. File `.exe` đã mở/đóng Qt và Chromium đóng kèm thành công. Bộ kiểm tra mã nguồn trên GitHub cũng thành công.
+
+[Tải bản 0.2.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.2.0). File ZIP: 445.862.120 byte. SHA256: `6ec7a3fbb28efc258de254a445da64be246f510d34ecb483162d270f83bc66e9`.
+
+Kiểm tra Windows dùng Qt offscreen, xác nhận việc đóng gói/khởi động; chưa thay thế các ca Facebook thật và kiểm tra tương tác trên máy cá nhân nêu trên.
