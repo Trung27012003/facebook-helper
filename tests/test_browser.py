@@ -318,3 +318,9 @@ def test_removal_notice_after_click_stops_and_does_not_claim_published(page, sto
     )
     assert result["uncertain"] and not result["sent"]
     assert "removed" in result["message"]
+
+
+def test_legacy_plain_only_history_is_not_silently_posted_again(store):
+    worker = BrowserWorker(store.root)
+    with pytest.raises(ValueError, match="Lượt đăng cũ chỉ có chữ thuần"):
+        worker.execute("publish", {"body_html": "", "body": "Bài cũ"})

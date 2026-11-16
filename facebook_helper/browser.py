@@ -78,6 +78,10 @@ class BrowserWorker(QThread):
                     pass
 
     def execute(self, action, payload):
+        if action in {"fill", "prepare", "publish"} and payload.get("body_html") == "":
+            raise ValueError(
+                "Lượt đăng cũ chỉ có chữ thuần. Hãy lưu lại bài bằng Summernote rồi tạo danh sách đăng mới để dùng định dạng; không tự đăng bản chữ thường."
+            )
         if action == "login":
             self.page.goto("https://www.facebook.com/", wait_until="domcontentloaded")
             self.page.bring_to_front()
