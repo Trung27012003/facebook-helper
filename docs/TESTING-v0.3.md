@@ -23,3 +23,11 @@ Các ca mới: `tests/test_richtext.py`. Ca đóng gói `facebook_helper/smoke.p
 Lỗi sửa trong quá trình kiểm tra: bảng được chèn nhưng con trỏ còn ở ngoài bảng; định dạng cũ còn sau xóa nội dung và dán chữ thuần; khoảng trắng giữa các đoạn HTML tạo khoảng trắng thừa khi dán; dọn clipboard của fixture offscreen trước khi kết thúc pytest.
 
 Cần kiểm tra thêm với clipboard thật của từng phiên bản Word/Chrome trên máy người dùng: bảng phức tạp, ảnh nhúng, font chưa cài và CSS trang nguồn. Không cam kết giữ mọi bố cục Word/CSS. Các kiểm thử ở đây không xác nhận định dạng nào được Facebook chấp nhận khi dán; tự điền hiện dùng chữ thuần.
+
+## Bản Windows đã xác nhận
+
+Workflow [Build Windows #43856857520](https://github.com/Trung27012003/facebook-helper/actions/runs/43856857520) thành công ở mã `57dd0a4ee9a7f1d2033eab99fac79501449d9269`. Chạy file `.exe` với `QT_QPA_PLATFORM=windows`: `ok=true`, `rich_paste_and_copy=true`, `qt_started=true`, `worker_stopped=true`. Đây là kiểm tra clipboard Qt native Windows, không chỉ mô phỏng offscreen.
+
+[Tải 0.3.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.3.0), ZIP 445.896.811 byte. SHA256: `3dab29223ee5dd5313c4fc8502a2d5e37c2e85f7e6fdcd2aafd6ff3d2ce3c060`. CI mã nguồn cũng thành công.
+
+HTML dùng trong kiểm tra đại diện cho các kiểu định dạng hỗ trợ; chưa phải kiểm tra trực tiếp từng phiên bản Word hoặc định dạng được Facebook chấp nhận.
