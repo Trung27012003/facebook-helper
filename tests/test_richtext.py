@@ -140,3 +140,23 @@ def test_library_font_and_color_commands_survive_save_cleanup(window):
     assert "font-family: Tahoma" in html and "font-size: 24px" in html
     assert "color: rgb(255, 0, 0)" in html
     assert "background-color: rgb(255, 255, 0)" in html
+
+
+def test_delayed_bridge_notification_cannot_mark_saved_post_dirty(window, app):
+    window.title.setText("Bài lưu")
+    window.content.setPlainText("Nội dung")
+    window.content.selectAll()
+    window.content.evaluate("editorApi.command('bold')")
+    window.save_post()
+    window.content._changed("<p>cũ</p>", "cũ", True, window.content._revision - 1, window.content._generation)
+    app.processEvents()
+    assert not window.dirty
+    assert "<b>" in window.content.toHtml()
+
+
+def test_old_post_generation_is_ignored_after_loading_another_post(window):
+    window.content.setHtml("<p>Bài cũ</p>")
+    old_generation = window.content._generation
+    window.content.setHtml("<p>Bài mới</p>")
+    window.content._changed("<p>Bài cũ</p>", "Bài cũ", True, 9999, old_generation)
+    assert window.content.toPlainText() == "Bài mới"

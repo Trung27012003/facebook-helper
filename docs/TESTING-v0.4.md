@@ -1,6 +1,6 @@
 # Kiểm thử 0.4: Summernote, định dạng và xác nhận kết quả đăng
 
-Ngày 16/11/2026 (Asia/Saigon). Linux, Python 3.12.14, PySide6 6.12.0, Chromium Playwright. **105 test đạt (42.17 giây)**. Kết quả lệnh đầy đủ ở [test-output-v0.4.txt](test-output-v0.4.txt).
+Ngày 16/11/2026 (Asia/Saigon). Linux, Python 3.12.14, PySide6 6.12.0, Chromium Playwright. **109 test đạt (42.64 giây)**. Kết quả lệnh đầy đủ ở [test-output-v0.4.txt](test-output-v0.4.txt).
 
 Các ca chính:
 
@@ -19,3 +19,5 @@ Các ca chính:
 Chưa có tài khoản/nhóm Facebook thật trong môi trường để xác minh giao diện hiện hành hoặc nguyên nhân bài người dùng bị xóa. Mô phỏng không chứng minh bài sẽ được Facebook giữ lại. Việc dừng khi thấy cảnh báo không phát hiện mọi hình thức gỡ bài âm thầm; vì vậy cần kiểm tra trực tiếp sau mỗi bài.
 
 Không có thay đổi che giấu browser automation, giả fingerprint, xoay IP/tài khoản hoặc vượt xác thực. Các cờ tắt sandbox/GPU trong môi trường test Linux chỉ phục vụ Qt WebEngine chạy trong container; không được đưa vào cấu hình trình duyệt Facebook của sản phẩm.
+
+Bổ sung: kiểm tra lệnh font/màu thực tế của Summernote, chặn lịch sử chỉ có chữ thuần, và chống callback cũ đánh dấu nhầm bài vừa lưu/chuyển bài. Kết quả lưu dùng revision và generation để bỏ qua thông báo editor về muộn. Workflow phát hành yêu cầu CI mã nguồn thành công trước khi công khai ZIP.

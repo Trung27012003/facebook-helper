@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     env:
       PLAYWRIGHT_BROWSERS_PATH: '0'
     steps:
@@ -46,6 +47,16 @@ jobs:
           name: FacebookHelper-Windows-x64
           path: release/*
           compression-level: 0
+      - name: Require source checks before publishing
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $runs = @(gh run list --workflow ci.yml --commit "$env:GITHUB_SHA" --limit 1 --json databaseId | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0 -or $runs.Count -eq 0) { throw 'Source Checks run not found for this commit' }
+          gh run watch $runs[0].databaseId --exit-status --interval 15
+          if ($LASTEXITCODE -ne 0) { throw 'Source checks failed; release will not be published' }
       - name: Publish downloadable release
         if: inputs.release_tag != ''
         env:

@@ -1,7 +1,7 @@
 /* Summernote provides the toolbar and editing commands. This adapter handles Qt transport and paste cleanup. */
 (() => {
 'use strict';
-let bridge=null, programmatic=0,plainPaste=false;
+let bridge=null, programmatic=0,plainPaste=false,revision=0,generation=0;
 const allowedStyle=new Set(['font-weight','font-style','text-decoration','font-size','font-family','color','background-color','text-align','vertical-align']);
 function luminance(color) {
  const p=document.createElement('span');p.style.color=color;document.body.appendChild(p);
@@ -60,8 +60,8 @@ function plainHTML(html) {
  }
  return Array.from(root.childNodes).map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
 }
-function snapshot(){const html=cleanHTML($('#editor').summernote('code'));return {html,plain:plainHTML(html)};}
-function notify(){if(bridge){const data=snapshot();bridge.changed(data.html,data.plain,!programmatic);}}
+function snapshot(){const html=cleanHTML($('#editor').summernote('code'));return {html,plain:plainHTML(html),revision,generation};}
+function notify(){revision++;if(bridge){const data=snapshot();bridge.changed(data.html,data.plain,!programmatic,revision,generation);}}
 function paste(html,text,plain=false) {
  const source=plain?'':html;
  if(source)$('#editor').summernote('pasteHTML',cleanHTML(source,true));
@@ -75,7 +75,7 @@ $('#editor').summernote({lang:'vi-VN',height:400,minHeight:180,dialogsInBody:tru
  toolbar:[['style',['style']],['font',['bold','italic','underline','clear']],['fontname',['fontname']],['fontsize',['fontsize']],['color',['color']],['para',['ul','ol','paragraph']],['table',['table']],['insert',['link','hr']],['view',['fullscreen','codeview','help']]],
  callbacks:{onChange:notify,onKeydown(e){plainPaste=(e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key.toLowerCase()==='v';},onPaste(event){event.preventDefault();const data=(event.originalEvent||event).clipboardData;if(data)paste(data.getData('text/html'),data.getData('text/plain'),plainPaste);plainPaste=false;},onImageUpload(){if(bridge)bridge.notice('Dùng nút Thêm ảnh để đính kèm ảnh tuyển dụng.');}}});
 window.editorApi={snapshot,cleanHTML,plainHTML,paste,
- setContent(html){programmatic++;try{$('#editor').summernote('code',cleanHTML(html,/qrichtext|-qt-/i.test(html)));}finally{programmatic--;}return snapshot();},
+ setContent(html,version){if(typeof version==='number')generation=version;programmatic++;try{$('#editor').summernote('code',cleanHTML(html,/qrichtext|-qt-/i.test(html)));}finally{programmatic--;}return snapshot();},
  command(name,value){$('#editor').summernote(name,value);return snapshot();},
  placeholder(value){$('.note-placeholder').text(value);},
  focus(){$('#editor').summernote('focus');},

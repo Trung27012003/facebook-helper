@@ -11,13 +11,13 @@ from PySide6.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 
 class EditorBridge(QObject):
-    changed_signal = Signal(str, str, bool)
+    changed_signal = Signal(str, str, bool, int, int)
     loaded_signal = Signal()
     notice_signal = Signal(str)
 
-    @Slot(str, str, bool)
-    def changed(self, html, plain, user):
-        self.changed_signal.emit(html, plain, user)
+    @Slot(str, str, bool, int, int)
+    def changed(self, html, plain, user, revision, generation):
+        self.changed_signal.emit(html, plain, user, revision, generation)
 
     @Slot()
     def loaded(self):
@@ -47,6 +47,8 @@ class SummernoteEditor(QWidget):
         self.bridge.loaded_signal.connect(self._loaded)
         self.bridge.notice_signal.connect(lambda message: self.notice(message) if self.notice else None)
         self._is_ready = False
+        self._generation = 0
+        self._revision = -1
         self._html = ""
         self._plain = ""
         self._placeholder = ""
@@ -59,13 +61,19 @@ class SummernoteEditor(QWidget):
 
     def _loaded(self):
         self._is_ready = True
-        self.view.page().runJavaScript("editorApi.setContent(" + json.dumps(self._html) + ")")
+        self.view.page().runJavaScript(
+            "editorApi.setContent(" + json.dumps(self._html) + "," + str(self._generation) + ")"
+        )
         self.view.page().runJavaScript("editorApi.placeholder(" + json.dumps(self._placeholder) + ")")
         self.ready.emit()
 
-    def _changed(self, html, plain, user):
+    def _changed(self, html, plain, user, revision, generation):
+        if generation != self._generation or revision <= self._revision:
+            return
+        changed = html != self._html or plain != self._plain
+        self._revision = revision
         self._html, self._plain = html, plain
-        if user:
+        if user and changed:
             self.textChanged.emit()
 
     def wait_ready(self):
@@ -109,6 +117,7 @@ class SummernoteEditor(QWidget):
         if not isinstance(data, dict):
             raise RuntimeError("Summernote chưa khởi tạo xong. Vui lòng thử lại.")
         self._html, self._plain = data["html"], data["plain"]
+        self._revision = data["revision"]
 
     def toHtml(self):
         self._pull()
@@ -120,9 +129,13 @@ class SummernoteEditor(QWidget):
 
     def setHtml(self, html):
         changed = html != self._html
+        self._generation += 1
+        self._revision = -1
         self._html = html
         if self._is_ready:
-            self.view.page().runJavaScript("editorApi.setContent(" + json.dumps(html) + ")")
+            self.view.page().runJavaScript(
+                "editorApi.setContent(" + json.dumps(html) + "," + str(self._generation) + ")"
+            )
         if changed:
             self.textChanged.emit()
 
