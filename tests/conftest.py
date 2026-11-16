@@ -9,7 +9,11 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 def app():
     from PySide6.QtWidgets import QApplication
 
-    return QApplication.instance() or QApplication([])
+    application = QApplication.instance() or QApplication([])
+    yield application
+    # Offscreen Qt must release Python-owned clipboard MIME data before QApplication teardown.
+    application.clipboard().clear()
+    application.processEvents()
 
 
 @pytest.fixture

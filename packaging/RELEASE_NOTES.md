@@ -1,20 +1,19 @@
-Bản **0.2.0** cho **Windows 10/11 64-bit**, có sẵn Chromium, không cần cài Python.
+Bản **0.3.0** cho **Windows 10/11 64-bit**, có sẵn Chromium, không cần cài Python.
 
-**Cách chạy:** tải `FacebookHelper-Windows-x64.zip` → giải nén toàn bộ → mở thư mục `FacebookHelper` → chạy `FacebookHelper.exe`. Giữ nguyên `_internal` đi kèm.
+**Cách chạy:** tải `FacebookHelper-Windows-x64.zip` → giải nén toàn bộ → mở thư mục `FacebookHelper` → chạy `FacebookHelper.exe`. Giữ nguyên `_internal` đi kèm. Giữ dữ liệu bài, nhóm, nhãn và lịch sử từ các bản trước.
 
-Mới trong bản này:
+**Trình soạn thảo mới:**
 
-- Mẫu bài tuyển dụng: tiêu đề, lời giới thiệu, công việc, yêu cầu, quyền lợi, địa điểm, lịch làm và liên hệ; thêm nhiều ảnh và xem trước.
-- Nhãn nhóm: nhiều nhóm dùng chung nhãn, một nhóm có nhiều nhãn.
-- Chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn; bỏ nhóm không cần trước khi tạo danh sách.
-- Nhiều danh sách cho nhiều bài; thực hiện từng nhóm theo thứ tự, theo dõi tiến độ, tạm dừng, tiếp tục và bỏ qua.
-- Mặc định kiểm tra từng nhóm. Có tùy chọn **Tự bấm Đăng lần lượt**, yêu cầu xác nhận danh sách trước khi bắt đầu.
-- Dừng khi chưa rõ kết quả gửi; không tự thử lại. Khôi phục sau lần tắt giữa lúc gửi cần kiểm tra để tránh trùng.
-- Giao diện ba bước bằng tiếng Việt, nút đăng nhập dễ thấy; công cụ link/minh chứng nằm trong phần mở rộng.
-- Tự nâng cấp dữ liệu 0.1, giữ bài, ảnh và lịch sử. Nên sao lưu ZIP trước khi cập nhật.
+- Thanh rich text với tiêu đề, đậm/nghiêng/gạch chân, font, cỡ chữ, màu/tô nền, danh sách và đánh số, căn lề, link, bảng, xóa định dạng và hoàn tác/làm lại.
+- **Ctrl+V / Dán giữ định dạng** để nhập các định dạng hỗ trợ từ Word hoặc trang web khi clipboard có HTML.
+- **Ctrl+Shift+V / Dán chữ thuần** để bỏ kiểu chữ nguồn.
+- **Sao chép bài có định dạng** tạo clipboard gồm HTML và chữ thuần, kèm hashtag. Nơi nhận quyết định định dạng dùng được.
+- Lưu/mở lại giữ định dạng. Thanh công cụ cập nhật theo vị trí con trỏ. Khi tự điền Facebook, giữ dấu đầu dòng và số thứ tự, bảng được chuyển thành các hàng chữ dễ đọc.
 
-**Định dạng:** giữ tiêu đề, xuống dòng và các dòng `•` trong chữ thuần. Font/màu/đậm-nghiêng thuộc bản nháp; Facebook quyết định định dạng hiển thị. Ảnh tuyển dụng do người dùng tải lên.
+Tiếp tục có mẫu tuyển dụng, nhiều ảnh, nhãn nhóm, chọn một/nhiều nhóm/theo nhãn, danh sách đăng lần lượt và tùy chọn tự gửi có xác nhận.
 
-Gói `.exe` đã qua kiểm tra tự động khởi động Qt và Chromium trên Windows. Tự động đăng đã được test với trang mô phỏng, **chưa kiểm tra đăng Facebook thật**; giao diện hoặc quyền nhóm có thể yêu cầu thao tác bằng tay. Gửi xong chưa đồng nghĩa được duyệt; người dùng kiểm tra, lấy link và lưu minh chứng sau.
+**Giới hạn:** clipboard chỉ có chữ thuần sẽ không tự khôi phục được định dạng; font không có trên máy có thể hiển thị bằng font thay thế. Ảnh trong HTML dán không tự nhập, hãy dùng Thêm ảnh. Định dạng Word/CSS phức tạp có thể không giữ nguyên hoàn toàn. Tự điền Facebook dùng chữ thuần; Facebook quyết định kiểu chữ hiển thị.
+
+Gói `.exe` được kiểm tra khởi động, dán/copy rich text và Chromium trên Windows trước khi phát hành. Test đăng bài dùng mô phỏng; **chưa xác nhận đăng Facebook thật**. Gửi xong không đồng nghĩa bài đã được duyệt.
 
 Bản chưa ký mã số; Windows có thể cảnh báo nhà phát hành. `SHA256SUMS.txt` đi kèm để đối chiếu tính toàn vẹn.

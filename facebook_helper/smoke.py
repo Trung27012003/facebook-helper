@@ -3,7 +3,8 @@
 import json
 import traceback
 
-from PySide6.QtCore import QCoreApplication, QEvent, QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QMimeData, QTimer
+from PySide6.QtGui import QFont, QTextCursor
 
 from .ui import MainWindow
 
@@ -22,6 +23,26 @@ def run_smoke(app, store):
                 result["chromium"] = browser.version
         window = MainWindow(store)
         window.show()
+        app.processEvents()
+        mime = QMimeData()
+        mime.setHtml(
+            '<p><b style="color:#2456ab">Kiểm tra dán định dạng</b></p><ol><li>PLC</li><li>Robot</li></ol>'
+        )
+        mime.setText("Kiểm tra dán định dạng\nPLC\nRobot")
+        app.clipboard().setMimeData(mime)
+        window.content.paste()
+        cursor = QTextCursor(window.content.document())
+        cursor.movePosition(QTextCursor.MoveOperation.NextCharacter, QTextCursor.MoveMode.KeepAnchor)
+        assert cursor.charFormat().fontWeight() == QFont.Weight.Bold
+        assert cursor.charFormat().foreground().color().name() == "#2456ab"
+        assert "1. PLC" in window.content.toPlainText()
+        window.copy_editor()
+        assert app.clipboard().mimeData().hasHtml()
+        result["rich_paste_and_copy"] = True
+        if app.platformName() == "offscreen":
+            app.clipboard().clear()
+        window.content.clear()
+        window.dirty = False
         QTimer.singleShot(1000, window.close)
         code = app.exec()
         assert code == 0 and not window.browser.isRunning()

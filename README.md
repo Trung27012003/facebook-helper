@@ -8,14 +8,17 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.2
+## Cách dùng bản 0.3
 
 ### 1. Soạn bài
 
 - Chọn **Tạo bài theo mẫu tuyển dụng**. Điền vị trí, công ty, khu vực, thu nhập, công việc, yêu cầu, quyền lợi, địa điểm, thời gian và liên hệ. Mục không cần có thể để trống.
 - Mẫu tạo tiêu đề, các phần **CƠ HỘI DÀNH CHO BẠN / YÊU CẦU / QUYỀN LỢI / ỨNG TUYỂN NGAY** và các dòng `•`, giống bố cục bài tuyển dụng tham khảo.
+- **Dán bài có định dạng:** copy từ Word/trang web → nhấn **Ctrl+V** hoặc **Dán giữ định dạng**. Giữ các định dạng Qt hỗ trợ: đậm/nghiêng/gạch chân, font, cỡ chữ, màu, nền, tiêu đề, danh sách, căn lề, liên kết và bảng. Nguồn cần cung cấp HTML; clipboard chỉ có chữ thuần sẽ không khôi phục được kiểu chữ.
+- Thanh soạn thảo có định dạng tiêu đề, danh sách `•`/đánh số, màu chữ/tô nền, căn lề, chèn link/bảng, xóa định dạng, hoàn tác/làm lại. **Ctrl+Shift+V** dán chữ thuần. **Sao chép bài có định dạng** sao chép cả HTML và chữ thuần kèm hashtag để nơi nhận chọn định dạng hỗ trợ.
+- Ảnh nằm trong nội dung dán không tự được tải/import. Dùng **Thêm ảnh** để đính kèm; ứng dụng không tự đọc ảnh từ đường dẫn trong HTML.
 - Sửa nội dung trực tiếp, chọn nhiều ảnh, sắp xếp thứ tự, thêm hashtag, **Xem trước bài** rồi **Lưu bài**. Tiêu đề quản lý không được tự chèn lần nữa vào nội dung.
-- Font, cỡ chữ, màu và chữ đậm/nghiêng được lưu trong bản nháp. Khi điền Facebook dùng chữ thuần, giữ tiêu đề, xuống dòng và ký tự `•`. Facebook quyết định kiểu chữ/ảnh; không cam kết giữ nguyên định dạng Word. Ảnh thiết kế tuyển dụng do bạn tải lên, không tự tạo từ mẫu chữ.
+- Font, cỡ chữ, màu và chữ đậm/nghiêng/gạch chân được lưu trong bản nháp. Khi điền Facebook dùng chữ thuần, giữ tiêu đề, xuống dòng, dấu đầu dòng, số thứ tự và chuyển bảng thành các hàng chữ đọc được. Facebook quyết định kiểu chữ/ảnh; không cam kết giữ nguyên định dạng Word. Ảnh thiết kế tuyển dụng do bạn tải lên, không tự tạo từ mẫu chữ.
 
 ### 2. Nhóm & nhãn
 
@@ -56,13 +59,13 @@ Mở **Link bài, trạng thái & ảnh minh chứng** bên dưới bảng. Dán
 
 ## Giao diện bản mới
 
-![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.2.png)
+![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.3.png)
 
 ![Chọn nhóm theo nhãn và thực hiện danh sách lần lượt](docs/images/posting-v0.2.png)
 
 ## Cập nhật, dữ liệu và sao lưu
 
-Bản 0.2 tự nâng cấp dữ liệu 0.1, giữ bài, ảnh, nhóm và lịch sử cũ. Giải nén bản mới vào thư mục khác rồi chạy; dữ liệu nằm ngoài thư mục ứng dụng. Nên sao lưu ZIP trước khi cập nhật.
+Bản 0.3 đọc dữ liệu 0.2 và tự nâng cấp dữ liệu 0.1, giữ bài, ảnh, nhóm và lịch sử cũ. Giải nén bản mới vào thư mục khác rồi chạy; dữ liệu nằm ngoài thư mục ứng dụng. Nên sao lưu ZIP trước khi cập nhật.
 
 Tab **Dữ liệu & hướng dẫn** cho biết đường dẫn chính xác và có nút mở thư mục/sao lưu:
 
@@ -95,7 +98,7 @@ Lần sau dùng `start.bat`. Trên macOS/Linux dùng `python3 -m venv .venv` r�
 
 ## Kiểm thử và đóng gói
 
-Xem [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

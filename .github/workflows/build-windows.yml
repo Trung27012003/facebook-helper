@@ -27,7 +27,7 @@ jobs:
       - run: python -m PyInstaller --noconfirm --windowed --onedir --name FacebookHelper --collect-all playwright --collect-all facebook_helper launcher.py
       - name: Test packaged executable and bundled Chromium
         env:
-          QT_QPA_PLATFORM: offscreen
+          QT_QPA_PLATFORM: windows
         shell: pwsh
         run: |
           $smokeDir = Join-Path $env:RUNNER_TEMP 'facebook-helper-smoke'

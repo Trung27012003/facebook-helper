@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.2 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.3 — WINDOWS 10/11 64-BIT
 
 MỞ ỨNG DỤNG
 Giải nén toàn bộ ZIP, mở thư mục FacebookHelper, nhấp đúp FacebookHelper.exe.
@@ -7,7 +7,12 @@ Không cần cài Python hoặc Chromium. Giữ nguyên thư mục _internal đi
 1. SOẠN BÀI
 Bấm Tạo bài theo mẫu tuyển dụng, điền thông tin, tạo nội dung.
 Thêm ảnh, xem trước và lưu bài. Có thể sửa bài như bản nháp thông thường.
-Font/màu chỉ giữ trong bản nháp. Facebook nhận chữ thuần, giữ tiêu đề và dòng •.
+Có thể copy bài từ Word/trang web và Ctrl+V để giữ định dạng được hỗ trợ.
+Thanh công cụ có đậm/nghiêng/gạch chân, font, cỡ chữ, màu, tô nền, danh sách,
+căn lề, chèn liên kết, bảng, hoàn tác và xóa định dạng.
+Ctrl+Shift+V dán chữ thuần. Nút Sao chép bài có định dạng sao chép cả HTML và chữ.
+Ảnh trong nội dung dán cần thêm bằng Thêm ảnh. Nguồn chỉ có chữ sẽ không tự lấy được kiểu chữ.
+Font/màu chỉ giữ trong bản nháp khi dùng tính năng tự điền Facebook. Facebook nhận chữ thuần, giữ tiêu đề và dòng •.
 
 2. NHÓM & NHÃN
 Thêm tên/link nhóm. Nhãn ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp.
@@ -36,7 +41,7 @@ cập nhật kết quả, mở link, chụp màn hình và xuất Excel.
 Đã bấm Đăng không có nghĩa bài đã được duyệt; hãy kiểm tra bài thật.
 
 DỮ LIỆU VÀ CẬP NHẬT
-Dữ liệu nằm ngoài thư mục giải nén; bản 0.2 tự giữ và nâng cấp dữ liệu 0.1.
+Dữ liệu nằm ngoài thư mục giải nén; bản 0.3 giữ dữ liệu 0.2 và nâng cấp dữ liệu 0.1.
 Vào Dữ liệu & hướng dẫn để xem đường dẫn và sao lưu ZIP. Không chia sẻ browser/.
 
 Bản này chưa ký mã số. Nếu Windows cảnh báo, kiểm tra nguồn tải chính thức và

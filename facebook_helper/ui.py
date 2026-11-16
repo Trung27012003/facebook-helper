@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QScrollArea,
-    QSpinBox,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -34,6 +33,7 @@ from PySide6.QtWidgets import (
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
 from .posting import SENT, PostingMixin
+from .richtext import RichTextEdit, RichTextToolbar
 from .templates import RecruitmentDialog
 from .widgets import button, hint, row
 
@@ -149,31 +149,20 @@ class MainWindow(PostingMixin, QMainWindow):
         self.title.setPlaceholderText("Tên quản lý bài · ví dụ: Kế toán — Quận 7")
         self.title.textChanged.connect(self.mark_dirty)
         main.addWidget(self.title)
-        self.bold = button("Đậm", self.toggle_bold)
-        self.bold.setCheckable(True)
-        self.italic = button("Nghiêng", self.toggle_italic)
-        self.italic.setCheckable(True)
-        self.font_family = QComboBox()
-        self.font_family.addItems(["Arial", "Times New Roman", "Calibri", "Verdana"])
-        self.font_family.currentTextChanged.connect(self.change_family)
-        self.font_size = QSpinBox()
-        self.font_size.setRange(8, 72)
-        self.font_size.setValue(12)
-        self.font_size.setSuffix(" pt")
-        self.font_size.valueChanged.connect(self.change_size)
-        main.addLayout(
-            row(
-                self.bold, self.italic, self.font_family, self.font_size, button("Màu chữ", self.change_color)
-            )
-        )
-        self.content = QTextEdit()
-        self.content.setAcceptRichText(False)  # pasted images/HTML do not become untracked assets
+        self.content = RichTextEdit()
+        self.editor_toolbar = RichTextToolbar(self.content)
+        self.bold = self.editor_toolbar.bold
+        self.italic = self.editor_toolbar.italic
+        self.font_family = self.editor_toolbar.family
+        self.font_size = self.editor_toolbar.size
+        self.content.notice = lambda message: self.statusBar().showMessage(message, 15000)
+        main.addWidget(self.editor_toolbar)
         self.content.setPlaceholderText("Vị trí tuyển dụng, mức lương, yêu cầu, quyền lợi, cách ứng tuyển…")
         self.content.textChanged.connect(self.mark_dirty)
         main.addWidget(self.content, 1)
         main.addWidget(
             hint(
-                "Định dạng được lưu trong bản nháp. Khi điền Facebook sẽ dùng chữ thuần; "
+                "Ctrl+V để dán giữ định dạng; Ctrl+Shift+V để dán chữ thuần. Khi tự điền Facebook dùng chữ thuần; "
                 "Facebook quyết định định dạng hiển thị."
             )
         )
@@ -199,7 +188,7 @@ class MainWindow(PostingMixin, QMainWindow):
             row(
                 self.save_button,
                 button("Xem trước bài", self.preview_article),
-                button("Sao chép nội dung đăng", self.copy_editor),
+                button("Sao chép bài có định dạng", self.copy_editor),
             )
         )
         split.addWidget(editor)
@@ -419,11 +408,10 @@ class MainWindow(PostingMixin, QMainWindow):
             self.open_local(item.data(Qt.ItemDataRole.UserRole))
 
     def copy_editor(self):
-        body = self.content.toPlainText().strip()
-        if self.tags.text().strip():
-            body += "\n\n" + self.tags.text().strip()
-        QApplication.clipboard().setText(body)
-        self.statusBar().showMessage("Đã sao chép nội dung chữ thuần và hashtag", 5000)
+        self.content.copy_article(self.tags.text())
+        self.statusBar().showMessage(
+            "Đã sao chép cả định dạng và chữ thuần. Nơi nhận quyết định định dạng hỗ trợ.", 10000
+        )
 
     def build_groups(self):
         page = QWidget()
