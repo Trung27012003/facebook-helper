@@ -9,3 +9,9 @@ Tab quản lý được kiểm tra từ khóa, trạng thái, khoảng ngày bao
 Trạng thái tự động chỉ dựa trên bằng chứng quan sát: gửi hoàn tất → submitted; thông báo duyệt → pending; bài mới nhận diện được cùng link mới → published. Trạng thái không rõ phải dừng, không tự thử lại. Thu thập link là best effort, không lấy link cũ để giả thành bài mới.
 
 Các test browser dùng Chromium với trang mô phỏng; chưa thử trên tài khoản Facebook thật. Không bảo đảm nhận diện mọi giao diện Facebook hoặc bài sẽ được phê duyệt. Tab ngày lọc theo ngày tạo lượt, giờ địa phương của máy.
+
+## Gói Windows
+
+[Build Windows #43899152976](https://github.com/Trung27012003/facebook-helper/actions/runs/43899152976) thành công từ mã `ac659aee57444d04fa36bc39d5b1c853af612d66`; CI nguồn cũng thành công. Chạy `.exe` trên Windows xác nhận Chromium 159.0.8154.6, dán/copy rich text, năm tab, khởi động Qt và dừng worker sạch.
+
+[Tải 0.5.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.5.0). ZIP 620.912.456 byte; SHA256 `978198f150d840fec7948412fb2e3d775f5fe6421e9795c5b60db680c7450816`. Đã tải checksum và kiểm tra phản hồi tải ZIP 206 cùng chữ ký ZIP.
