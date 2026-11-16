@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
 )
 
 from .browser import BrowserWorker
-from .domain import STATUSES
+from .domain import STATUSES, post_url
 
 STYLE = """
 QMainWindow, QWidget { background: #f6f8fc; color: #17243a; font-size: 13px; }
@@ -592,7 +592,7 @@ class MainWindow(QMainWindow):
 
     def current_job(self):
         selected = self.history.currentRow()
-        if selected < 0 or not self.history.item(selected, 0):
+        if selected < 0 or self.history.isRowHidden(selected) or not self.history.item(selected, 0):
             raise ValueError("Chọn một lượt đăng trong bảng trước.")
         return self.store.job(int(self.history.item(selected, 0).text()))
 
@@ -663,7 +663,10 @@ class MainWindow(QMainWindow):
     def save_status(self):
         job = self.current_job()
         status = self.status_choice.currentData()
-        if status == "published" and job["status"] != "published":
+        url = self.link.text().strip()
+        if url:
+            url = post_url(url, job["group_url"])
+        if status == "published" and (job["status"] != "published" or url != job["url"]):
             if (
                 QMessageBox.question(
                     self,
@@ -675,9 +678,7 @@ class MainWindow(QMainWindow):
                 != QMessageBox.StandardButton.Yes
             ):
                 return
-        self.store.update_job(
-            job["id"], status=status, note=self.job_note.text(), url=self.link.text().strip()
-        )
+        self.store.update_job(job["id"], status=status, note=self.job_note.text(), url=url)
         self.refresh_jobs(job["id"])
 
     def copy_job(self):
@@ -758,11 +759,17 @@ class MainWindow(QMainWindow):
             if action == "read_link":
                 self.store.update_job(result["job_id"], url=result["url"])
             if action == "screenshot":
+                job = self.store.job(result["job_id"])
+                if post_url(result["url"], job["group_url"]) != job["url"]:
+                    raise ValueError("Link bài đã thay đổi trong khi chụp. Hãy mở link mới và chụp lại.")
                 self.store.update_job(result["job_id"], evidence=result["evidence"])
             self.refresh_jobs()
+            return True
 
-        self.guard(save)
-        self.statusBar().showMessage(result["message"], 20000)
+        if self.guard(save):
+            self.statusBar().showMessage(result["message"], 20000)
+        else:
+            self.statusBar().showMessage("Chưa lưu được kết quả. Kiểm tra thông báo và thử lại.", 15000)
 
     def browser_failed(self, action, message, payload):
         self.finish_browser()

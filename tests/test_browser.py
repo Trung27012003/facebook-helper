@@ -78,3 +78,105 @@ def test_capture_refuses_other_post_and_writes_viewport(page, store, job):
     page.goto("https://www.facebook.com/groups/hr-hanoi/posts/456/")
     with pytest.raises(ValueError, match="khác link"):
         worker.execute("screenshot", payload)
+
+
+def test_two_different_posts_fill_their_own_groups_sequentially(page, store, task_data):
+    import json
+
+    page.route(
+        "https://www.facebook.com/**", lambda route: route.fulfill(content_type="text/html", body=COMPOSER)
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    posts, groups = task_data
+    for post_id, group_id in zip(posts, groups):
+        job = store.job(store.create_job(post_id, group_id))
+        payload = {
+            **job,
+            "job_id": job["id"],
+            "images": [str(store.asset(image)) for image in json.loads(job["images"])],
+        }
+        worker.execute("open_group", payload)
+        result = worker.execute("fill", payload)
+        assert result["job_id"] == job["id"]
+        # Chromium innerText adds a newline for an empty block; selected text matches copy/paste.
+        actual = page.get_by_role("textbox").evaluate("""node => {
+            const range = document.createRange(); range.selectNodeContents(node);
+            const selection = window.getSelection();
+            selection.removeAllRanges(); selection.addRange(range);
+            return selection.toString();
+        }""")
+        assert actual == job["body"]
+        assert page.locator('input[type="file"]').evaluate("node => node.files[0].name") == (
+            store.asset(json.loads(job["images"])[0]).name
+        )
+        assert page.evaluate("window.submitted") is False
+
+
+def test_fill_rejects_wrong_group_before_modifying_composer(page, store):
+    page.route(
+        "https://www.facebook.com/**", lambda route: route.fulfill(content_type="text/html", body=COMPOSER)
+    )
+    page.goto("https://www.facebook.com/groups/hr-1/")
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    with pytest.raises(ValueError, match="chưa ở đúng nhóm"):
+        worker.execute(
+            "fill", {"group_url": "https://facebook.com/groups/hr-0/", "body": "Sai nhóm", "images": []}
+        )
+    assert page.get_by_role("textbox").inner_text() == ""
+    assert page.evaluate("window.submitted") is False
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "<p>Không có cửa sổ tạo bài</p>",
+        '<div role="dialog"><div role="textbox" contenteditable="true"></div>'
+        '<div role="textbox" contenteditable="true"></div></div>',
+    ],
+)
+def test_missing_or_ambiguous_composer_is_rejected(page, body):
+    page.set_content(body)
+    with pytest.raises(ValueError):
+        fill_composer(page, "Nội dung", [])
+
+
+@pytest.mark.parametrize(
+    "url", ["https://www.facebook.com/groups/hr-hanoi/", "https://www.facebook.com/groups/other/posts/101/"]
+)
+def test_read_link_rejects_feed_or_different_group(page, store, url):
+    page.route("https://www.facebook.com/**", lambda route: route.fulfill(body="mock"))
+    page.goto(url)
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    with pytest.raises(ValueError):
+        worker.execute("read_link", {"group_url": "https://www.facebook.com/groups/hr-hanoi/"})
+
+
+def test_multiple_attachments_reject_single_file_input_without_modification(page, store, task_data):
+    page.set_content(COMPOSER.replace(" multiple", ""))
+    paths = [str(store.asset(store.post(post_id)["images"][0])) for post_id in task_data[0]]
+    with pytest.raises(ValueError, match="không hỗ trợ nhiều ảnh"):
+        fill_composer(page, "Nội dung", paths)
+    assert page.get_by_role("textbox").inner_text() == ""
+    assert page.locator('input[type="file"]').evaluate("node => node.files.length") == 0
+
+
+@pytest.mark.parametrize("label", ["Ảnh/video", "Photo/video"])
+def test_photo_button_fallback_uploads_images_in_selected_order(page, store, task_data, label):
+    from pathlib import Path
+
+    page.set_content(
+        """<div role="dialog"><div role="textbox" contenteditable="true"></div>
+    <button onclick="this.outerHTML='<input type=file accept=image/* multiple>'">PHOTO_BUTTON</button>
+    <button onclick="window.submitted=true">Đăng</button></div><script>window.submitted=false</script>""".replace(
+            "PHOTO_BUTTON", label
+        )
+    )
+    paths = [str(store.asset(store.post(post_id)["images"][0])) for post_id in reversed(task_data[0])]
+    fill_composer(page, "Giữ thứ tự ảnh", paths)
+    assert page.locator('input[type="file"]').evaluate(
+        "node => Array.from(node.files, file => file.name)"
+    ) == [Path(path).name for path in paths]
+    assert page.evaluate("window.submitted") is False

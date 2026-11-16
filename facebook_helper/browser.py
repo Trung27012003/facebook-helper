@@ -1,7 +1,6 @@
 """Playwright lives entirely on one worker thread. No automatic final submission."""
 
 import queue
-import re
 import uuid
 from pathlib import Path
 
@@ -140,7 +139,9 @@ def fill_composer(page, body, images):
     if images:
         inputs = dialog.locator('input[type="file"][accept*="image"]')
         if inputs.count() != 1:
-            buttons = dialog.get_by_role("button", name=re.compile(r"^(Ảnh/video|Photo/video)$", re.I))
+            buttons = dialog.get_by_role("button", name="Ảnh/video", exact=True).or_(
+                dialog.get_by_role("button", name="Photo/video", exact=True)
+            )
             if buttons.count() == 1:
                 buttons.click()
             inputs = dialog.locator('input[type="file"][accept*="image"]')

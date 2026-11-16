@@ -48,7 +48,7 @@ Linux cần môi trường desktop và thư viện hệ thống cho Qt/Chromium.
 
 1. Trong **Bài tuyển dụng**, tạo nội dung, hashtag, chọn/sắp xếp ảnh rồi **Lưu bài**. Tiêu đề quản lý không được đưa vào nội dung đăng.
 2. Trong **Nhóm Facebook**, lưu nhóm bạn muốn sử dụng.
-3. Trong **Đăng bài & minh chứng**, chọn bài và nhóm rồi **Tạo lượt đăng**. Mỗi lượt chỉ ứng với một bài và một nhóm.
+3. Trong **Đăng bài & minh chứng**, chọn bài và nhóm rồi **Tạo lượt đăng**. Mỗi lượt chỉ ứng với một bài và một nhóm. Muốn một bài đăng nhiều nhóm, tạo một lượt cho từng nhóm. Có thể lưu nhiều lượt cho nhiều bài khác nhau và thực hiện lần lượt.
 4. **Đăng nhập Facebook**: tự đăng nhập trong trình duyệt được mở. Ứng dụng không có ô nhập mật khẩu.
 5. **Mở nhóm** → trên Facebook tự mở cửa sổ **Tạo bài viết** → quay lại ứng dụng bấm **Điền bài**. Nếu ô đã có nội dung, ứng dụng dừng để tránh ghi đè. Khi cần, mở mục Ảnh/video trong cửa sổ soạn trước khi điền.
 6. Kiểm tra trên Facebook, chờ ảnh tải xong và **tự bấm Đăng**. Ghi nhận **Chờ duyệt** nếu bài chưa hiển thị.
@@ -56,6 +56,8 @@ Linux cần môi trường desktop và thư viện hệ thống cho Qt/Chromium.
 8. **Mở link bài**, tự kiểm tra nội dung và vị trí cuộn rồi **Chụp màn hình**. Ảnh chỉ là vùng đang hiển thị, không phải toàn bộ trang; dùng **Xem ảnh minh chứng** để kiểm tra. Nếu chưa đăng nhập hoặc bài chưa tải, hãy đợi/đăng nhập và mở lại link trước khi chụp.
 9. Chọn **Đã hiển thị** và xác nhận chỉ sau khi thực sự thấy bài. Chụp ảnh hoặc điền thành công không tự đổi thành đã đăng.
 10. **Copy link** hoặc **Xuất Excel** để báo cáo. Excel chứa đường dẫn ảnh tương đối; khi chia sẻ minh chứng hãy gửi kèm ảnh từ thư mục dữ liệu hoặc bản sao lưu.
+
+Khi đổi link sang một bài khác, liên kết ảnh minh chứng cũ được bỏ và trạng thái đã hiển thị cần xác nhận lại; file ảnh cũ vẫn được giữ.
 
 ## Dữ liệu và phiên đăng nhập
 
@@ -74,6 +76,8 @@ Các thư mục: `helper.db` (SQLite), `images/`, `evidence/`, `browser/` (phiê
 Ảnh đã bỏ khỏi bản nháp vẫn được giữ để không làm hỏng lịch sử cũ. Bản đầu chưa tự dọn ảnh không sử dụng. Ảnh xuất tạm để đăng thủ công nằm trong thư mục tạm hệ điều hành, tên bắt đầu `facebook-helper-images-`; có thể xóa sau khi dùng.
 
 ## Phát triển và kiểm tra
+
+Xem **[danh sách kiểm thử và kết quả](docs/TESTING.md)**: 59 test tự động, các lỗi đã sửa và các ca cần kiểm tra trên Facebook thật/Windows.
 
 ```bash
 python -m pip install -e '.[dev]'

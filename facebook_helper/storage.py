@@ -156,6 +156,11 @@ class Store:
             changes["url"] = post_url(changes["url"], old["group_url"])
         if changes.get("status", old["status"]) == "published" and not changes.get("url", old["url"]):
             raise ValueError("Cần lưu link bài cụ thể trước khi xác nhận đã hiển thị.")
+        if "url" in changes and changes["url"] != old["url"]:
+            # Evidence and confirmation refer to one permalink, not any post in the group.
+            changes.setdefault("evidence", "")
+            if old["status"] == "published" and "status" not in changes:
+                changes["status"] = "prepared"
         if changes.get("evidence"):
             self.asset(changes["evidence"])
         changes["updated_at"] = now()
