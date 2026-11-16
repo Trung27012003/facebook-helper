@@ -1,20 +1,19 @@
-Bản **0.4.0** cho Windows 10/11 64-bit. Tải ZIP, giải nén toàn bộ rồi chạy `FacebookHelper/FacebookHelper.exe`. Giữ nguyên `_internal`; dữ liệu cũ được giữ.
+**Facebook Helper 0.4.1 — Windows 10/11 64-bit**
 
-Sửa đúng phần soạn thảo:
+Tải ZIP, giải nén toàn bộ rồi mở `FacebookHelper/FacebookHelper.exe`. Giữ nguyên `_internal`; không cần cài Python. Bài, ảnh, nhóm, nhãn và lịch sử cũ được giữ.
 
-- Thay thanh nút tự ghép bằng **Summernote 0.9.1 nguyên bản**, đóng kèm offline trong Qt WebEngine; có đầy đủ toolbar thư viện.
-- Dán từ Facebook tự bỏ nền tối/màu giao diện, giữ chữ đậm/nghiêng, tiêu đề và danh sách. Sửa khi mở các bản nháp Qt cũ bị nền tối.
-- Lưu cả HTML trong lượt đăng mới. Dán sang Facebook qua clipboard **text/html**, chuyển kiểu chữ đậm/nghiêng từ CSS sang HTML ngữ nghĩa.
-- Kiểm tra nội dung và các định dạng chính sau dán. Nếu Facebook loại bỏ định dạng, dừng trước khi Đăng; không tự đăng bản mất định dạng.
+Sửa lỗi dừng với thông báo “Nội dung trong ô Facebook khác bài đã lưu sau khi dán” dù nhìn thấy đủ chữ:
 
-Thay đổi cách gửi để kiểm tra kết quả:
+- Đối chiếu Unicode tiếng Việt tương đương và marker danh sách trên cả hai phía.
+- Chờ Facebook cập nhật xong; đọc lại DOM/Range, bỏ phần điều khiển không thuộc nội dung bài.
+- Dán chữ trước, đính kèm ảnh sau; kiểm tra lại nếu Facebook tạo lại ô soạn.
+- Vẫn chặn thiếu đoạn hoặc sai số tiền. Không bỏ kiểm tra nội dung, không dán lại gây trùng.
+- Bài đã chuẩn bị có hướng dẫn bước tiếp; hiển thị phiên bản ở tiêu đề ứng dụng.
 
-- **Dừng sau mỗi lần bấm Đăng**; cần xác nhận bài còn hiển thị hoặc chờ duyệt trước khi tiếp tục.
-- Khi thấy cảnh báo hạn chế, yêu cầu xác thực hoặc thông báo xóa/gỡ: dừng và giữ thông báo. Không tự gửi lại khi kết quả chưa rõ.
-- Không có tính năng né phát hiện, vượt xác thực hoặc bảo đảm bài không bị Facebook/quản trị viên xóa. Không thể xác định nguyên nhân chỉ từ việc bài biến mất.
+**Chế độ mặc định:** bạn tự kiểm tra và bấm **Đăng** trong Facebook. Chỉ chuẩn bị bài không đồng nghĩa đã gửi. Nếu đã có một bản nháp đủ chữ/ảnh trong Facebook, bạn có thể kiểm tra và đăng thủ công rồi cập nhật kết quả; không bấm Bắt đầu nhiều lần để dán chồng.
 
-Giới hạn: Facebook hỗ trợ một phần định dạng, không toàn bộ font/màu như Word. Clipboard không có HTML thì không phục hồi được kiểu chữ. Thêm ảnh bằng nút Thêm ảnh. Các lượt lịch sử cũ chỉ có chữ thuần không tự khôi phục HTML; tạo danh sách mới từ bài đã lưu nếu cần dán định dạng.
+Summernote nguyên bản và dán HTML tiếp tục được giữ. Sau mỗi bài vẫn cần xác nhận kết quả trước khi chuyển nhóm; không có bảo đảm tránh Facebook kiểm duyệt/xóa bài.
 
-Gói được kiểm tra khởi động Summernote, clipboard và Chromium trên Windows. Test luồng đăng dùng mô phỏng, chưa xác nhận trực tiếp trên tài khoản Facebook của người dùng. Kiểm tra cảnh báo không phát hiện được mọi trường hợp bài bị gỡ âm thầm.
+116 test tự động đạt; gói `.exe` được kiểm tra trên Windows trước phát hành. Kiểm thử luồng Facebook dùng mô phỏng, chưa xác minh trên tài khoản thật của người dùng. Nguồn sai khác cụ thể ở máy người dùng chưa được xác định chỉ từ ảnh.
 
-Bản chưa ký mã số; SHA256 nằm trong `SHA256SUMS.txt`. Thư viện và giấy phép kèm trong gói.
+Bản chưa ký mã số. File SHA256 đi kèm để đối chiếu tính toàn vẹn.

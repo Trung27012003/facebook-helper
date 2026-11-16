@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.4 · Summernote
+## Cách dùng bản 0.4.1 · Summernote
 
 ### 1. Soạn bài
 
@@ -94,11 +94,15 @@ py -m venv .venv
 
 Lần sau dùng `start.bat`. Trên macOS/Linux dùng `python3 -m venv .venv` rồi các lệnh tương tự với `.venv/bin/python`. Linux cần thư viện Qt/Chromium và desktop. Có thể dùng `--data-dir /duong/dan/rieng` để tách dữ liệu thử nghiệm.
 
+## Sửa bước kiểm tra khi bài có đủ chữ nhưng vẫn bị dừng
+
+Bản 0.4.1 chờ nội dung ổn định, đối chiếu tiếng Việt NFC/NFD và marker danh sách trên cả hai phía. Dán chữ trước, đính kèm ảnh sau và kiểm tra lại nếu Facebook thay ô soạn. Bài thiếu chữ/sai số vẫn bị chặn. Không tự bấm Đăng nếu tùy chọn ứng dụng bấm Đăng đang bỏ chọn; sau chuẩn bị, bạn tự kiểm tra và bấm Đăng trên Facebook.
+
 ## Kiểm thử và đóng gói
 
 [Thư viện và giấy phép](docs/THIRD-PARTY.md). Thư viện được đóng kèm, không cần CDN khi chạy.
 
-Xem [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

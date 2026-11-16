@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.4 — SUMMERNOTE — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.4.1 — SUMMERNOTE — WINDOWS 10/11 64-BIT
 
 Giải nén toàn bộ ZIP, chạy FacebookHelper.exe, giữ _internal đi kèm.
 Không cần cài Python hoặc tải thư viện soạn thảo riêng.
@@ -15,6 +15,7 @@ Nếu ô Facebook mất định dạng, ứng dụng dừng trước khi gửi; 
 trong Facebook hoặc dùng Sao chép bài có định dạng và Ctrl+V thủ công.
 Facebook không hỗ trợ toàn bộ font, màu và bố cục Word.
 
+Bản 0.4.1 sửa đối chiếu báo sai khi bài đã đủ chữ, nhất là Unicode/danh sách và bước tải ảnh.
 Mặc định bạn tự bấm Đăng. Nếu chọn ứng dụng bấm Đăng, sau mỗi bài vẫn dừng để
 kiểm tra bài còn hiển thị hoặc đang chờ duyệt. Xác nhận kết quả mới chuyển nhóm.
 Không gửi lại bài chưa rõ kết quả. Cảnh báo hạn chế/xác thực/gỡ bài sẽ dừng danh sách.

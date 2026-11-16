@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from . import __version__
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
 from .editor import SummernoteEditor
@@ -70,7 +71,7 @@ class MainWindow(PostingMixin, QMainWindow):
         self.loading = False
         self.busy = False
         self.closing = False
-        self.setWindowTitle("Facebook Helper · Trợ lý tuyển dụng")
+        self.setWindowTitle(f"Facebook Helper {__version__} · Trợ lý tuyển dụng")
         self.resize(1280, 850)
         self.setMinimumSize(980, 680)
         self.setStyleSheet(STYLE)
@@ -692,6 +693,11 @@ class MainWindow(PostingMixin, QMainWindow):
             f"#{job['id']} · {job['title']} → {job['group_name']} · "
             f"{len(json.loads(job['images']))} ảnh · Nội dung được chốt lúc tạo lượt đăng"
         )
+        if job["status"] == "prepared":
+            self.job_detail.setText(
+                self.job_detail.text()
+                + "\nBước tiếp: kiểm tra chữ và ảnh, bấm Đăng trên Facebook; sau đó chọn Đã gửi · sang nhóm sau."
+            )
 
     def save_link(self):
         if self.queue_active and self.queue_auto:

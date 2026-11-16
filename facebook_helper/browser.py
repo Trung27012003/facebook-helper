@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
+from .composer import canonical_text, wait_for_composer
 from .domain import normalize_group, post_url
 from .formatting import facebook_html
 
@@ -195,12 +196,13 @@ def fill_composer(page, body, images, html=None):
     editors = dialog.locator('[role="textbox"][contenteditable="true"]')
     if editors.count() != 1:
         raise ValueError("Không xác định được ô nội dung. Bạn có thể dùng nút Sao chép để dán thủ công.")
-    if editors.first.inner_text().strip():
+    if canonical_text(editors.first.inner_text()):
         raise ValueError("Ô Facebook đang có nội dung. Xóa nội dung cũ hoặc dán thủ công để tránh ghi đè.")
     # Validate image access before changing anything in the composer.
     for path in images:
         if not Path(path).is_file():
             raise ValueError(f"Ảnh không tồn tại: {Path(path).name}")
+    image_input = None
     if images:
         inputs = dialog.locator('input[type="file"][accept*="image"]')
         if inputs.count() != 1:
@@ -214,7 +216,7 @@ def fill_composer(page, body, images, html=None):
             raise ValueError("Chưa thấy ô tải ảnh. Mở mục Ảnh/video trong cửa sổ soạn bài rồi thử lại.")
         if len(images) > 1 and inputs.first.get_attribute("multiple") is None:
             raise ValueError("Ô tải ảnh hiện tại không hỗ trợ nhiều ảnh. Hãy thêm ảnh thủ công.")
-        inputs.first.set_input_files(images)
+        image_input = inputs.first
     check_platform_notice(page)
     if html:
         markup = facebook_html(html)
@@ -241,28 +243,13 @@ def fill_composer(page, body, images, html=None):
             raise ValueError(
                 "Chưa dán được định dạng vào Facebook. Danh sách đã dừng; dùng Sao chép bài có định dạng rồi Ctrl+V trong ô Facebook. Không tự chuyển sang chữ thuần."
             ) from exc
-        expected = re.sub(r"(?m)^\s*(?:[•*-]|\d+[.)])\s*", "", body)
-        expected = re.sub(r"[\W_]+", "", expected).casefold()
-        actual = re.sub(r"[\W_]+", "", editors.first.inner_text()).casefold()
-        if expected != actual:
-            raise ValueError(
-                "Nội dung trong ô Facebook khác bài đã lưu sau khi dán. Đã dừng trước khi Đăng; hãy kiểm tra lại bài."
-            )
-        features = editors.first.evaluate("""el => ({
-            bold: Array.from(el.querySelectorAll('*')).some(n=>Number(getComputedStyle(n).fontWeight)>=600),
-            italic: Array.from(el.querySelectorAll('*')).some(n=>getComputedStyle(n).fontStyle==='italic'),
-            list: !!el.querySelector('ul,ol,[role=list]')
-        })""")
-        if (
-            (re.search(r"<(?:b|strong|h[1-3])[ >]", markup) and not features["bold"])
-            or (re.search(r"<(?:i|em)[ >]", markup) and not features["italic"])
-            or (re.search(r"<(?:ul|ol)[ >]", markup) and not features["list"])
-        ):
-            raise ValueError(
-                "Ô đăng Facebook không giữ đủ định dạng của bài. Đã dừng trước khi bấm Đăng. Kiểm tra hoặc chỉnh định dạng trong cửa sổ Facebook; không tự đăng bản mất định dạng."
-            )
+        wait_for_composer(page, dialog, body, markup)
     else:
         editors.first.fill(body)
+        wait_for_composer(page, dialog, body)
+    if image_input is not None:
+        image_input.set_input_files(images)
+        wait_for_composer(page, dialog, body, markup if html else None)
 
 
 def open_composer(page):

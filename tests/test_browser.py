@@ -324,3 +324,119 @@ def test_legacy_plain_only_history_is_not_silently_posted_again(store):
     worker = BrowserWorker(store.root)
     with pytest.raises(ValueError, match="Lượt đăng cũ chỉ có chữ thuần"):
         worker.execute("publish", {"body_html": "", "body": "Bài cũ"})
+
+
+def test_equivalent_vietnamese_unicode_is_not_a_content_mismatch(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").evaluate("""el=>el.addEventListener('paste',e=>{e.preventDefault();
+      el.innerHTML=e.clipboardData.getData('text/html');
+      const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node;
+      while(node=walker.nextNode())node.textContent=node.textContent.normalize('NFD');
+    })""")
+    fill_composer(page, "Tuyển kỹ sư tự động hóa", [], "<p><b>Tuyển kỹ sư tự động hóa</b></p>")
+    assert not page.evaluate("window.submitted")
+
+
+def test_displayed_numbered_list_markers_do_not_create_false_mismatch(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role(
+        "textbox"
+    ).evaluate("""el=>el.addEventListener('paste',e=>{e.preventDefault();el.innerHTML=e.clipboardData.getData('text/html');
+      el.querySelectorAll('ol li').forEach((li,i)=>li.prepend(String(i+1)+'. '));})""")
+    fill_composer(page, "1. PLC\n2. Robot", [], "<ol><li>PLC</li><li>Robot</li></ol>")
+    assert not page.evaluate("window.submitted")
+
+
+def test_waits_for_delayed_paste_instead_of_reading_intermediate_placeholder(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role(
+        "textbox"
+    ).evaluate("""el=>el.addEventListener('paste',e=>{e.preventDefault();const html=e.clipboardData.getData('text/html');
+      el.innerHTML='<span role="status">Đang cập nhật...</span>';setTimeout(()=>el.innerHTML=html,350);})""")
+    fill_composer(page, "Nội dung đủ", [], "<p><b>Nội dung đủ</b></p>")
+    assert page.get_by_role("textbox").inner_text() == "Nội dung đủ"
+
+
+def test_real_missing_text_is_still_rejected(page):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").evaluate(
+        """el=>el.addEventListener('paste',e=>{e.preventDefault();el.innerHTML='<b>Chỉ có tiêu đề</b>';})"""
+    )
+    with pytest.raises(ValueError, match="chưa khớp|khác bài"):
+        fill_composer(
+            page,
+            "Chỉ có tiêu đề\nCòn thiếu quyền lợi",
+            [],
+            "<p><b>Chỉ có tiêu đề</b></p><p>Còn thiếu quyền lợi</p>",
+        )
+    assert not page.evaluate("window.submitted")
+
+
+def test_photo_upload_after_paste_preserves_text_despite_noneditable_controls(page, store, task_data):
+    html = (
+        COMPOSER
+        + """<script>document.querySelector('input').onchange=()=>{
+      const el=document.querySelector('[role=textbox]');window.beforeUpload=el.innerText;
+      const control=document.createElement('span');control.contentEditable='false';control.innerText='Xóa ảnh · đổi thứ tự';el.appendChild(control);
+    };</script>"""
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    image = str(store.asset(store.post(task_data[0][0])["images"][0]))
+    fill_composer(page, "Tuyển kỹ sư\n• PLC", [image], "<p><b>Tuyển kỹ sư</b></p><ul><li>PLC</li></ul>")
+    assert "Tuyển kỹ sư" in page.evaluate("window.beforeUpload")
+    assert not page.evaluate("window.submitted")
+    assert page.locator("input").evaluate("el=>el.files.length") == 1
+
+
+def test_editor_rerender_after_photo_upload_is_verified_again(page, store, task_data):
+    html = (
+        COMPOSER
+        + """<script>document.querySelector('input').onchange=()=>{
+      const old=document.querySelector('[role=textbox]'),replacement=old.cloneNode(true);old.replaceWith(replacement);
+    };</script>"""
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    image = str(store.asset(store.post(task_data[0][0])["images"][0]))
+    fill_composer(page, "Tuyển kỹ sư", [image], "<p><b>Tuyển kỹ sư</b></p>")
+    assert page.get_by_role("textbox").inner_text() == "Tuyển kỹ sư"
+
+
+def test_real_salary_change_is_rejected_after_normalization(page, monkeypatch):
+    from facebook_helper import composer
+
+    monkeypatch.setattr(composer, "SETTLE_TIMEOUT", 0.6)
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/hr/")
+    page.get_by_role("textbox").evaluate(
+        """el=>el.addEventListener('paste',e=>{e.preventDefault();el.innerHTML='<b>Lương 25 triệu</b>';})"""
+    )
+    with pytest.raises(ValueError, match="chưa khớp"):
+        fill_composer(page, "Lương 15 triệu", [], "<p><b>Lương 15 triệu</b></p>")
+    assert not page.evaluate("window.submitted")
