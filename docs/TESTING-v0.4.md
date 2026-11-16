@@ -21,3 +21,11 @@ Chưa có tài khoản/nhóm Facebook thật trong môi trường để xác min
 Không có thay đổi che giấu browser automation, giả fingerprint, xoay IP/tài khoản hoặc vượt xác thực. Các cờ tắt sandbox/GPU trong môi trường test Linux chỉ phục vụ Qt WebEngine chạy trong container; không được đưa vào cấu hình trình duyệt Facebook của sản phẩm.
 
 Bổ sung: kiểm tra lệnh font/màu thực tế của Summernote, chặn lịch sử chỉ có chữ thuần, và chống callback cũ đánh dấu nhầm bài vừa lưu/chuyển bài. Kết quả lưu dùng revision và generation để bỏ qua thông báo editor về muộn. Workflow phát hành yêu cầu CI mã nguồn thành công trước khi công khai ZIP.
+
+## Gói Windows đã phát hành
+
+Workflow [Build Windows #43864239540](https://github.com/Trung27012003/facebook-helper/actions/runs/43864239540) thành công, từ mã `407790094a5f9fe72e8d95334f7a1549619bbda2`. Gói `.exe` chạy với Qt native Windows: Summernote 0.9.1 tải thành công, `ok=true`, `rich_paste_and_copy=true`, `qt_started=true`, `worker_stopped=true`. CI nguồn [Checks #43864240763](https://github.com/Trung27012003/facebook-helper/actions/runs/43864240763) cũng thành công trước phát hành.
+
+[Tải 0.4.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.4.0), ZIP **620.896.306 byte** (khoảng 621 MB), bao gồm Qt WebEngine và thư viện offline. SHA256: `dbed114005521d2eabcf018aaaa6c4e6d6d447f1033d51fc49a46d2c884548a7`.
+
+Đây là kiểm tra đóng gói/soạn thảo/clipboard thực tế trên Windows. Test luồng Facebook dùng mô phỏng, không khẳng định bài sẽ không bị Facebook hoặc quản trị viên gỡ.
