@@ -8,6 +8,8 @@
 
 Tải **Setup.exe** → chạy → Cài đặt → mở Facebook Helper từ Start menu. Không cần Python, không cần quyền quản trị. Cập nhật bằng Setup giữ dữ liệu/phiên Facebook. Đóng bản đang chạy trước khi cài. ZIP portable vẫn có: giải nén toàn bộ rồi chạy `FacebookHelper.exe`, giữ `_internal` đi kèm. Bản chưa ký mã số; checksum ở trang phát hành.
 
+Bản 0.10.0: Setup khoảng **326 MB**, ZIP **469 MB**, giảm khoảng **25%** so với ZIP 0.9.0. Thành phần chương trình sau giải nén khoảng 1,11 GB; dữ liệu/ảnh/phiên được lưu riêng.
+
 ## Cách dùng bản 0.10.0 · Summernote
 
 Mỗi lượt đăng thử tối đa 3 lần khi gặp lỗi tạm thời trước gửi. Nếu bản đang mở đã chuẩn bị đủ, lần sau dùng chính bản đó, không dán chữ/tải ảnh lại. Sau bấm Đăng, chỉ cho phép thử lại nếu phản hồi của đúng thao tác xác nhận chưa tạo bài và báo lỗi tạm thời; cần bản soạn vẫn mở, nút Đăng còn dùng được. Đăng nhập/xác thực, hạn chế, kết quả chưa rõ hoặc đã gửi không tự thử lại. Tối đa 3 lần tổng cộng, không phải 3 lần bổ sung.

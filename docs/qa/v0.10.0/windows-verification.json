@@ -1,0 +1,78 @@
+{
+  "source_sha": "21d010ea8ee347d89967be05042a95e823214e26",
+  "run_id": 44130416690,
+  "release_url": "https://github.com/Trung27012003/facebook-helper/releases/tag/v0.10.0",
+  "verified_at_vietnam": "2026-11-18T00:03:13.276450+07:00",
+  "assets": [
+    {
+      "name": "FacebookHelper-Setup-x64.exe",
+      "size": 326443008,
+      "published_sha256": "f39c28f0134b026424884db3fd0abbe0324b45d8c1ced176cf5045305cb9ee07",
+      "http_status": 206,
+      "signature_hex": "4d5a"
+    },
+    {
+      "name": "FacebookHelper-Windows-x64.zip",
+      "size": 468773292,
+      "published_sha256": "33a7e40b0f921360afb275994dcb75b06b5f587e127613f73a8771fe8e4325d1",
+      "http_status": 206,
+      "signature_hex": "504b0304"
+    }
+  ],
+  "full_hash_recomputed_locally": false,
+  "previous_zip_bytes": 620992045,
+  "zip_reduction_percent": 24.51219049029847,
+  "portable_smoke": {
+    "ok": true,
+    "update_tls": true,
+    "chromium": "159.0.8154.6",
+    "lazy_browser": true,
+    "rich_paste_and_copy": true,
+    "calendar_picker": true,
+    "today_filter": true,
+    "posting_link_column": true,
+    "group_actions": true,
+    "global_actions": true,
+    "guided_steps": 4,
+    "result_columns": 6,
+    "draft_saved": true,
+    "tabs": 5,
+    "qt_started": true,
+    "worker_stopped": true
+  },
+  "installed_smoke": {
+    "ok": true,
+    "update_tls": true,
+    "chromium": "159.0.8154.6",
+    "lazy_browser": true,
+    "rich_paste_and_copy": true,
+    "calendar_picker": true,
+    "today_filter": true,
+    "posting_link_column": true,
+    "group_actions": true,
+    "global_actions": true,
+    "guided_steps": 4,
+    "result_columns": 6,
+    "draft_saved": true,
+    "tabs": 5,
+    "qt_started": true,
+    "worker_stopped": true
+  },
+  "uninstall_preserves_data": true,
+  "package_audit": {
+    "files": 3442,
+    "user_data_files": [],
+    "ok": true
+  },
+  "prune_audit": {
+    "before_bytes": 1200284354,
+    "after_bytes": 1110211653,
+    "removed_bytes": 90072701,
+    "ok": true
+  },
+  "public_release_metadata_check": {
+    "older_version_detects_new_setup": true,
+    "current_version_not_prompted": true,
+    "url": "https://github.com/Trung27012003/facebook-helper/releases/download/v0.10.0/FacebookHelper-Setup-x64.exe"
+  }
+}

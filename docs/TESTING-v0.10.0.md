@@ -1,6 +1,6 @@
 # Kiểm thử 0.10.0
 
-Ngày 17/11/2026, giờ Việt Nam. Schema dữ liệu giữ ở 6.
+Ngày 17–18/11/2026, giờ Việt Nam. Schema dữ liệu giữ ở 6.
 
 ## Thử lại khi đăng
 
@@ -35,3 +35,29 @@ Ruff đạt. Một lượt toàn bộ trước hai bổ sung cuối: 314 passed 
 ## Giới hạn
 
 Chưa có phiên Facebook thực tế của người dùng. Không bảo đảm mọi lỗi có thể tự thử lại hoặc mọi bài chờ duyệt có link mở được. Thông báo cập nhật dùng API công khai, có thể thất bại khi mạng hoặc API giới hạn; có kiểm tra thủ công. Gói chưa ký mã số. Ảnh Qt offscreen không thay kiểm thử mọi DPI Windows.
+
+## CI mã nguồn
+
+[Checks #44130417648](https://github.com/Trung27012003/facebook-helper/actions/runs/44130417648) đạt trên commit `21d010ea8ee347d89967be05042a95e823214e26`: Ruff và **316 test, 178,995 giây**, 0 failures/errors/skipped. [JUnit CI](qa/v0.10.0/ci-tests.xml).
+
+
+## Windows, bộ cài và kích thước cuối
+
+[Build Windows #44130416690](https://github.com/Trung27012003/facebook-helper/actions/runs/44130416690) đạt trên cùng commit. Bản portable rút gọn chạy Qt/Summernote/Chromium đầy đủ, có SSL backend, lazy worker và calendar picker. Setup đã được cài vào đường dẫn có dấu, app đã cài chạy lại smoke đạt, uninstaller thoát thành công và DB/tệp dữ liệu vẫn tồn tại. [Bằng chứng](qa/v0.10.0/windows-verification.json).
+
+Audit gói: 3.442 tệp, không có tệp dữ liệu/phiên người dùng thuộc danh sách cấm. Prune giảm từ 1.200.284.354 xuống 1.110.211.653 byte, bỏ thêm 90.072.701 byte sau khi đã không tải headless shell. Cache/build phát triển workspace dọn riêng 1.769.938 byte, không phải số giảm gói người dùng.
+
+| Tệp | Byte | So với trước |
+|---|---:|---|
+| Setup mới | 326.443.008 | Nén LZMA2, có cài đặt/gỡ cài đặt |
+| ZIP 0.10.0 | 468.773.292 | Giảm 24,512% so với ZIP 0.9.0 |
+| ZIP 0.9.0 | 620.992.045 | Mốc so sánh |
+
+Payload giải nén khoảng 1,11 GB, chưa tính SQLite/ảnh/profile của người dùng. Không tuyên bố toàn bộ ứng dụng chỉ chiếm 326 MB trên ổ đĩa hoặc đã benchmark RAM thực tế.
+
+[Tải 0.10.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.10.0). SHA256 công bố:
+
+- Setup: `f39c28f0134b026424884db3fd0abbe0324b45d8c1ced176cf5045305cb9ee07`.
+- ZIP: `33a7e40b0f921360afb275994dcb75b06b5f587e127613f73a8771fe8e4325d1`.
+
+Đã đọc manifest và kiểm tra đầu tệp qua URL công khai: HTTP 206, Setup có MZ, ZIP có chữ ký PK. Không tải toàn bộ hai tệp để tính lại hash tại workspace. Đã đọc metadata Releases API thật và kiểm tra parser nhận đúng Setup khi so với version cũ; current 0.10.0 không bị nhắc cập nhật chính nó. Đây là kiểm tra parser/metadata, không làm binary 0.9.0 cũ có chức năng kiểm tra cập nhật.
