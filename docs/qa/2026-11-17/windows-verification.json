@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "run_id": 44056500275,
+  "ci_run_id": 44056500774,
+  "source_commit": "36fa2c78fad870b3f6ba0762f2ef8d656895d418",
+  "unicode_executable_path": true,
+  "qt_started": true,
+  "draft_saved": true,
+  "worker_stopped": true,
+  "package_audit": {
+    "files": 3999,
+    "user_data_files": [],
+    "ok": true
+  }
+}

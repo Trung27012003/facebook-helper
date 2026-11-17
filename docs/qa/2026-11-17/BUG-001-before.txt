@@ -1,0 +1,45 @@
+F........                                                                [100%]
+=================================== FAILURES ===================================
+_________ test_deleted_original_draft_cannot_overwrite_reused_post_id __________
+
+window = <facebook_helper.ui.MainWindow(0x14937100) at 0x7f3670243800>
+store = <facebook_helper.storage.Store object at 0x7f36702daf90>
+
+    def test_deleted_original_draft_cannot_overwrite_reused_post_id(window, store):
+        original = store.save_post(None, "Bài A", "<p>Nội dung A</p>", "Nội dung A", "", [])
+        window.refresh_posts()
+        item = next(
+            window.post_list.item(i)
+            for i in range(window.post_list.count())
+            if window.post_list.item(i).data(Qt.ItemDataRole.UserRole) == original
+        )
+        window.load_post(item)
+        window.title.setText("Nháp của A")
+        window.content.setHtml("<p>Nội dung A chưa xong</p>")
+        assert window.autosave_draft()
+        # A prior-session draft is left unrecovered, then the original is deleted.
+        window.active_draft_id = None
+        window.dirty = False
+        store.delete_post(original)
+        replacement = store.save_post(None, "Bài B cần giữ", "<p>Nội dung B</p>", "Nội dung B", "", [])
+        assert replacement == original, "SQLite reuses the largest deleted INTEGER PRIMARY KEY"
+        before = store.post(replacement)
+        window.recover_draft()
+>       assert window.post_id is None, (
+            "A deleted original must recover as a new post even if its numeric ID is reused"
+        )
+E       AssertionError: A deleted original must recover as a new post even if its numeric ID is reused
+E       assert 1 is None
+E        +  where 1 = <facebook_helper.ui.MainWindow(0x14937100) at 0x7f3670243800>.post_id
+
+tests/test_checklist.py:27: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+This plugin does not support propagateSizeHints()
+Sandboxing disabled by user.
+QRhiGles2: Failed to create temporary context
+QRhiGles2: Failed to create context
+Failed to create RHI for backend: OpenGL
+[72402:72410:1117/085736.245992:ERROR:../../../qtwebengine/src/3rdparty/chromium/dbus/bus.cc:408] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+=========================== short test summary info ============================
+FAILED tests/test_checklist.py::test_deleted_original_draft_cannot_overwrite_reused_post_id
+1 failed, 8 passed in 1.49s

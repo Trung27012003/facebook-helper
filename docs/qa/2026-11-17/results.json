@@ -1,0 +1,2734 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Asia/Saigon",
+  "version": "0.7.1",
+  "source_commit": "36fa2c78fad870b3f6ba0762f2ef8d656895d418",
+  "ci_run_id": 44056500774,
+  "windows_run_id": 44056500275,
+  "automated": {
+    "tests": 236,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 118.354
+  },
+  "checklist_counts": {
+    "Bị chặn": 35,
+    "Đạt": 144,
+    "Chưa chạy": 1
+  },
+  "checklist": [
+    {
+      "id": "KT-01-01",
+      "priority": "P0",
+      "title": "Mở ZIP đã giải nén trên máy Windows chưa cài Python",
+      "expected": "Ứng dụng mở được, có trình soạn và Chromium đi kèm.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có máy Windows sạch không cài Python để nghiệm thu toàn bộ điều kiện. Smoke .exe trên runner được ghi riêng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-01-02",
+      "priority": "P1",
+      "title": "Mở từ thư mục có dấu tiếng Việt và khoảng trắng",
+      "expected": "Đọc tài nguyên, ảnh và dữ liệu đúng; không lỗi đường dẫn.",
+      "status": "Đạt",
+      "mode": "Windows .exe, thư mục có dấu/khoảng trắng",
+      "evidence": [
+        "proof:windows-verification.json"
+      ],
+      "note": "Chạy smoke .exe từ thư mục Kiểm thử Facebook Helper trên runner Windows; exit 0.",
+      "evidence_urls": [
+        "qa/2026-11-17/windows-verification.json"
+      ]
+    },
+    {
+      "id": "KT-01-03",
+      "priority": "P0",
+      "title": "Mở hai phiên ứng dụng dùng cùng dữ liệu",
+      "expected": "Phiên thứ hai bị chặn; phiên đang chạy không bị đổi trạng thái gửi.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_second_instance_is_blocked_without_changing_active_sending_job"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L218"
+      ]
+    },
+    {
+      "id": "KT-01-04",
+      "priority": "P1",
+      "title": "Đóng khi không có công việc đang chạy",
+      "expected": "Đóng sạch, không để tiến trình trình duyệt của ứng dụng chạy mãi.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_packaging_smoke_exits_cleanly_with_qt_and_chromium"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_packaging.py#L7"
+      ]
+    },
+    {
+      "id": "KT-01-05",
+      "priority": "P0",
+      "title": "Đóng khi đang gửi bài",
+      "expected": "Thao tác đang chạy được xử lý theo luồng đóng; không tự chuyển nhóm tiếp. Mở lại không tự gửi lại lượt chưa rõ.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Cần phiên Facebook thật và lượt gửi đang diễn ra để thử đóng cửa sổ từ đầu đến cuối. Dừng queue/uncertain được kiểm tra riêng bằng mô phỏng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-01-06",
+      "priority": "P1",
+      "title": "Thiếu thư mục tài nguyên hoặc Chromium trong bản giải nén thử",
+      "expected": "Có thông báo để giải nén lại/khắc phục; không báo giả đã gửi.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Cần kiểm tra trực tiếp hộp thoại Windows khi phá bản giải nén thử; chưa thực hiện phá gói .exe trong lượt này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-02-01",
+      "priority": "P1",
+      "title": "Mở với thư mục dữ liệu mới",
+      "expected": "Hiện hướng dẫn đăng nhập → thêm nhóm → soạn bài.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_quick_start_can_be_hidden_persistently"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L221"
+      ]
+    },
+    {
+      "id": "KT-02-02",
+      "priority": "P1",
+      "title": "Bấm từng nút trong hướng dẫn",
+      "expected": "Mở đúng cửa sổ Facebook hoặc đúng tab ứng dụng.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chuyển tab đã được thử local, nhưng bước mở và đăng nhập Facebook thật chưa có phiên/tài khoản thử.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-02-03",
+      "priority": "P2",
+      "title": "Ẩn hướng dẫn rồi mở lại ứng dụng",
+      "expected": "Ghi nhớ lựa chọn ẩn; không bật hướng dẫn lặp lại.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_quick_start_can_be_hidden_persistently"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L221"
+      ]
+    },
+    {
+      "id": "KT-02-04",
+      "priority": "P2",
+      "title": "Mở lại Hướng dẫn nhanh",
+      "expected": "Hiện lại hướng dẫn mà không làm mất bài đang soạn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_quick_start_button_reopens_guide_without_losing_editor"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L378"
+      ]
+    },
+    {
+      "id": "KT-02-05",
+      "priority": "P1",
+      "title": "Chuyển giữa năm tab khi có dữ liệu",
+      "expected": "Mở đúng chức năng, không tự gửi bài hoặc mất nội dung.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_switching_all_tabs_keeps_unsaved_editor_content"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L368"
+      ]
+    },
+    {
+      "id": "KT-02-06",
+      "priority": "P1",
+      "title": "Bấm Tiếp tục danh sách còn lại",
+      "expected": "Mở đợt còn việc; chỉ gửi sau khi người dùng bắt đầu.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_resume_selects_remaining_batch_and_keeps_sent_snapshot"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L298"
+      ]
+    },
+    {
+      "id": "KT-03-01",
+      "priority": "P1",
+      "title": "Đăng nhập tài khoản thử trong trình duyệt ứng dụng",
+      "expected": "Người dùng đăng nhập trực tiếp với Facebook, không nhập mật khẩu vào phần mềm.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-02",
+      "priority": "P1",
+      "title": "Đăng nhập với xác thực hai bước",
+      "expected": "Chờ người dùng hoàn tất; không tự vượt bước xác thực.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-03",
+      "priority": "P1",
+      "title": "Đóng/mở lại sau khi đăng nhập thành công",
+      "expected": "Phiên được dùng lại nếu Facebook còn chấp nhận.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-04",
+      "priority": "P0",
+      "title": "Phiên hết hạn hoặc Facebook chuyển về trang đăng nhập",
+      "expected": "Dừng thao tác, có hướng dẫn; không ghi đã đăng thành công.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-05",
+      "priority": "P1",
+      "title": "Đăng xuất trong Facebook rồi gửi/kiểm tra bài",
+      "expected": "Phát hiện cần đăng nhập hoặc giữ kết quả chưa xác minh; không tiếp tục gửi mù.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-06",
+      "priority": "P1",
+      "title": "Đóng cửa sổ trình duyệt rồi mở lại từ ứng dụng",
+      "expected": "Có thể tạo lại cửa sổ và tiếp tục thao tác phù hợp.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-03-07",
+      "priority": "P1",
+      "title": "Dùng Chrome cá nhân song song",
+      "expected": "Không nhầm phiên trình duyệt cá nhân với phiên của ứng dụng.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có phiên Facebook thật, tài khoản thử/2FA và Chrome cá nhân tương ứng trong môi trường kiểm thử. Không gửi bài hoặc lấy cookie người dùng.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-04-01",
+      "priority": "P1",
+      "title": "Tạo bài mới, lưu và mở lại",
+      "expected": "Đúng tên, nội dung, hashtag và ảnh.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_editor_groups_history_and_shutdown",
+        "test_word_bold_color_size_survive_paste_save_and_reload"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_ui.py#L8",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L35"
+      ]
+    },
+    {
+      "id": "KT-04-02",
+      "priority": "P1",
+      "title": "Thiếu tên bài hoặc nội dung khi Lưu bài",
+      "expected": "Có hướng dẫn bổ sung, không tạo bài không hợp lệ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_unique_groups_and_required_fields",
+        "test_task_creation_requires_post_and_group"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L80",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L72"
+      ]
+    },
+    {
+      "id": "KT-04-03",
+      "priority": "P1",
+      "title": "Sửa một bài đã lưu",
+      "expected": "Chỉ cập nhật bài được chọn, không đổi bài khác.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_duplicate_delete_and_switch_preserve_correct_saved_posts"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L137"
+      ]
+    },
+    {
+      "id": "KT-04-04",
+      "priority": "P1",
+      "title": "Nhân bản bài rồi chỉnh sửa",
+      "expected": "Tạo bản riêng; bài gốc và lịch sử vẫn giữ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_duplicate_delete_and_switch_preserve_correct_saved_posts"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L137"
+      ]
+    },
+    {
+      "id": "KT-04-05",
+      "priority": "P1",
+      "title": "Tìm bài theo tên và nội dung",
+      "expected": "Danh sách hiển thị đúng các bài khớp phạm vi tìm kiếm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_search_reads_full_body_not_only_tooltip"
+      ],
+      "note": "BUG-002: đã tái hiện không tìm thấy từ khóa sau 250 ký tự ở bản cũ; ca hồi quy sau sửa đã đạt.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L313"
+      ]
+    },
+    {
+      "id": "KT-04-06",
+      "priority": "P0",
+      "title": "Chuyển bài khi đang có sửa chưa lưu: đồng ý/từ chối bỏ sửa",
+      "expected": "Từ chối giữ nguyên nội dung; đồng ý mới bỏ phần sửa và nháp tương ứng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_edit_from_wizard_opens_chosen_post_and_respects_unsaved_work"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L227"
+      ]
+    },
+    {
+      "id": "KT-04-07",
+      "priority": "P1",
+      "title": "Xóa bài đã lưu",
+      "expected": "Có xác nhận; lịch sử các lượt đã tạo vẫn còn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_duplicate_delete_and_switch_preserve_correct_saved_posts",
+        "test_snapshot_survives_changes_and_deletion"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L137",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L56"
+      ]
+    },
+    {
+      "id": "KT-05-01",
+      "priority": "P1",
+      "title": "Chữ Việt, xuống dòng, đoạn văn và emoji",
+      "expected": "Lưu/mở/copy không mất chữ hoặc hỏng dấu.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_image_order_and_hashtags_survive_draft_restore",
+        "test_copy_mime_includes_html_plain_text_lists_and_hashtags"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L179",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L57"
+      ]
+    },
+    {
+      "id": "KT-05-02",
+      "priority": "P1",
+      "title": "Đậm, nghiêng, gạch chân, tiêu đề và danh sách",
+      "expected": "Trình soạn, lưu lại và bản xem trước giữ các định dạng được hỗ trợ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_bold_button_changes_selected_text",
+        "test_library_italic_underline_and_link_survive_save_reload",
+        "test_native_library_lists_and_table_export_readably"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L50",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L351",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L90"
+      ]
+    },
+    {
+      "id": "KT-05-03",
+      "priority": "P1",
+      "title": "Font, cỡ, màu chữ, bảng và liên kết",
+      "expected": "Điều khiển của Summernote hoạt động; lưu/mở không lỗi editor.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_library_font_and_color_commands_survive_save_cleanup",
+        "test_native_library_lists_and_table_export_readably",
+        "test_library_italic_underline_and_link_survive_save_reload"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L132",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L90",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L351"
+      ]
+    },
+    {
+      "id": "KT-05-04",
+      "priority": "P1",
+      "title": "Dán bài từ Word",
+      "expected": "Giữ phần định dạng được hỗ trợ; không dán thành mã HTML thô.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Đã có thử HTML/MIME dạng Word bằng tự động; cần Microsoft Word thật để kiểm tra nguồn copy từ ứng dụng đó.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-05-05",
+      "priority": "P1",
+      "title": "Dán bài từ Facebook nền tối",
+      "expected": "Bỏ nền tối/màu giao diện gây khó đọc, giữ nội dung và cấu trúc phù hợp.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Đã có thử HTML nền tối mô phỏng; còn thiếu thao tác copy bài từ Facebook thật.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-05-06",
+      "priority": "P1",
+      "title": "Dán chữ thuần và xóa định dạng",
+      "expected": "Cho ra chữ đọc được; không sót nền/mã thừa.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_plain_paste_does_not_take_source_html",
+        "test_copy_facebook_dark_theme_removes_background_but_keeps_semantics",
+        "proof:clear-format.json"
+      ],
+      "note": "Đã thử dán chữ thuần và removeFormat thật trong Summernote: bỏ đậm/nghiêng/gạch chân/màu và giữ chữ Việt.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L80",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L22",
+        "qa/2026-11-17/clear-format.json"
+      ]
+    },
+    {
+      "id": "KT-05-07",
+      "priority": "P1",
+      "title": "Hoàn tác/làm lại sau sửa hoặc dán",
+      "expected": "Trở về đúng trạng thái trong phiên soạn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_summernote_undo_redo_restores_unicode_content",
+        "test_undo_after_switching_saved_posts_cannot_restore_previous_post"
+      ],
+      "note": "BUG-003: Undo sau nạp bài từng về rỗng. Đã sửa lịch sử bằng API commit của Summernote và kiểm tra không lấy lại bài trước.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L261",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L326"
+      ]
+    },
+    {
+      "id": "KT-05-08",
+      "priority": "P0",
+      "title": "Dán HTML có script hoặc tài nguyên ngoài không phù hợp",
+      "expected": "Nội dung được làm sạch; không chạy script tùy ý hoặc tự tải ảnh như tệp đính kèm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_scripts_and_remote_images_are_not_loaded"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L67"
+      ]
+    },
+    {
+      "id": "KT-05-09",
+      "priority": "P1",
+      "title": "Bài dài trên 15.000 ký tự và nhiều đoạn",
+      "expected": "Không chặn vì so khớp số ký tự đọc lại; vẫn cần chữ, ảnh và nút gửi sẵn sàng.",
+      "status": "Đạt",
+      "mode": "Chromium thật, trang Facebook mô phỏng",
+      "evidence": [
+        "test_long_post_with_images_reaches_post_button_despite_readback_difference"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L451"
+      ]
+    },
+    {
+      "id": "KT-06-01",
+      "priority": "P1",
+      "title": "Tạo bài từ mẫu tuyển dụng đủ thông tin",
+      "expected": "Sinh đúng vị trí, công ty, việc làm, yêu cầu, quyền lợi và liên hệ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_recruitment_template_matches_reference_layout_and_escapes_input",
+        "test_recruitment_template_requires_position_and_company",
+        "test_guided_template_generates_editable_draft_with_reference_sections"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L87",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L124",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_template_ui.py#L6"
+      ]
+    },
+    {
+      "id": "KT-06-02",
+      "priority": "P1",
+      "title": "Bỏ trống trường không bắt buộc của mẫu",
+      "expected": "Không sinh đoạn lỗi hoặc giá trị rỗng khó hiểu.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_recruitment_template_matches_reference_layout_and_escapes_input",
+        "test_recruitment_template_requires_position_and_company",
+        "test_guided_template_generates_editable_draft_with_reference_sections"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L87",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L124",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_template_ui.py#L6"
+      ]
+    },
+    {
+      "id": "KT-06-03",
+      "priority": "P0",
+      "title": "Hủy tạo mẫu khi đang soạn bài khác",
+      "expected": "Không ghi đè bài đang soạn khi chưa được đồng ý.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_cancelling_template_keeps_draft_unchanged"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_template_ui.py#L31"
+      ]
+    },
+    {
+      "id": "KT-06-04",
+      "priority": "P1",
+      "title": "Sửa nội dung sau khi sinh từ mẫu",
+      "expected": "Bài vẫn chỉnh sửa và lưu bình thường.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_guided_template_generates_editable_draft_with_reference_sections",
+        "test_word_bold_color_size_survive_paste_save_and_reload"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_template_ui.py#L6",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L35"
+      ]
+    },
+    {
+      "id": "KT-06-05",
+      "priority": "P1",
+      "title": "Thêm hashtag cuối bài",
+      "expected": "Lưu, xem trước, copy và lượt đăng có hashtag đúng vị trí.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_copy_mime_includes_html_plain_text_lists_and_hashtags",
+        "test_two_posts_three_groups_keep_correct_content_tags_and_images"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L57",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L37"
+      ]
+    },
+    {
+      "id": "KT-06-06",
+      "priority": "P1",
+      "title": "Xem trước bài có ảnh/định dạng",
+      "expected": "Hiển thị đúng dữ liệu đã chọn; không cam kết Facebook giữ mọi màu/font như Word.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21"
+      ]
+    },
+    {
+      "id": "KT-07-01",
+      "priority": "P1",
+      "title": "Nhập một ảnh và nhiều ảnh hợp lệ",
+      "expected": "Có ảnh trong danh sách và bản sao thuộc dữ liệu ứng dụng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_images_are_owned_and_preserved",
+        "test_image_order_and_hashtags_survive_draft_restore"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L88",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L179"
+      ]
+    },
+    {
+      "id": "KT-07-02",
+      "priority": "P1",
+      "title": "Ảnh ở đường dẫn có dấu/khoảng trắng",
+      "expected": "Nhập, mở, xem trước và tải lên được.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_image_unicode_path_and_remove_readd_keep_owned_copy",
+        "test_image_order_and_hashtags_survive_draft_restore"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L389",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L179"
+      ]
+    },
+    {
+      "id": "KT-07-03",
+      "priority": "P1",
+      "title": "Đưa ảnh lên/xuống, bỏ ảnh và thêm lại",
+      "expected": "Thứ tự, nhãn Ảnh 1/2/3 và số ảnh nhất quán.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_image_unicode_path_and_remove_readd_keep_owned_copy",
+        "test_image_order_and_hashtags_survive_draft_restore"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L389",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L179"
+      ]
+    },
+    {
+      "id": "KT-07-04",
+      "priority": "P0",
+      "title": "Xóa hoặc di chuyển tệp ảnh nguồn sau khi nhập",
+      "expected": "Bản sao đã nhập vẫn dùng được; không phụ thuộc tệp nguồn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_images_are_owned_and_preserved"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L88"
+      ]
+    },
+    {
+      "id": "KT-07-05",
+      "priority": "P1",
+      "title": "Chọn tệp hỏng, không phải ảnh hoặc trên 30 MB",
+      "expected": "Báo đúng lỗi; các ảnh hợp lệ đã nhập không bị mất.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_reject_nonimage_and_oversized_valid_image"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L201"
+      ]
+    },
+    {
+      "id": "KT-07-06",
+      "priority": "P0",
+      "title": "Tệp ảnh trong dữ liệu bị thiếu trước khi gửi",
+      "expected": "Dừng trước khi gửi thiếu ảnh; giữ công việc để khắc phục.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_refuse_missing_attachment_without_changing_text"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L57"
+      ]
+    },
+    {
+      "id": "KT-07-07",
+      "priority": "P1",
+      "title": "Ảnh có trong nội dung copy từ Word/Facebook",
+      "expected": "Không nhầm ảnh dán trong HTML với ảnh đã nhập để đính kèm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_scripts_and_remote_images_are_not_loaded"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_richtext.py#L67"
+      ]
+    },
+    {
+      "id": "KT-08-01",
+      "priority": "P0",
+      "title": "Nhập rồi ngừng khoảng 1,2 giây",
+      "expected": "Lưu nháp riêng; không tự đưa nháp vào thư viện hoặc gửi Facebook.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_draft_timer_saves_without_manual_save"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L404"
+      ]
+    },
+    {
+      "id": "KT-08-02",
+      "priority": "P0",
+      "title": "Nháp của một bài đã lưu",
+      "expected": "Tự lưu không ghi đè bài đã lưu hoặc các lượt đã tạo.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_autosave_preserves_rich_content_and_images_without_updating_saved_post"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L95"
+      ]
+    },
+    {
+      "id": "KT-08-03",
+      "priority": "P0",
+      "title": "Đóng/mở lại rồi khôi phục",
+      "expected": "Khôi phục tên, chữ Việt, HTML, hashtag, ảnh và thứ tự.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_restart_offers_draft_recovery_without_sending_or_saving_post",
+        "test_image_order_and_hashtags_survive_draft_restore",
+        "test_autosave_survives_close_without_discard_prompt"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L116",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L179",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L142"
+      ]
+    },
+    {
+      "id": "KT-08-04",
+      "priority": "P0",
+      "title": "Bắt đầu nháp khác khi còn nháp cũ chưa khôi phục",
+      "expected": "Không ghi mất các nháp cũ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_new_unsaved_work_keeps_unrecovered_draft"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L168"
+      ]
+    },
+    {
+      "id": "KT-08-05",
+      "priority": "P1",
+      "title": "Có nhiều nháp cần khôi phục",
+      "expected": "Chọn được theo tên/thời gian; mở đúng nháp.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_recover_one_of_multiple_drafts_uses_chosen_title_and_timestamp"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L447"
+      ]
+    },
+    {
+      "id": "KT-08-06",
+      "priority": "P0",
+      "title": "Bấm Lưu bài thành công",
+      "expected": "Cập nhật đúng bài và dọn nháp tương ứng; giữ các nháp khác.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_autosave_preserves_rich_content_and_images_without_updating_saved_post",
+        "test_new_unsaved_work_keeps_unrecovered_draft"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L95",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L168"
+      ]
+    },
+    {
+      "id": "KT-08-07",
+      "priority": "P0",
+      "title": "Không ghi được nháp khi đóng, giả lập trên dữ liệu thử",
+      "expected": "Giữ cửa sổ mở và báo lỗi để tránh bỏ mất nội dung.",
+      "status": "Đạt",
+      "mode": "Local Qt; giả lập lỗi ghi đĩa trên dữ liệu thử",
+      "evidence": [
+        "test_autosave_failure_keeps_window_open"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L156"
+      ]
+    },
+    {
+      "id": "KT-08-08",
+      "priority": "P0",
+      "title": "Khôi phục nháp thiếu tệp ảnh",
+      "expected": "Không thay bài hiện tại hoặc tự xóa nháp; có thông báo.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_draft_with_missing_image_does_not_replace_current_editor"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L246"
+      ]
+    },
+    {
+      "id": "KT-08-09",
+      "priority": "P1",
+      "title": "Bài gốc của nháp đã bị xóa",
+      "expected": "Mở nháp như bài mới, không ghi nhầm bài khác.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_deleted_original_draft_cannot_overwrite_reused_post_id",
+        "test_legacy_draft_without_identity_recovers_as_copy",
+        "test_existing_original_is_updated_only_when_draft_identity_matches"
+      ],
+      "note": "BUG-001: đã tái hiện nguy cơ ghi đè bài B khi ID bài A bị dùng lại. Đã dùng UID ổn định; nháp cũ thiếu UID mở thành bản mới.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L7",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L95",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L80"
+      ]
+    },
+    {
+      "id": "KT-08-10",
+      "priority": "P1",
+      "title": "Bỏ các nháp cũ: đồng ý/từ chối",
+      "expected": "Chỉ xóa sau xác nhận; không xóa bài đã lưu hoặc nháp hiện đang sửa.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_discard_archived_drafts_requires_confirmation_and_keeps_current"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L416"
+      ]
+    },
+    {
+      "id": "KT-09-01",
+      "priority": "P1",
+      "title": "Thêm nhóm với tên và link hợp lệ",
+      "expected": "Lưu và xuất hiện trong các màn chọn nhóm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_editor_groups_history_and_shutdown"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_ui.py#L8"
+      ]
+    },
+    {
+      "id": "KT-09-02",
+      "priority": "P1",
+      "title": "Sửa tên, link và ghi chú nhóm",
+      "expected": "Đúng nhóm; không ghi đè nhóm khác.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_group_edit_and_delete_confirmation_preserve_job_snapshot"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L158"
+      ]
+    },
+    {
+      "id": "KT-09-03",
+      "priority": "P0",
+      "title": "Link sai miền, HTTP, trang Facebook không phải nhóm",
+      "expected": "Từ chối link không hợp lệ hoặc không xác định được nhóm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_reject_invalid_group"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L24"
+      ]
+    },
+    {
+      "id": "KT-09-04",
+      "priority": "P1",
+      "title": "Các biến thể www/m/web và tham số chia sẻ hợp lệ",
+      "expected": "Chuẩn hóa đúng nhóm được hỗ trợ; không tạo bản trùng chỉ vì biến thể miền.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_supported_group_hosts_and_share_query_normalize"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L252"
+      ]
+    },
+    {
+      "id": "KT-09-05",
+      "priority": "P1",
+      "title": "Thêm lại cùng link nhóm đã có",
+      "expected": "Cảnh báo trùng; không tạo thêm nhóm giống hệt.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_unique_groups_and_required_fields"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L80"
+      ]
+    },
+    {
+      "id": "KT-09-06",
+      "priority": "P1",
+      "title": "Chuyển nhóm khi có sửa chưa lưu",
+      "expected": "Chỉ bỏ sửa khi người dùng đồng ý.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_group_switch_respects_unsaved_changes"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L473"
+      ]
+    },
+    {
+      "id": "KT-09-07",
+      "priority": "P1",
+      "title": "Xóa nhóm đã có lịch sử",
+      "expected": "Có xác nhận; lịch sử và thông tin chụp tại lúc tạo lượt vẫn còn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_group_edit_and_delete_confirmation_preserve_job_snapshot"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L158"
+      ]
+    },
+    {
+      "id": "KT-10-01",
+      "priority": "P1",
+      "title": "Nhiều nhóm chung một nhãn",
+      "expected": "Chọn nhãn hiển thị đúng tất cả nhóm thuộc nhãn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_tag_normalization_and_exact_matching"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L10"
+      ]
+    },
+    {
+      "id": "KT-10-02",
+      "priority": "P1",
+      "title": "Một nhóm có nhiều nhãn",
+      "expected": "Nhóm xuất hiện ở từng nhãn phù hợp, không nhân đôi trong một đợt.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_tag_normalization_and_exact_matching"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L10"
+      ]
+    },
+    {
+      "id": "KT-10-03",
+      "priority": "P1",
+      "title": "Nhãn khác hoa/thường, dấu #, dấu phân cách",
+      "expected": "Chuẩn hóa theo quy tắc; không coi Hà Nội mở rộng là nhãn Hà Nội.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_tag_normalization_and_exact_matching"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L10"
+      ]
+    },
+    {
+      "id": "KT-10-04",
+      "priority": "P1",
+      "title": "Chọn một nhóm và chọn nhiều nhóm bằng ô tích",
+      "expected": "Đếm đúng nhóm và giữ thứ tự hiển thị.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_manual_multiselect_creates_one_ordered_batch",
+        "test_batch_deduplicates_groups_and_keeps_explicit_order"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L33",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L21"
+      ]
+    },
+    {
+      "id": "KT-10-05",
+      "priority": "P0",
+      "title": "Chọn theo nhãn rồi bỏ tích vài nhóm",
+      "expected": "Chỉ nhóm còn tích được đưa vào đợt đăng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_tag_selects_all_matching_groups_and_allows_exclusions"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L15"
+      ]
+    },
+    {
+      "id": "KT-10-06",
+      "priority": "P1",
+      "title": "Không có nhãn/nhóm phù hợp",
+      "expected": "Hiện trạng thái rỗng và cách thêm dữ liệu, không tạo đợt rỗng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_missing_post_or_groups_has_actionable_message",
+        "test_tag_normalization_and_exact_matching"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L76",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L10"
+      ]
+    },
+    {
+      "id": "KT-11-01",
+      "priority": "P1",
+      "title": "Đăng bài này từ trình soạn",
+      "expected": "Lưu bài hợp lệ và mở đúng bài ở bước Chọn bài; chưa gửi Facebook.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_post_this_article_saves_and_opens_guided_flow"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L86"
+      ]
+    },
+    {
+      "id": "KT-11-02",
+      "priority": "P1",
+      "title": "Đi lần lượt Chọn bài → nơi đăng → xem lại",
+      "expected": "Mỗi bước có nội dung/nút phù hợp; chưa tạo/gửi trước thao tác cuối.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending"
+      ],
+      "note": "Kiểm tra UI và lệnh gửi tới worker được mô phỏng; không có bài nào được gửi lên Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21"
+      ]
+    },
+    {
+      "id": "KT-11-03",
+      "priority": "P0",
+      "title": "Xem lại nội dung, số ảnh, ảnh và toàn bộ nhóm",
+      "expected": "Các thông tin khớp với dữ liệu chuẩn bị gửi.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending"
+      ],
+      "note": "Kiểm tra UI và lệnh gửi tới worker được mô phỏng; không có bài nào được gửi lên Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21"
+      ]
+    },
+    {
+      "id": "KT-11-04",
+      "priority": "P0",
+      "title": "Sửa bài, ảnh hoặc nhóm sau khi đã xem lại",
+      "expected": "Yêu cầu xem lại trước khi bắt đầu; không gửi bản không được xem lại.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_review_invalidated_when_saved_post_changes",
+        "test_review_is_invalidated_by_changed_image_or_group"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L52",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L490"
+      ]
+    },
+    {
+      "id": "KT-11-05",
+      "priority": "P0",
+      "title": "Bắt đầu tự đăng từ bước xem lại",
+      "expected": "Tạo đúng một đợt và gửi nhóm đầu đúng một lần.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending"
+      ],
+      "note": "Kiểm tra UI và lệnh gửi tới worker được mô phỏng; không có bài nào được gửi lên Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21"
+      ]
+    },
+    {
+      "id": "KT-11-06",
+      "priority": "P0",
+      "title": "Lưu đợt đăng để chạy sau",
+      "expected": "Chỉ lưu công việc, không mở luồng gửi hoặc tự bấm Đăng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_create_six_tasks_using_ui"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L17"
+      ]
+    },
+    {
+      "id": "KT-11-07",
+      "priority": "P1",
+      "title": "Quay lại và sửa bài được chọn trong luồng đăng",
+      "expected": "Mở đúng bài; tôn trọng lựa chọn giữ phần sửa chưa lưu.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_edit_from_wizard_opens_chosen_post_and_respects_unsaved_work"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L227"
+      ]
+    },
+    {
+      "id": "KT-11-08",
+      "priority": "P1",
+      "title": "Đang chạy mà quay lại thay bài/nhóm",
+      "expected": "Yêu cầu tạm dừng và chờ thao tác hoàn tất.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21"
+      ]
+    },
+    {
+      "id": "KT-12-01",
+      "priority": "P0",
+      "title": "Chuẩn bị ít nhất hai bài với ảnh/nội dung khác nhau",
+      "expected": "Mỗi đợt giữ đúng bài và ảnh của mình, không lẫn dữ liệu.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_two_posts_three_groups_keep_correct_content_tags_and_images"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L37"
+      ]
+    },
+    {
+      "id": "KT-12-02",
+      "priority": "P1",
+      "title": "Lưu nhiều đợt trước khi bắt đầu",
+      "expected": "Có thể chọn và chạy từng đợt độc lập.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_create_six_tasks_using_ui"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L17"
+      ]
+    },
+    {
+      "id": "KT-12-03",
+      "priority": "P0",
+      "title": "Sửa bài gốc sau khi tạo đợt",
+      "expected": "Lượt đã tạo giữ bản chụp nội dung/ảnh cũ, không âm thầm đổi theo bài gốc.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_editing_post_and_group_only_affects_future_tasks",
+        "test_job_snapshots_html_not_only_plain_text"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L49",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L129"
+      ]
+    },
+    {
+      "id": "KT-12-04",
+      "priority": "P1",
+      "title": "Chuyển đợt khi đang chờ nhóm tiếp",
+      "expected": "Dừng chuyển tự động của đợt cũ; không gửi nhầm đợt.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_switching_batch_pauses_auto_timer_and_keeps_tasks_separate"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L117"
+      ]
+    },
+    {
+      "id": "KT-12-05",
+      "priority": "P1",
+      "title": "Xem Tất cả lượt và một đợt cụ thể",
+      "expected": "Bảng/tiến độ phản ánh đúng phạm vi đang chọn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_batch_history_follows_posting_order",
+        "test_one_post_three_groups_have_independent_status_links_and_evidence"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L166",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L15"
+      ]
+    },
+    {
+      "id": "KT-12-06",
+      "priority": "P0",
+      "title": "Tiếp tục đợt đã hoàn tất một phần",
+      "expected": "Bỏ qua lượt đã gửi/chờ duyệt/hiển thị; xử lý phần còn lại.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_guided_queue_prepares_in_order_and_resume_skips_finished_groups",
+        "test_submitted_post_is_skipped_when_resuming_queue"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L44",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L135"
+      ]
+    },
+    {
+      "id": "KT-13-01",
+      "priority": "P0",
+      "title": "Gửi một bài một nhóm thử",
+      "expected": "Mở đúng nhóm, đúng ô Tạo bài; không điền nhầm ô bình luận.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-02",
+      "priority": "P0",
+      "title": "Đăng lần lượt nhiều nhóm thử",
+      "expected": "Đúng nhóm, đúng thứ tự, mỗi lượt chỉ bấm gửi một lần.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-03",
+      "priority": "P1",
+      "title": "Ảnh đang tải, nút Đăng chưa sẵn sàng",
+      "expected": "Chờ sẵn sàng hoặc dừng khi hết thời gian; không gửi thiếu ảnh sớm.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-04",
+      "priority": "P0",
+      "title": "Ô Facebook không nhận được chữ",
+      "expected": "Không tự gửi bài trống và không dán lặp vô hạn.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-05",
+      "priority": "P1",
+      "title": "Facebook đổi định dạng hoặc phần đọc lại có chữ giao diện",
+      "expected": "Không chặn bằng so khớp độ dài; đánh giá định dạng theo khả năng Facebook hỗ trợ.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-06",
+      "priority": "P0",
+      "title": "Facebook báo chờ duyệt sau khi gửi",
+      "expected": "Ghi kết quả phù hợp và tiếp tục nhóm sau.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-07",
+      "priority": "P0",
+      "title": "Nhóm không cho đăng, thiếu quyền hoặc Facebook hạn chế",
+      "expected": "Dừng và hướng dẫn kiểm tra; không cố vượt hạn chế.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-13-08",
+      "priority": "P0",
+      "title": "Đã thử bấm Đăng nhưng kết quả không rõ",
+      "expected": "Ghi chưa rõ, dừng đợt; không tự gửi lại hoặc coi là đã hiển thị.",
+      "status": "Bị chặn",
+      "mode": "Facebook thật chưa có điều kiện",
+      "evidence": [],
+      "note": "Thiếu phiên và các nhóm Facebook thử được phép đăng để chạy đầu-cuối thật. Các nhánh thuật toán tương ứng đã được thử trên trang Chromium mô phỏng, không thay thế ca tích hợp này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-14-01",
+      "priority": "P0",
+      "title": "Tắt Tự bấm Đăng",
+      "expected": "Chỉ chuẩn bị nội dung/ảnh, không bấm gửi.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng; không bấm gửi thật",
+      "evidence": [
+        "test_guided_queue_prepares_in_order_and_resume_skips_finished_groups",
+        "test_auto_mode_is_default_and_button_explains_its_action"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L44",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L208"
+      ]
+    },
+    {
+      "id": "KT-14-02",
+      "priority": "P1",
+      "title": "Chế độ chỉ chuẩn bị",
+      "expected": "Công cụ báo đã đăng/sang nhóm sau hiện để tiếp tục bằng tay.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng; không bấm gửi thật",
+      "evidence": [
+        "test_guided_queue_prepares_in_order_and_resume_skips_finished_groups",
+        "test_auto_mode_is_default_and_button_explains_its_action"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L44",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L208"
+      ]
+    },
+    {
+      "id": "KT-14-03",
+      "priority": "P0",
+      "title": "Điền bài vào bản nháp đã có nội dung",
+      "expected": "Không âm thầm ghi đè hoặc dán lặp bản đang soạn.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_refuse_overwrite_existing_draft"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L42"
+      ]
+    },
+    {
+      "id": "KT-14-04",
+      "priority": "P0",
+      "title": "Đăng bản đang mở",
+      "expected": "Có xác nhận, không dán lại chữ/thêm lại ảnh; chặn khi đang ở sai nhóm.",
+      "status": "Đạt",
+      "mode": "Chromium/worker mô phỏng",
+      "evidence": [
+        "test_existing_open_draft_can_be_published_without_pasting_again",
+        "test_publish_open_draft_rejects_wrong_group",
+        "test_publish_open_draft_requires_confirmation_and_uses_recovery_action"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L509",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L528",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L216"
+      ]
+    },
+    {
+      "id": "KT-14-05",
+      "priority": "P1",
+      "title": "Sao chép bài và mở thư mục ảnh",
+      "expected": "Đúng nội dung và ảnh của lượt đang chọn, đúng thứ tự xuất tệp.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Copy clipboard đã được kiểm tra, nhưng thao tác mở thư mục bằng trình quản lý tệp của máy người dùng chưa được nghiệm thu trực tiếp.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-14-06",
+      "priority": "P1",
+      "title": "Báo kết quả bằng tay rồi sang nhóm sau",
+      "expected": "Lưu đúng kết quả; công cụ không tự bịa link hoặc xác nhận hiển thị khi thiếu link.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_guided_queue_prepares_in_order_and_resume_skips_finished_groups",
+        "test_status_requires_actual_permalink"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L44",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L67"
+      ]
+    },
+    {
+      "id": "KT-15-01",
+      "priority": "P0",
+      "title": "Tạm dừng khi đang thao tác một nhóm",
+      "expected": "Thao tác đang chạy có thể hoàn tất; không tự chuyển nhóm nữa.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_pause_during_publish_does_not_advance_when_result_arrives"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L194"
+      ]
+    },
+    {
+      "id": "KT-15-02",
+      "priority": "P0",
+      "title": "Tạm dừng trong thời gian chờ giữa nhóm",
+      "expected": "Hủy lần chuyển kế tiếp; giữ tiến độ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_switching_batch_pauses_auto_timer_and_keeps_tasks_separate"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L117"
+      ]
+    },
+    {
+      "id": "KT-15-03",
+      "priority": "P0",
+      "title": "Mất mạng trước khi bấm Đăng",
+      "expected": "Dừng có lỗi; không báo đã gửi.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng lỗi trước/sau bắt đầu gửi",
+      "evidence": [
+        "test_publish_failure_stops_queue_with_correct_retry_state"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L177"
+      ]
+    },
+    {
+      "id": "KT-15-04",
+      "priority": "P0",
+      "title": "Mất mạng ngay sau khi bấm Đăng",
+      "expected": "Giữ chưa rõ nếu thiếu bằng chứng; không tự thử lại gây trùng.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng lỗi trước/sau bắt đầu gửi",
+      "evidence": [
+        "test_publish_failure_stops_queue_with_correct_retry_state"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L177"
+      ]
+    },
+    {
+      "id": "KT-15-05",
+      "priority": "P0",
+      "title": "Dừng tiến trình ứng dụng trong môi trường thử khi đang gửi",
+      "expected": "Mở lại chuyển lượt đang gửi thành chưa rõ; không tự gửi lại.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Đã kiểm tra khôi phục cờ sending từ DB và giữ snapshot; còn thiếu lần cắt tiến trình toàn ứng dụng trong lúc gửi Facebook thật.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-15-06",
+      "priority": "P1",
+      "title": "Bỏ qua nhóm có vấn đề sau xác nhận",
+      "expected": "Ghi bỏ qua, giữ lịch sử và xử lý tiếp theo đúng lựa chọn người dùng.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_skip_group_continues_only_current_batch"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L141"
+      ]
+    },
+    {
+      "id": "KT-15-07",
+      "priority": "P1",
+      "title": "Thông báo lỗi và thông tin nhóm đang làm",
+      "expected": "Nêu hành động tiếp theo, đúng nhóm/số thứ tự; chi tiết kỹ thuật mở riêng.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_four_steps_show_review_before_creating_or_sending",
+        "test_publish_failure_stops_queue_with_correct_retry_state"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L21",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L177"
+      ]
+    },
+    {
+      "id": "KT-16-01",
+      "priority": "P0",
+      "title": "Cùng bài/cùng nhóm đã có lượt",
+      "expected": "Cảnh báo trước khi tạo lượt mới.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_duplicate_task_requires_user_choice"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L46"
+      ]
+    },
+    {
+      "id": "KT-16-02",
+      "priority": "P0",
+      "title": "Cùng nội dung/ảnh nhưng lưu dưới tên bài khác",
+      "expected": "Vẫn nhận diện trùng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_duplicate_detection_uses_content_and_image_bytes_not_post_title"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L175"
+      ]
+    },
+    {
+      "id": "KT-16-03",
+      "priority": "P0",
+      "title": "Cùng bytes ảnh nhưng đường dẫn ảnh nhập khác",
+      "expected": "Vẫn nhận diện trùng theo ảnh, không chỉ tên tệp.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_duplicate_detection_uses_content_and_image_bytes_not_post_title"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L175"
+      ]
+    },
+    {
+      "id": "KT-16-04",
+      "priority": "P1",
+      "title": "Nội dung chỉ khác khoảng trắng theo quy tắc chuẩn hóa",
+      "expected": "Đối chiếu trùng nhất quán; ghi rõ trường hợp thử.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_duplicate_whitespace_normalization_is_independent_of_title"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L521"
+      ]
+    },
+    {
+      "id": "KT-16-05",
+      "priority": "P0",
+      "title": "Có lượt đã gửi hoặc chưa rõ ở đợt khác",
+      "expected": "Kiểm tra lại trước gửi; không tự gửi chéo đợt gây lặp.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_cross_task_duplicate_send_block_and_confirmed_repost"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L259"
+      ]
+    },
+    {
+      "id": "KT-16-06",
+      "priority": "P0",
+      "title": "Bấm gửi lại chính lượt đã xử lý hoặc chưa rõ",
+      "expected": "Chặn gửi lại; yêu cầu kiểm tra hoặc tạo lượt mới có xác nhận phù hợp.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_same_sent_job_cannot_be_republished",
+        "test_uncertain_submission_stops_and_blocks_automatic_retry"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L311",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L91"
+      ]
+    },
+    {
+      "id": "KT-16-07",
+      "priority": "P1",
+      "title": "Đăng lại có chủ đích bằng lượt mới",
+      "expected": "Chỉ cho phép sau xác nhận trùng; không thay lịch sử lượt cũ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_cross_task_duplicate_send_block_and_confirmed_repost",
+        "test_review_cancel_duplicate_does_not_start_queue"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L259",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L65"
+      ]
+    },
+    {
+      "id": "KT-16-08",
+      "priority": "P1",
+      "title": "Cùng nội dung nhưng nhóm khác hoặc nội dung/ảnh thật sự khác",
+      "expected": "Không báo trùng sai theo phạm vi đối chiếu đã công bố; ID và tên nhóm chưa được tự ánh xạ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_distinct_image_bytes_or_group_do_not_false_match"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L529"
+      ]
+    },
+    {
+      "id": "KT-17-01",
+      "priority": "P0",
+      "title": "Bài đúng link/nội dung xuất hiện trong luồng thảo luận nhóm",
+      "expected": "Có thể ghi đã hiển thị khi đủ bằng chứng.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_known_post_in_group_feed_is_visible_but_permalink_alone_is_not_approval"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L56"
+      ]
+    },
+    {
+      "id": "KT-17-02",
+      "priority": "P0",
+      "title": "Bài nằm trong phần chờ duyệt của người đăng",
+      "expected": "Ghi chờ duyệt, không coi bản tác giả nhìn thấy là bài đã được duyệt.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_without_link_requires_own_content_and_matching_send_timestamp",
+        "test_worker_discovers_own_content_tab_when_post_has_no_link"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L82",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L120"
+      ]
+    },
+    {
+      "id": "KT-17-03",
+      "priority": "P0",
+      "title": "Chỉ mở được permalink nhưng thiếu bằng chứng duyệt",
+      "expected": "Giữ chưa xác minh, không tự kết luận đã duyệt.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_known_post_in_group_feed_is_visible_but_permalink_alone_is_not_approval"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L56"
+      ]
+    },
+    {
+      "id": "KT-17-04",
+      "priority": "P0",
+      "title": "Không tìm thấy bài hoặc link lỗi",
+      "expected": "Không tự coi là bị xóa/từ chối; giữ trạng thái đã biết và ghi lần kiểm tra chưa xác minh.",
+      "status": "Đạt",
+      "mode": "Chromium/SQLite mô phỏng",
+      "evidence": [
+        "test_missing_wrong_link_ambiguous_or_modal_stays_unknown",
+        "test_checks_preserve_send_time_and_record_unknown_without_downgrade"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L77",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L136"
+      ]
+    },
+    {
+      "id": "KT-17-05",
+      "priority": "P0",
+      "title": "Nhiều bài giống nhau hoặc bài cũ trùng nội dung",
+      "expected": "Không nhận nhầm; khi thiếu link cần thêm bằng chứng thời gian.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_missing_wrong_link_ambiguous_or_modal_stays_unknown",
+        "test_without_link_requires_own_content_and_matching_send_timestamp"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L77",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L82"
+      ]
+    },
+    {
+      "id": "KT-17-06",
+      "priority": "P0",
+      "title": "Nhãn bài mâu thuẫn với tab đang mở",
+      "expected": "Giữ chưa xác minh, tránh kết luận từ dữ liệu đang tải.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_conflicting_card_and_selected_category_stays_unknown"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L335"
+      ]
+    },
+    {
+      "id": "KT-17-07",
+      "priority": "P0",
+      "title": "Chữ Approved/Not approved trong nội dung/bình luận",
+      "expected": "Không nhận thành bằng chứng duyệt của bài.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_content_words_are_not_status_metadata",
+        "test_approval_words_in_comment_are_not_a_status_label",
+        "test_negative_approval_labels_never_become_publication"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L93",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L319",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L278"
+      ]
+    },
+    {
+      "id": "KT-17-08",
+      "priority": "P1",
+      "title": "Thông báo rõ bị từ chối hoặc bị gỡ của đúng bài",
+      "expected": "Ghi trạng thái tương ứng và nguồn bằng chứng.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_reads_status_only_from_matched_post"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L51"
+      ]
+    },
+    {
+      "id": "KT-17-09",
+      "priority": "P0",
+      "title": "Kiểm tra trong khi Facebook có bản đang soạn",
+      "expected": "Dùng tab riêng; không sửa/gửi/xóa bản nháp.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_worker_checks_in_separate_tab_without_posting_or_changing_current_page"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L100"
+      ]
+    },
+    {
+      "id": "KT-17-10",
+      "priority": "P1",
+      "title": "Kiểm tra một/nhiều bài, dừng và gặp lỗi đăng nhập",
+      "expected": "Đúng các bài đã chọn; dừng các bài chưa đọc khi yêu cầu hoặc lỗi truy cập.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_tracking_queue_saves_results_continues_and_cannot_publish_at_same_time",
+        "test_tracking_error_preserves_status_and_stops_remaining_checks"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L187",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L283"
+      ]
+    },
+    {
+      "id": "KT-17-11",
+      "priority": "P1",
+      "title": "Bật/tắt kiểm tra định kỳ và đổi khoảng chờ",
+      "expected": "Ghi nhớ lựa chọn; chỉ chạy lúc mở ứng dụng và không đang đăng; ưu tiên bài lâu chưa kiểm tra trong giới hạn mỗi đợt.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng; không chờ chu kỳ Facebook thật",
+      "evidence": [
+        "test_periodic_check_respects_posting_and_rotates_oldest_unchecked"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L210"
+      ]
+    },
+    {
+      "id": "KT-18-01",
+      "priority": "P1",
+      "title": "Bảng chính năm cột, dữ liệu rỗng và dữ liệu có nhiều dòng",
+      "expected": "Dễ đọc; trạng thái rỗng có ý nghĩa, không hiển thị dữ liệu sai.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checkbox_selection_needs_no_ctrl_and_survives_refresh",
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L189",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229"
+      ]
+    },
+    {
+      "id": "KT-18-02",
+      "priority": "P1",
+      "title": "Tích từng bài/chọn tất cả/bỏ chọn",
+      "expected": "Không cần Ctrl/Shift; đếm đúng số bài đã tích.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checkbox_selection_needs_no_ctrl_and_survives_refresh",
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L189",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229"
+      ]
+    },
+    {
+      "id": "KT-18-03",
+      "priority": "P0",
+      "title": "Refresh hoặc đổi bộ lọc sau khi tích",
+      "expected": "Giữ lựa chọn còn hiện, không thao tác nhầm bài đã bị lọc ẩn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checkbox_selection_needs_no_ctrl_and_survives_refresh",
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L189",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229"
+      ]
+    },
+    {
+      "id": "KT-18-04",
+      "priority": "P1",
+      "title": "Tìm theo tên bài, nội dung, nhóm, link, ghi chú",
+      "expected": "Hiển thị đúng kết quả trong phạm vi hỗ trợ.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_manager_keyword_search_covers_title_body_group_note_link_and_check_note"
+      ],
+      "note": "Đã thử từng trường độc lập và hoa/thường; probe tải đối chiếu thêm nội dung dài.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L699"
+      ]
+    },
+    {
+      "id": "KT-18-05",
+      "priority": "P1",
+      "title": "Kết hợp bài, nhóm, nhãn và trạng thái",
+      "expected": "Kết quả thỏa đồng thời các điều kiện.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered",
+        "test_tag_normalization_and_exact_matching"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L10"
+      ]
+    },
+    {
+      "id": "KT-18-06",
+      "priority": "P1",
+      "title": "Hôm nay, 7 ngày qua, Chờ duyệt, Cần xử lý, Tất cả",
+      "expected": "Đúng phạm vi; lọc thời gian nhanh dùng ngày gửi, không thay bằng ngày tạo.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_quick_filters_use_sent_date_and_attention",
+        "test_seven_day_filter_includes_today_minus_six_not_minus_seven"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L208",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L298"
+      ]
+    },
+    {
+      "id": "KT-18-07",
+      "priority": "P1",
+      "title": "Khoảng ngày có cùng hai đầu và dữ liệu ở ranh giới ngày",
+      "expected": "Bao gồm cả hai đầu, theo giờ máy; kiểm tra cả ngày tạo/gửi/kiểm tra.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_date_filters_include_both_boundaries_and_exclude_adjacent_days"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L274"
+      ]
+    },
+    {
+      "id": "KT-18-08",
+      "priority": "P1",
+      "title": "Ngày bắt đầu lớn hơn ngày kết thúc",
+      "expected": "Có hướng dẫn, không giữ lựa chọn cũ để thao tác nhầm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_manager_filters_keyword_status_and_inclusive_dates"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_manager.py#L4"
+      ]
+    },
+    {
+      "id": "KT-18-09",
+      "priority": "P1",
+      "title": "Bài cũ không biết ngày gửi",
+      "expected": "Để trống; không bịa ngày và không cho vào bộ lọc ngày gửi bằng ngày tạo.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered",
+        "test_editing_status_does_not_invent_send_time"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L324"
+      ]
+    },
+    {
+      "id": "KT-18-10",
+      "priority": "P1",
+      "title": "Bấm dòng, Xem chi tiết và Sao chép link",
+      "expected": "Thông tin đầy đủ thuộc đúng dòng hiện tại, độc lập với các ô tích dùng thao tác hàng loạt.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_detail_and_copy_actions_use_current_row_independent_of_checkboxes"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L669"
+      ]
+    },
+    {
+      "id": "KT-19-01",
+      "priority": "P0",
+      "title": "Tự nhận diện được duy nhất link bài mới đúng nhóm",
+      "expected": "Lưu đúng permalink, không lấy link bài cũ có trước lúc gửi.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_new_visible_post_gets_published_status_and_permalink",
+        "test_existing_post_tracking_url_change_is_not_a_new_publication",
+        "test_new_article_with_same_heading_but_other_body_is_not_our_post"
+      ],
+      "note": "BUG-004: bài khác trùng tiêu đề từng bị nhận nhầm. Đã bổ sung kiểm tra phần nội dung sau gửi; chưa xác minh thuật toán với Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L558",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L577",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L620"
+      ]
+    },
+    {
+      "id": "KT-19-02",
+      "priority": "P1",
+      "title": "Không nhận diện được link tự động",
+      "expected": "Để trống/giữ kết quả gửi phù hợp, không bịa link.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_existing_post_tracking_url_change_is_not_a_new_publication",
+        "test_new_article_with_same_heading_but_other_body_is_not_our_post"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L577",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L620"
+      ]
+    },
+    {
+      "id": "KT-19-03",
+      "priority": "P0",
+      "title": "Lưu link khác nhóm, link trang nhóm hoặc miền giả",
+      "expected": "Từ chối; không thay link đang có bằng dữ liệu sai.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_reject_non_permalink",
+        "test_invalid_update_is_atomic_and_does_not_touch_other_tasks"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L51",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L75"
+      ]
+    },
+    {
+      "id": "KT-19-04",
+      "priority": "P1",
+      "title": "Mở bài, lấy link đang mở và sao chép link",
+      "expected": "Đúng bài/nhóm; link được chuẩn hóa trong phạm vi hỗ trợ.",
+      "status": "Đạt",
+      "mode": "Local; kiểm tra dữ liệu/clipboard, mở web mô phỏng",
+      "evidence": [
+        "test_normalize_and_permalink",
+        "test_switch_tasks_routes_link_note_and_clipboard_to_correct_task"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L29",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L77"
+      ]
+    },
+    {
+      "id": "KT-19-05",
+      "priority": "P0",
+      "title": "Chụp khi trang hiện tại khác permalink đã lưu",
+      "expected": "Chặn chụp gắn nhầm bài.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_capture_refuses_other_post_and_writes_viewport",
+        "test_stale_screenshot_does_not_attach_to_changed_permalink"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L64",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L156"
+      ]
+    },
+    {
+      "id": "KT-19-06",
+      "priority": "P1",
+      "title": "Chụp đúng bài sau khi người dùng kiểm tra vị trí cuộn",
+      "expected": "Lưu/mở được ảnh vùng trình duyệt đang hiển thị; không coi ảnh là bằng chứng duyệt tự động.",
+      "status": "Đạt",
+      "mode": "Chromium, trang mô phỏng",
+      "evidence": [
+        "test_capture_refuses_other_post_and_writes_viewport",
+        "test_screenshot_result_updates_only_origin_task"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_browser.py#L64",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_task_ui.py#L199"
+      ]
+    },
+    {
+      "id": "KT-19-07",
+      "priority": "P0",
+      "title": "Đổi permalink sau khi đã có ảnh minh chứng",
+      "expected": "Không giữ liên kết minh chứng hoặc xác nhận cũ cho bài mới.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_changing_post_link_invalidates_old_evidence_and_confirmation",
+        "test_equivalent_permalink_keeps_existing_evidence"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L134",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L146"
+      ]
+    },
+    {
+      "id": "KT-20-01",
+      "priority": "P0",
+      "title": "Một lần gửi thành công qua ứng dụng",
+      "expected": "Ghi ngày gửi khi nhận kết quả, không ghi trước khi thực sự xác nhận gửi.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checks_preserve_send_time_and_record_unknown_without_downgrade",
+        "test_verified_publication_saves_status_and_url_atomically"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L136",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L238"
+      ]
+    },
+    {
+      "id": "KT-20-02",
+      "priority": "P0",
+      "title": "Chỉ sửa trạng thái bằng tay hoặc kiểm tra bài cũ",
+      "expected": "Không tự bịa ngày gửi thực tế.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_editing_status_does_not_invent_send_time",
+        "test_failed_check_is_atomic_and_does_not_invent_legacy_send_time"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L324",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L150"
+      ]
+    },
+    {
+      "id": "KT-20-03",
+      "priority": "P1",
+      "title": "Lần đầu nhận diện đã hiển thị và các lần kiểm tra sau",
+      "expected": "Ghi mốc phát hiện đầu tiên và lần kiểm tra mới nhất đúng ý nghĩa.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checks_preserve_send_time_and_record_unknown_without_downgrade"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L136"
+      ]
+    },
+    {
+      "id": "KT-20-04",
+      "priority": "P0",
+      "title": "Kiểm tra chưa xác minh sau khi từng đã hiển thị",
+      "expected": "Giữ trạng thái đã biết, tách kết quả lần kiểm tra gần nhất.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_checks_preserve_send_time_and_record_unknown_without_downgrade"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L136"
+      ]
+    },
+    {
+      "id": "KT-20-05",
+      "priority": "P1",
+      "title": "Thay đổi từ người dùng, trình duyệt, kiểm tra và khôi phục",
+      "expected": "Có lịch sử với thời gian, nguồn, trạng thái cũ/mới và ghi chú phù hợp.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_reopen_recovers_interrupted_send_once_preserves_snapshot_and_history",
+        "test_checks_preserve_send_time_and_record_unknown_without_downgrade"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L158",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L136"
+      ]
+    },
+    {
+      "id": "KT-20-06",
+      "priority": "P0",
+      "title": "Ghi trạng thái đã hiển thị kèm link, giả lập lỗi ghi DB",
+      "expected": "Không để trạng thái thành công thiếu link hoặc cập nhật dở dang.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_failed_check_is_atomic_and_does_not_invent_legacy_send_time",
+        "test_invalid_update_is_atomic_and_does_not_touch_other_tasks"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L150",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L75"
+      ]
+    },
+    {
+      "id": "KT-21-01",
+      "priority": "P1",
+      "title": "Xuất toàn bộ kết quả đang lọc",
+      "expected": "Đúng phạm vi, tiếng Việt, trạng thái, link và các mốc thời gian.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_excel_exports_each_post_group_pair_once",
+        "test_manager_filters_actual_send_date_group_tag_and_exports_filtered"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L96",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tracking.py#L229"
+      ]
+    },
+    {
+      "id": "KT-21-02",
+      "priority": "P0",
+      "title": "Xuất các bài đã tích",
+      "expected": "Chỉ có các bài đã tích còn trong phạm vi, không lẫn bài đang được tô dòng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_export_checked_rows_not_current_highlighted_row"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L545"
+      ]
+    },
+    {
+      "id": "KT-21-03",
+      "priority": "P1",
+      "title": "Xuất khi không có kết quả hoặc hủy hộp thoại",
+      "expected": "Có hướng dẫn hoặc không tạo tệp ngoài ý muốn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_empty_and_cancelled_exports_create_no_file"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L566"
+      ]
+    },
+    {
+      "id": "KT-21-04",
+      "priority": "P0",
+      "title": "Nội dung/ghi chú mở đầu bằng =, +, -, @",
+      "expected": "Không trở thành công thức thực thi khi mở Excel.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_excel_user_text_is_not_executable_formula",
+        "test_export_neutralizes_formula_and_keeps_unicode"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L35",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L102"
+      ]
+    },
+    {
+      "id": "KT-21-05",
+      "priority": "P0",
+      "title": "Sao lưu có bài, nhóm, ảnh, nháp và lịch sử",
+      "expected": "DB nhất quán và đủ tệp dữ liệu cần khôi phục.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_backup_restores_unsaved_draft_images_and_status_history",
+        "test_backup_consistent_and_excludes_session"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L49",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L115"
+      ]
+    },
+    {
+      "id": "KT-21-06",
+      "priority": "P0",
+      "title": "Kiểm tra nội dung ZIP sao lưu",
+      "expected": "Không có thư mục browser/phiên đăng nhập Facebook.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_backup_restores_unsaved_draft_images_and_status_history",
+        "test_backup_consistent_and_excludes_session"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L49",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L115"
+      ]
+    },
+    {
+      "id": "KT-21-07",
+      "priority": "P0",
+      "title": "Khôi phục trên bản sao thư mục dữ liệu rồi mở ứng dụng",
+      "expected": "Đọc lại bài/ảnh/nháp/lịch sử; không tự đăng khi khởi động, đăng nhập lại khi cần.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_backup_restore_keeps_all_tasks_and_uploaded_images",
+        "test_backup_restores_unsaved_draft_images_and_status_history",
+        "test_restart_offers_draft_recovery_without_sending_or_saving_post"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L117",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L49",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L116"
+      ]
+    },
+    {
+      "id": "KT-21-08",
+      "priority": "P1",
+      "title": "Đích xuất/sao lưu không ghi được hoặc nằm trong thư mục dữ liệu bị cấm",
+      "expected": "Báo lỗi và giữ nguyên dữ liệu gốc.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_backup_consistent_and_excludes_session",
+        "test_unwritable_export_or_backup_destination_keeps_data"
+      ],
+      "note": "Thử đích là thư mục không thể ghi như tệp và đích backup nằm trong dữ liệu; không thay dữ liệu gốc. Không tương đương kiểm tra mọi ACL Windows.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L115",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L587"
+      ]
+    },
+    {
+      "id": "KT-22-01",
+      "priority": "P0",
+      "title": "Mở dữ liệu bản cũ bằng bản mới trên bản sao thử",
+      "expected": "Nâng cấu trúc đúng, không mất bài, nhóm, ảnh, lịch sử và công việc.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_migrating_existing_v1_database_preserves_history",
+        "test_post_identity_survives_reopen_and_is_not_reused",
+        "test_legacy_draft_without_identity_recovers_as_copy"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_batches.py#L55",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L122",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L95"
+      ]
+    },
+    {
+      "id": "KT-22-02",
+      "priority": "P0",
+      "title": "Giải nén bản mới ở thư mục khác rồi chạy",
+      "expected": "Vẫn đọc đúng dữ liệu người dùng ngoài thư mục chương trình.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Cần thao tác nâng cấp ở thư mục .exe khác với dữ liệu thực tế trên Windows; source chỉ xác nhận vị trí dữ liệu và Store giữ lịch sử.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-22-03",
+      "priority": "P0",
+      "title": "Xóa bài/nhóm gốc khi đã có lượt đăng",
+      "expected": "Lượt cũ giữ snapshot; không đổi nhầm người nhận/nội dung.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_editing_post_and_group_only_affects_future_tasks",
+        "test_snapshot_survives_changes_and_deletion"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_tasks.py#L49",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L56"
+      ]
+    },
+    {
+      "id": "KT-22-04",
+      "priority": "P0",
+      "title": "Đường dẫn tệp vượt ra ngoài thư mục dữ liệu",
+      "expected": "Từ chối đường dẫn không thuộc dữ liệu ứng dụng.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_images_are_owned_and_preserved"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_storage.py#L88"
+      ]
+    },
+    {
+      "id": "KT-22-05",
+      "priority": "P0",
+      "title": "Kiểm tra gói phát hành và dữ liệu được đưa vào repo",
+      "expected": "Không có mật khẩu, cookie, phiên Facebook hoặc DB người dùng thật.",
+      "status": "Đạt",
+      "mode": "Rà tệp Git và manifest ZIP Windows",
+      "evidence": [
+        "proof:windows-verification.json",
+        "proof:repository-audit.json"
+      ],
+      "note": "Không thấy helper.db/app.lock/cookies.json/storage_state.json/profile browser trong phạm vi rà tên tệp. Không coi đây là kiểm toán bảo mật toàn diện.",
+      "evidence_urls": [
+        "qa/2026-11-17/windows-verification.json",
+        "qa/2026-11-17/repository-audit.json"
+      ]
+    },
+    {
+      "id": "KT-22-06",
+      "priority": "P1",
+      "title": "Lỗi tệp dữ liệu/thiếu quyền trong môi trường thử",
+      "expected": "Có thông tin chẩn đoán; không âm thầm ghi nhận thành công hoặc xóa dữ liệu để chữa lỗi.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa thực hiện đủ các kiểu DB hỏng/ACL Windows để chốt ca tổng hợp. Không dùng kết quả giả lập lỗi ghi nháp thay cho mọi dạng hỏng dữ liệu.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-23-01",
+      "priority": "P1",
+      "title": "Người lần đầu đi từ đăng nhập đến một bài thử",
+      "expected": "Tự tìm được thao tác chính qua hướng dẫn; ghi lại chỗ phải nhờ hỗ trợ.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu người dùng",
+      "evidence": [],
+      "note": "Cần một người dùng mới tự thao tác và ghi số lần cần hỗ trợ; tác giả/test tự động không thay được nghiệm thu này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-23-02",
+      "priority": "P1",
+      "title": "Cửa sổ 1280×850 và 980×680",
+      "expected": "Nút tiếp tục/bắt đầu luôn tiếp cận được; bảng chính không buộc kéo ngang.",
+      "status": "Đạt",
+      "mode": "Local Qt offscreen, dữ liệu giả",
+      "evidence": [
+        "proof:performance.json"
+      ],
+      "note": "Quan sát 1280×850 và 980×680, cuộn ngang bảng = 0; chân nút ở y=630 trong cửa sổ cao 680.",
+      "evidence_urls": [
+        "qa/2026-11-17/performance.json"
+      ]
+    },
+    {
+      "id": "KT-23-03",
+      "priority": "P2",
+      "title": "Windows phóng chữ 100%, 125%, 150%",
+      "expected": "Kiểm tra nút, hộp thoại và nội dung không bị che đến mức không thao tác được.",
+      "status": "Bị chặn",
+      "mode": "Windows/DPI thực tế",
+      "evidence": [],
+      "note": "Chưa có desktop Windows tương tác để đổi DPI 100/125/150% và quan sát.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-23-04",
+      "priority": "P1",
+      "title": "Tên bài/nhóm dài và ghi chú nhiều dòng",
+      "expected": "Có cách xem đủ nội dung, không phải đoán bài đang chọn.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_long_names_multiline_notes_and_status_are_available_in_details"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L605"
+      ]
+    },
+    {
+      "id": "KT-23-05",
+      "priority": "P1",
+      "title": "Phân biệt kết quả bằng chữ và màu",
+      "expected": "Không phụ thuộc riêng màu sắc để hiểu trạng thái.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_long_names_multiline_notes_and_status_are_available_in_details"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L605"
+      ]
+    },
+    {
+      "id": "KT-23-06",
+      "priority": "P1",
+      "title": "Nhấn Tab, Space, Enter và dùng chuột",
+      "expected": "Điều hướng và tích chọn phù hợp; Enter không gây gửi ngoài luồng xác nhận.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Space chọn ô tích đã đạt; còn thiếu nghiệm thu trọn bộ Tab/Enter/chuột trên Windows và kiểm tra Enter ở mọi hộp thoại.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-23-07",
+      "priority": "P1",
+      "title": "Thông báo cần đăng nhập, mất mạng, chưa rõ kết quả",
+      "expected": "Nêu bước tiếp theo dễ hiểu; lỗi kỹ thuật có phần chi tiết riêng.",
+      "status": "Đạt",
+      "mode": "UI/worker mô phỏng",
+      "evidence": [
+        "test_publish_failure_stops_queue_with_correct_retry_state"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_queue_ui.py#L177"
+      ]
+    },
+    {
+      "id": "KT-24-01",
+      "priority": "P2",
+      "title": "Đo mở lần đầu và mở lại với dữ liệu thật đã ẩn danh",
+      "expected": "Ghi thời gian thực tế, xác định thao tác chậm; không treo hoặc mất dữ liệu.",
+      "status": "Bị chặn",
+      "mode": "Thiếu môi trường thực tế",
+      "evidence": [],
+      "note": "Chưa có tập dữ liệu thực tế đã ẩn danh để đo. Probe bằng dữ liệu giả được ghi ở KT-24-02, không thay thế ca dữ liệu thực này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-24-02",
+      "priority": "P2",
+      "title": "Thử nhiều nhóm và nhiều bản ghi lịch sử trên bản sao",
+      "expected": "Tìm/lọc/cuộn còn thao tác được; đếm và chọn đúng dữ liệu.",
+      "status": "Đạt",
+      "mode": "Local Qt offscreen, dữ liệu giả",
+      "evidence": [
+        "proof:performance.json"
+      ],
+      "note": "200 bài, 250 nhóm, 1.000 lượt dữ liệu giả: đếm/lọc/tích chọn đúng; số đo cụ thể trong performance.json.",
+      "evidence_urls": [
+        "qa/2026-11-17/performance.json"
+      ]
+    },
+    {
+      "id": "KT-24-03",
+      "priority": "P1",
+      "title": "Soạn bài dài, nhiều ảnh và chuyển tab liên tục",
+      "expected": "Không mất chữ, ảnh hoặc làm sai lựa chọn bài/nhóm.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_long_editor_with_ten_images_survives_repeated_tab_changes"
+      ],
+      "note": "Các kiểm thử được dẫn đã đạt trong phạm vi local/mô phỏng; không đại diện Facebook thật.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L631"
+      ]
+    },
+    {
+      "id": "KT-24-04",
+      "priority": "P1",
+      "title": "Chạy nhiều đợt kiểm tra mô phỏng trong thời gian dài",
+      "expected": "Không tăng tab/tiến trình mãi, không gọi chồng luồng gửi và kiểm tra.",
+      "status": "Chưa chạy",
+      "mode": "Chưa thực hiện",
+      "evidence": [],
+      "note": "Chưa chạy soak test liên tục nhiều giờ. Bộ tự động và kiểm tra lặp ngắn không được dùng để đánh đạt ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-24-05",
+      "priority": "P1",
+      "title": "Lặp mở/đóng, khôi phục nháp và dừng giữa thao tác",
+      "expected": "Không lỗi đóng Qt/worker, không rò tiến trình gây khóa dữ liệu mãi.",
+      "status": "Đạt",
+      "mode": "Local Qt/SQLite tự động",
+      "evidence": [
+        "test_repeated_application_start_shutdown_releases_worker_and_data_lock",
+        "test_restart_offers_draft_recovery_without_sending_or_saving_post"
+      ],
+      "note": "Đã thử 3 vòng khởi động/đóng subprocess trên dữ liệu có dấu, cùng các ca khôi phục nháp. Chưa phải soak test nhiều giờ.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_checklist.py#L649",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L116"
+      ]
+    },
+    {
+      "id": "KT-25-01",
+      "priority": "P0",
+      "title": "Soạn bài A có nhiều ảnh, chọn một nhóm thử và đăng",
+      "expected": "Đúng bài/nhóm/ảnh; không gửi nhầm, không gửi lặp.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu Facebook thật",
+      "evidence": [],
+      "note": "Cần người dùng và các nhóm Facebook thử cho nghiệm thu đầu-cuối thực tế; các kiểm thử thành phần/mô phỏng không thay cho ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-25-02",
+      "priority": "P0",
+      "title": "Soạn bài B khác A, đăng nhiều nhóm theo nhãn và bỏ tích một nhóm",
+      "expected": "Chỉ gửi nhóm còn tích, đúng nội dung B và thứ tự.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu Facebook thật",
+      "evidence": [],
+      "note": "Cần người dùng và các nhóm Facebook thử cho nghiệm thu đầu-cuối thực tế; các kiểm thử thành phần/mô phỏng không thay cho ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-25-03",
+      "priority": "P0",
+      "title": "Một bài vào chờ duyệt, phần còn lại vẫn chạy",
+      "expected": "Kết quả trung thực, không yêu cầu xác nhận từng nhóm.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu Facebook thật",
+      "evidence": [],
+      "note": "Cần người dùng và các nhóm Facebook thử cho nghiệm thu đầu-cuối thực tế; các kiểm thử thành phần/mô phỏng không thay cho ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-25-04",
+      "priority": "P0",
+      "title": "Tạm dừng đợt, đóng/mở và tiếp tục",
+      "expected": "Giữ tiến độ, không tự gửi lại các lượt đã xử lý/chưa rõ.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu Facebook thật",
+      "evidence": [],
+      "note": "Cần người dùng và các nhóm Facebook thử cho nghiệm thu đầu-cuối thực tế; các kiểm thử thành phần/mô phỏng không thay cho ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-25-05",
+      "priority": "P1",
+      "title": "Tìm bài trong ngày, tích chọn, kiểm tra trạng thái và xuất Excel",
+      "expected": "Người dùng hoàn thành được mà không cần Ctrl/Shift hoặc hiểu lỗi kỹ thuật.",
+      "status": "Bị chặn",
+      "mode": "Nghiệm thu Facebook thật",
+      "evidence": [],
+      "note": "Cần người dùng và các nhóm Facebook thử cho nghiệm thu đầu-cuối thực tế; các kiểm thử thành phần/mô phỏng không thay cho ca này.",
+      "evidence_urls": []
+    },
+    {
+      "id": "KT-25-06",
+      "priority": "P0",
+      "title": "Đóng khi đang soạn rồi mở lại khôi phục",
+      "expected": "Đủ bản nháp, chưa tự đăng; người dùng hiểu khi nào cần bấm Lưu bài/Bắt đầu.",
+      "status": "Bị chặn",
+      "mode": "Cần nghiệm thu người dùng",
+      "evidence": [
+        "test_autosave_survives_close_without_discard_prompt",
+        "test_restart_offers_draft_recovery_without_sending_or_saving_post"
+      ],
+      "note": "Đóng/khôi phục kỹ thuật đã đạt qua các test dẫn; phần người dùng tự hiểu thao tác cần người dùng mới nghiệm thu.",
+      "evidence_urls": [
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L142",
+        "https://github.com/Trung27012003/facebook-helper/blob/36fa2c78fad870b3f6ba0762f2ef8d656895d418/tests/test_beginner.py#L116"
+      ]
+    }
+  ]
+}

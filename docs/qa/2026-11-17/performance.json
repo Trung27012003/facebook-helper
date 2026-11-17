@@ -1,0 +1,17 @@
+{
+  "environment": "Linux Qt offscreen; synthetic local data; no Facebook account",
+  "create_1000_jobs_seconds": 0.238,
+  "open_200_posts_250_groups_1000_jobs_seconds": 1.356,
+  "refresh_1000_jobs_seconds": 0.173,
+  "filter_1000_jobs_seconds": 0.208,
+  "posts": 200,
+  "groups": 250,
+  "jobs": 1000,
+  "matched_tag": 500,
+  "matched_keyword": 250,
+  "checked": 1000,
+  "manager_horizontal_scroll": 0,
+  "footer_bottom": 630,
+  "window_height": 680,
+  "ok": true
+}

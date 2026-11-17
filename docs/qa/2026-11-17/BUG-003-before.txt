@@ -1,0 +1,24 @@
+.....................F....                                               [100%]
+=================================== FAILURES ===================================
+______________ test_summernote_undo_redo_restores_unicode_content ______________
+
+window = <facebook_helper.ui.MainWindow(0x970e100) at 0x7feff11eb3c0>
+
+    def test_summernote_undo_redo_restores_unicode_content(window):
+        window.content.setPlainText("Nội dung ban đầu")
+        before = window.content.toPlainText()
+        window.content.evaluate("editorApi.command('insertText',' Thêm chữ Việt 🚀')")
+        after = window.content.toPlainText()
+        assert after != before and "Thêm chữ Việt" in after
+        window.content.evaluate("editorApi.command('undo')")
+>       assert window.content.toPlainText() == before
+E       AssertionError: assert '' == 'Nội dung ban đầu'
+E         
+E         - Nội dung ban đầu
+
+tests/test_checklist.py:268: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+This plugin does not support propagateSizeHints()
+=========================== short test summary info ============================
+FAILED tests/test_checklist.py::test_summernote_undo_redo_restores_unicode_content
+1 failed, 25 passed in 5.45s

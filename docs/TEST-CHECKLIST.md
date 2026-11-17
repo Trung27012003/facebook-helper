@@ -6,6 +6,8 @@
 
 [Tải bản Excel để đánh dấu kết quả](TEST-CHECKLIST.xlsx) · Excel có bộ lọc, danh sách chọn trạng thái, ô ghi chú và trang tổng hợp.
 
+[Kết quả lượt chạy 17/11/2026](TEST-RUN-2026-11-17.md) · [Excel đã ghi kết quả](TEST-RESULTS-2026-11-17.xlsx). Tài liệu này giữ trạng thái ban đầu để dùng lại làm mẫu.
+
 ## Chuẩn bị và cách đánh dấu
 
 - Dùng bản sao dữ liệu hoặc thư mục dữ liệu thử; giữ bản sao lưu trước khi thử lỗi, cập nhật và khôi phục.

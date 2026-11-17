@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "environment": "Linux Qt offscreen; real Summernote",
+  "command": "removeFormat",
+  "html": "<p>Chữ thử định dạng</p>",
+  "plain": "Chữ thử định dạng"
+}
