@@ -406,6 +406,19 @@ class PostingMixin:
             self.manual_tools_toggle.setChecked(False)
         elif not self.auto_send.isChecked():
             self.manual_tools_toggle.setChecked(True)
+        for widget in self.browser_buttons:
+            if widget is not self.begin_posting_button:
+                widget.setEnabled(not self.busy and not (self.queue_active and self.queue_auto))
+        if hasattr(self, "settings_login_button"):
+            self.settings_login_button.setEnabled(not self.busy and not self.queue_active)
+        self.resume_button.setEnabled(not self.busy and not self.queue_active)
+        self.resume_button.setVisible(
+            any(
+                j["batch_id"] is not None and j["status"] in READY | {"uncertain", "sending"}
+                for j in self.store.jobs()
+            )
+        )
+        self.update_editor_actions()
         for widget, primary in ((self.results_button, complete), (self.new_batch_button, not jobs)):
             if widget.property("primary") != primary:
                 widget.setProperty("primary", primary)

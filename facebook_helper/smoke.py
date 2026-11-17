@@ -42,7 +42,10 @@ def run_smoke(app, store):
         assert window.post_manager.start.date() == window.post_manager.end.date() == QDate.currentDate()
         assert not window.history.isColumnHidden(5)
         assert window.result_group_button.text() == window.post_manager.group_button.text() == "Mở nhóm"
-        result.update(today_filter=True, posting_link_column=True, group_actions=True)
+        assert window.editor_post_button.text() == "Chọn nhóm đăng"
+        assert window.group_save_button.property("primary")
+        assert window.settings_login_button.property("primary")
+        result.update(today_filter=True, posting_link_column=True, group_actions=True, global_actions=True)
         window.mark_dirty()
         assert window.autosave_draft()
         assert window.stored_drafts() and not store.posts()

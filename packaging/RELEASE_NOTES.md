@@ -1,11 +1,13 @@
-**Facebook Helper 0.8.2 — lọc hôm nay và gọn màn hình đăng bài**
+**Facebook Helper 0.9.0 — giao diện gọn trên toàn ứng dụng**
 
-- Bài đã đăng mặc định lọc hôm nay. Giữ khoảng ngày do bạn tự chọn.
-- Bố trí lại Đăng bài: chỉ làm nổi bật thao tác phù hợp; hoàn tất thì ẩn Bắt đầu và làm nổi bật Bài đã đăng. Bỏ hướng dẫn thừa, thanh bước và nút tạo đợt lớn ở cuối màn hình.
-- Hiện link trong bảng. Mở bài / Sao chép link / Mở nhóm nằm cùng hàng ở cả hai màn hình. Mở nhóm vẫn dùng được khi chưa có link bài và không làm gián đoạn cửa sổ đang tự đăng.
-- Bỏ yêu cầu nội dung gửi đi phải khớp bản lưu khi lấy link, vì Facebook có thể đổi biểu diễn định dạng hoặc bạn sửa bản đang mở. Chỉ nhận phản hồi đúng thao tác Đăng và nhóm; không lấy phản hồi của request cũ.
-- Chờ cả request bắt đầu muộn, đọc phản hồi story_create bổ sung. Thêm chẩn đoán cục bộ giới hạn 30 lượt, không lưu nội dung/link/cookie/token hoặc phản hồi thô.
+- Soạn bài: thư viện bên trái, nội dung bên phải; nút Lưu nổi bật khi sửa, Chọn nhóm đăng nổi bật sau khi lưu. Đi thẳng đến chọn nhóm từ bài đang soạn.
+- Thao tác bài và ảnh được gom vào menu; nút chính luôn ở cuối khung khi cuộn.
+- Nhóm: kiểm tra link ngay khi nhập, chỉ bật Lưu khi hợp lệ và có thay đổi; giữ rõ nhóm đang chọn.
+- Đăng bài: Bắt đầu / Tạm dừng / Xem kết quả theo trạng thái, hiện link trong bảng, bỏ hướng dẫn thừa. Hoàn tất thì không còn Bắt đầu.
+- Bài đã đăng mặc định hôm nay; có Mở bài / Sao chép link / Mở nhóm. Xóa được tách khỏi thao tác chính.
+- Cài đặt chia ba phần: Tài khoản, Dữ liệu, Hỗ trợ. Có Xuất chẩn đoán cục bộ, không xuất nội dung/cookie/token hoặc phản hồi thô.
+- Sửa bộ lấy link để không đòi nội dung gửi đi giống hệt bản lưu; nhận request muộn và phản hồi GraphQL bổ sung, bỏ phản hồi từ request cũ.
 
-Chưa có phiên Facebook thật để xác minh lỗi tài khoản người dùng. Nếu Facebook không cung cấp URL/mã bài được nhận diện, chưa lấy được link. Link chờ duyệt có thể chưa mở được.
+Chưa có phiên Facebook thật để xác minh trên tài khoản người dùng. Nếu không có URL/mã bài được nhận diện thì chưa lấy được link; link chờ duyệt có thể chưa mở được.
 
-Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi mở FacebookHelper/FacebookHelper.exe. Không cần cài Python; dữ liệu cũ được giữ (schema 6).
+Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy FacebookHelper/FacebookHelper.exe. Không cần cài Python; dữ liệu cũ được giữ, schema 6.

@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.8.2 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.9.0 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -9,7 +9,8 @@ Bấm Trợ giúp nếu cần: đăng nhập trực tiếp trong cửa sổ Face
 thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome cá nhân.
 
 ĐĂNG BÀI QUA BỐN BƯỚC
-1. Trong Soạn bài, bấm Đăng bài này. Hoặc vào Đăng bài và chọn bài đã lưu.
+1. Trong Soạn bài, bấm Chọn nhóm đăng để lưu và đi thẳng đến chọn nhóm.
+   Hoặc vào Đăng bài và chọn bài đã lưu.
 2. Chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn, rồi Tiếp tục.
 3. Xem lại nội dung, ảnh và nhóm. Chọn tự bấm Đăng hoặc chỉ chuẩn bị.
    Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu, chưa gửi.
@@ -44,3 +45,10 @@ Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cả
 
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
+
+GIAO DIỆN 0.9.0
+Nút xanh là bước chính: Lưu bài khi đang sửa → Chọn nhóm đăng sau khi lưu.
+Bài mới và Từ mẫu ở bên trái. Nhân bản, sao chép, xóa ở Thao tác bài.
+Chọn ảnh rồi mở Thao tác ảnh để xem, sắp xếp hoặc bỏ ảnh.
+Nhóm có nút Lưu nhóm; link không hợp lệ được báo ngay dưới ô nhập.
+Cài đặt chia thành Tài khoản, Dữ liệu, Hỗ trợ. Xuất chẩn đoán chỉ xuất metadata lấy link.

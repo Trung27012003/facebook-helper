@@ -64,9 +64,8 @@ class BeginnerMixin:
         drafts = self.stored_drafts()
         count = len([key for key in drafts if key != getattr(self, "active_draft_id", None)])
         self.draft_recovery.setVisible(count > 0)
-        self.draft_recovery_text.setText(
-            f"Có {count} bản nháp tự lưu chưa hoàn tất. Bạn có thể khôi phục để tiếp tục soạn."
-        )
+        self.draft_recovery_text.setText(f"{count} bản nháp tự lưu")
+        self.update_editor_actions()
 
     def autosave_draft(self):
         self.draft_timer.stop()
@@ -89,9 +88,7 @@ class BeginnerMixin:
             }
             self.store.set_preference("editor_drafts", json.dumps(drafts, ensure_ascii=False))
             self.active_draft_id = draft_id
-            self.autosave_note.setText(
-                "Đã tự lưu bản nháp · Bấm Lưu bài khi sẵn sàng đưa vào danh sách đăng."
-            )
+            self.autosave_note.setText("Đã tự lưu nháp")
             self.update_draft_notice()
             return True
         except Exception:
@@ -110,7 +107,7 @@ class BeginnerMixin:
             self.store.set_preference("editor_drafts", json.dumps(drafts, ensure_ascii=False))
         self.active_draft_id = None
         self.update_draft_notice()
-        self.autosave_note.setText("Bản đang soạn được tự lưu sau khi bạn ngừng nhập một lúc.")
+        self.update_editor_actions()
 
     def recover_draft(self):
         drafts = self.stored_drafts()
@@ -314,5 +311,5 @@ class BeginnerMixin:
         if self.post_id is None or self.dirty:
             self.save_post()
         self.job_posts.setCurrentIndex(self.job_posts.findData(self.post_id))
-        self.set_posting_step(0)
+        self.set_posting_step(1)
         self.tabs.setCurrentIndex(2)

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
-    QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -38,25 +38,44 @@ from .manager import PostManager, send_label
 from .posting import SENT, PostingMixin
 from .templates import RecruitmentDialog
 from .tracking import TrackingMixin
-from .widgets import button, hint, row
+from .widgets import button, hint, menu_button, primary, row, toolbar
 
 STYLE = """
-QMainWindow, QWidget { background: #f6f8fc; color: #17243a; font-size: 14px; }
-QLineEdit, QTextEdit, QListWidget, QTableWidget, QComboBox, QSpinBox {
- background: white; border: 1px solid #d9e1ee; border-radius: 6px; padding: 6px;
- selection-background-color: #dbeafe; selection-color: #17243a;
+QWidget { color:#17243a; font-family:"Segoe UI",sans-serif; font-size:14px; }
+QMainWindow, QWidget#appRoot { background:#f5f7fb; }
+QWidget#editorBody { background:white; }
+QWidget#panel, QGroupBox { background:white; border:1px solid #e2e8f0; border-radius:10px; }
+QGroupBox { margin-top:14px; padding:18px 12px 12px; font-weight:600; }
+QGroupBox::title { subcontrol-origin:margin; left:14px; padding:0 5px; }
+QLabel#sectionTitle { font-size:17px; font-weight:600; }
+QLabel#hint { color:#64748b; font-size:13px; }
+QLineEdit, QTextEdit, QTextBrowser, QListWidget, QTableWidget, QComboBox, QSpinBox, QDateEdit {
+ background:white; border:1px solid #dce3ee; border-radius:6px; padding:6px;
+ selection-background-color:#dbeafe; selection-color:#17243a;
 }
-QPushButton { background: #e8edf5; border: none; border-radius: 6px; padding: 9px 13px; }
-QPushButton:hover { background: #dce6f5; }
-QPushButton:disabled { color: #8b97aa; background: #edf0f5; }
-QPushButton[primary="true"] { background: #2563eb; color: white; }
-QPushButton[primary="true"]:hover { background: #1d4ed8; }
-QPushButton[primary="true"]:disabled { background: #a9bfe9; }
-QTabWidget::pane { border: none; }
-QTabBar::tab { background: #e8edf5; padding: 12px 20px; margin: 4px 4px 8px 0; border-radius: 6px; }
-QTabBar::tab:selected { background: #2563eb; color: white; }
-QHeaderView::section { background: #e8edf5; padding: 8px; border: none; font-weight: bold; }
-QLabel#hint { color: #52647e; }
+QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QDateEdit:focus { border:1px solid #2563eb; }
+QLineEdit:read-only { background:#f8fafc; color:#64748b; }
+QPushButton { background:white; border:1px solid #dce3ee; border-radius:6px; padding:8px 12px; }
+QPushButton:hover { background:#f1f5f9; border-color:#b8c8df; }
+QPushButton:focus { border:2px solid #93b4f4; }
+QPushButton:disabled { color:#94a3b8; background:#f1f5f9; border-color:#e8edf5; }
+QPushButton[primary="true"] { background:#2563eb; color:white; border-color:#2563eb; font-weight:600; }
+QPushButton[primary="true"]:hover { background:#1d4ed8; }
+QPushButton[primary="true"]:disabled { background:#dbe6fa; color:#7c96c4; border-color:#dbe6fa; }
+QPushButton[danger="true"] { background:#fff7f7; color:#b91c1c; border-color:#fecaca; }
+QPushButton[danger="true"]:disabled { color:#c7a5a5; border-color:#f1e2e2; }
+QTabWidget::pane { border:none; }
+QTabBar::tab { background:transparent; color:#64748b; padding:11px 18px; margin:4px 4px 8px 0; border-radius:6px; }
+QTabBar::tab:selected { background:#dbeafe; color:#1d4ed8; font-weight:600; }
+QTabBar::tab:hover { background:#e8eef8; }
+QHeaderView::section { background:#f1f5f9; padding:9px; border:none; font-weight:600; }
+QScrollArea { border:none; background:transparent; }
+QSplitter::handle { background:transparent; width:12px; }
+QProgressBar { border:none; background:#e2e8f0; border-radius:4px; }
+QProgressBar::chunk { background:#2563eb; border-radius:4px; }
+QMenu { background:white; border:1px solid #dce3ee; padding:5px; }
+QMenu::item { padding:8px 20px; border-radius:4px; }
+QMenu::item:selected { background:#dbeafe; }
 """
 
 
@@ -87,13 +106,15 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.browser.start()
         self.browser_buttons = []
         container = QWidget()
+        container.setObjectName("appRoot")
         layout = QVBoxLayout(container)
         layout.setContentsMargins(22, 18, 22, 18)
         heading = QLabel("Facebook Helper")
         heading.setStyleSheet("font-size: 25px; font-weight: 700;")
         heading_row = row(heading)
         heading_row.addStretch()
-        heading_row.addWidget(button("Tiếp tục đợt đăng", lambda: self.guard(self.resume_saved_queue)))
+        self.resume_button = button("Tiếp tục đợt đăng", lambda: self.guard(self.resume_saved_queue))
+        heading_row.addWidget(self.resume_button)
         heading_row.addWidget(button("Trợ giúp", lambda: self.quick_start.show()))
         layout.addLayout(heading_row)
         layout.addWidget(self.build_quick_start())
@@ -132,7 +153,9 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
     def mark_dirty(self, *args):
         if not self.loading:
             self.dirty = True
-            self.save_button.setText("Lưu bài *")
+            if hasattr(self, "autosave_note"):
+                self.autosave_note.setText("Chưa lưu thay đổi")
+            self.update_editor_actions()
             if hasattr(self, "draft_timer"):
                 self.draft_timer.start()
 
@@ -157,77 +180,151 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         layout = QHBoxLayout(page)
         split = QSplitter()
         sidebar = QWidget()
+        sidebar.setObjectName("panel")
+        sidebar.setMinimumWidth(210)
+        sidebar.setMaximumWidth(330)
         side = QVBoxLayout(sidebar)
+        library_title = QLabel("Bài viết")
+        library_title.setObjectName("sectionTitle")
+        side.addWidget(library_title)
         self.search = QLineEdit()
         self.search.setPlaceholderText("Tìm bài theo tên hoặc nội dung…")
         self.search.textChanged.connect(self.filter_posts)
         side.addWidget(self.search)
         self.post_list = QListWidget()
+        self.post_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.post_list.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.post_list.itemClicked.connect(self.load_post)
         side.addWidget(self.post_list)
-        side.addLayout(row(button("+ Bài mới", self.new_post, True), button("Nhân bản", self.duplicate_post)))
-        side.addWidget(button("Tạo bài theo mẫu tuyển dụng", self.create_from_template, True))
-        side.addWidget(button("Xóa bài đang mở", self.delete_post))
+        self.new_post_button = button("Bài mới", self.new_post)
+        self.template_button = button("Từ mẫu", self.create_from_template)
+        side.addLayout(row(self.new_post_button, self.template_button))
+        self.article_menu = menu_button("Thao tác bài")
+        self.duplicate_action = self.article_menu.menu().addAction("Nhân bản", self.duplicate_post)
+        self.copy_article_action = self.article_menu.menu().addAction(
+            "Sao chép có định dạng", self.copy_editor
+        )
+        self.delete_article_action = self.article_menu.menu().addAction("Xóa bài đang mở", self.delete_post)
+        side.addLayout(toolbar(self.article_menu))
         split.addWidget(sidebar)
         editor = QWidget()
-        main = QVBoxLayout(editor)
+        editor.setObjectName("panel")
+        editor_outer = QVBoxLayout(editor)
+        editor_body = QWidget()
+        editor_body.setObjectName("editorBody")
+        main = QVBoxLayout(editor_body)
+        main.setContentsMargins(0, 0, 0, 0)
         self.title = QLineEdit()
         self.title.setPlaceholderText("Tên quản lý bài · ví dụ: Kế toán — Quận 7")
         self.title.textChanged.connect(self.mark_dirty)
         self.draft_recovery = QWidget()
-        recovery = QVBoxLayout(self.draft_recovery)
+        recovery = QHBoxLayout(self.draft_recovery)
+        recovery.setContentsMargins(0, 0, 0, 0)
         self.draft_recovery_text = hint("")
         recovery.addWidget(self.draft_recovery_text)
-        recovery.addLayout(
-            row(
-                button("Khôi phục bản nháp", lambda: self.guard(self.recover_draft), True),
-                button("Bỏ các bản nháp cũ", self.discard_recovery_drafts),
-            )
-        )
+        self.recover_button = button("Khôi phục", lambda: self.guard(self.recover_draft))
+        recovery.addWidget(self.recover_button)
+        drafts_menu = menu_button("Khác")
+        drafts_menu.menu().addAction("Bỏ các bản nháp cũ", self.discard_recovery_drafts)
+        recovery.addWidget(drafts_menu)
         main.addWidget(self.draft_recovery)
+        main.addWidget(QLabel("Tên bài"))
         main.addWidget(self.title)
         self.content = SummernoteEditor()
         self.content.notice = lambda message: self.statusBar().showMessage(message, 15000)
         self.content.setPlaceholderText("Vị trí tuyển dụng, mức lương, yêu cầu, quyền lợi, cách ứng tuyển…")
         self.content.textChanged.connect(self.mark_dirty)
         main.addWidget(self.content, 1)
-        main.addWidget(
-            hint(
-                "Dán từ Word hoặc Facebook bằng Ctrl+V. Ứng dụng bỏ nền tối; Facebook có thể thay đổi kiểu chữ khi đăng."
-            )
-        )
         self.tags = QLineEdit()
         self.tags.setPlaceholderText("Hashtag cuối bài · #tuyendung #ketoan")
         self.tags.textChanged.connect(self.mark_dirty)
         main.addWidget(self.tags)
+        self.content.setToolTip("Ctrl+V để dán giữ định dạng; Ctrl+Shift+V để dán chữ thuần.")
         self.images = QListWidget()
-        self.images.setMaximumHeight(130)
+        self.images.setViewMode(QListWidget.ViewMode.IconMode)
+        self.images.setFlow(QListWidget.Flow.LeftToRight)
+        self.images.setWrapping(False)
+        self.images.setFixedHeight(94)
         self.images.setIconSize(QSize(48, 48))
+        self.images.setGridSize(QSize(82, 76))
+        self.images.itemSelectionChanged.connect(self.update_image_actions)
+        self.images.model().rowsInserted.connect(self.update_image_actions)
+        self.images.model().rowsRemoved.connect(self.update_image_actions)
+        self.image_count = QLabel("Ảnh đính kèm · 0")
+        self.image_menu = menu_button("Thao tác ảnh")
+        self.image_open_action = self.image_menu.menu().addAction("Mở ảnh", self.open_image)
+        self.image_up_action = self.image_menu.menu().addAction("Đưa lên trước", lambda: self.move_image(-1))
+        self.image_down_action = self.image_menu.menu().addAction("Đưa ra sau", lambda: self.move_image(1))
+        self.image_remove_action = self.image_menu.menu().addAction("Bỏ ảnh đã chọn", self.remove_image)
+        image_actions = row(self.image_count)
+        image_actions.addStretch()
+        image_actions.addWidget(button("Thêm ảnh", self.add_images))
+        image_actions.addWidget(self.image_menu)
+        main.addLayout(image_actions)
         main.addWidget(self.images)
-        main.addLayout(
-            row(
-                button("Thêm ảnh", self.add_images),
-                button("Bỏ ảnh", self.remove_image),
-                button("Đưa ảnh lên", lambda: self.move_image(-1)),
-                button("Đưa ảnh xuống", lambda: self.move_image(1)),
-                button("Mở ảnh", self.open_image),
-            )
-        )
-        self.autosave_note = hint("Bản đang soạn được tự lưu sau khi bạn ngừng nhập một lúc.")
+        self.autosave_note = hint("Chưa lưu bài")
         main.addWidget(self.autosave_note)
         self.save_button = button("Lưu bài", lambda: self.guard(self.save_post))
-        main.addLayout(
-            row(
-                self.save_button,
-                button("Đăng bài này", lambda: self.guard(self.post_this_article), True),
-                button("Xem trước bài", self.preview_article),
-                button("Sao chép bài có định dạng", self.copy_editor),
-            )
-        )
+        self.editor_post_button = button("Chọn nhóm đăng", lambda: self.guard(self.post_this_article))
+        self.preview_button = button("Xem trước", self.preview_article)
+        editor_actions = row(self.preview_button)
+        editor_actions.addStretch()
+        editor_actions.addWidget(self.save_button)
+        editor_actions.addWidget(self.editor_post_button)
+        editor_scroll = QScrollArea()
+        editor_scroll.setWidgetResizable(True)
+        editor_scroll.setWidget(editor_body)
+        editor_outer.addWidget(editor_scroll, 1)
+        editor_outer.addLayout(editor_actions)
+        self.content.ready.connect(self.update_editor_actions)
+        self.update_image_actions()
+        self.update_editor_actions()
         split.addWidget(editor)
-        split.setSizes([310, 850])
+        split.setSizes([250, 850])
+        split.setStretchFactor(0, 0)
+        split.setStretchFactor(1, 1)
         layout.addWidget(split)
         return page
+
+    def update_editor_actions(self):
+        if not hasattr(self, "editor_post_button"):
+            return
+        content = self.content.has_content()
+        valid = bool(self.title.text().strip()) and content
+        unsaved = self.dirty or self.post_id is None
+        self.save_button.setEnabled(valid and unsaved)
+        blocked = self.busy or getattr(self, "queue_active", False) or getattr(self, "monitor_running", False)
+        self.editor_post_button.setEnabled(valid and not blocked)
+        self.preview_button.setEnabled(content)
+        self.duplicate_action.setEnabled(content)
+        self.copy_article_action.setEnabled(content)
+        self.delete_article_action.setEnabled(self.post_id is not None)
+        self.save_button.setText("Lưu thay đổi" if self.dirty and self.post_id is not None else "Lưu bài")
+        empty = not content and not self.title.text().strip()
+        recovery = hasattr(self, "draft_timer") and bool(self.stored_drafts()) and empty
+        primary(self.recover_button, recovery)
+        primary(self.template_button, empty and not recovery)
+        primary(self.save_button, not empty and unsaved)
+        primary(self.editor_post_button, valid and not unsaved and not blocked)
+        if not self.dirty:
+            self.autosave_note.setText("Đã lưu bài" if self.post_id is not None else "")
+        self.save_button.setToolTip("" if valid else "Nhập tên và nội dung bài trước")
+        self.editor_post_button.setToolTip(
+            "Lưu bài và chọn nhóm đăng" if unsaved else "Chọn nhóm để đăng bài này"
+        )
+
+    def update_image_actions(self, *args):
+        if not hasattr(self, "image_menu"):
+            return
+        count = self.images.count()
+        index = self.images.currentRow()
+        self.image_count.setText(f"Ảnh đính kèm · {count}")
+        self.images.setVisible(count > 0)
+        self.image_menu.setEnabled(index >= 0)
+        self.image_open_action.setEnabled(index >= 0)
+        self.image_remove_action.setEnabled(index >= 0)
+        self.image_up_action.setEnabled(index > 0)
+        self.image_down_action.setEnabled(0 <= index < count - 1)
 
     def create_from_template(self):
         if (self.dirty or self.content.toPlainText().strip()) and not self.confirm_template_replace():
@@ -241,7 +338,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.content.setHtml(dialog.article["html"])
         self.tags.setText(dialog.article["tags"])
         self.mark_dirty()
-        self.statusBar().showMessage("Đã tạo nội dung. Thêm ảnh, xem trước rồi bấm Lưu bài nhé.", 15000)
+        self.statusBar().showMessage("Đã tạo bài từ mẫu", 15000)
 
     def confirm_template_replace(self):
         return (
@@ -258,13 +355,8 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
     def preview_article(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Xem trước nội dung tuyển dụng")
-        dialog.resize(680, 760)
+        dialog.resize(680, min(760, max(520, self.height() - 100)))
         layout = QVBoxLayout(dialog)
-        layout.addWidget(
-            hint(
-                "Bố cục bản nháp. Khi đăng, Facebook quyết định kiểu chữ và cách hiển thị ảnh. Nội dung chữ vẫn giữ tiêu đề và các dòng •."
-            )
-        )
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         body = QWidget()
@@ -290,7 +382,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         scroll.setWidget(body)
         layout.addWidget(scroll)
         actions = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        actions.button(QDialogButtonBox.StandardButton.Close).setText("Đóng xem trước")
+        actions.button(QDialogButtonBox.StandardButton.Close).setText("Đóng")
         actions.rejected.connect(dialog.reject)
         layout.addWidget(actions)
         dialog.exec()
@@ -303,6 +395,8 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole + 1, post["plain"] + "\n" + post["tags"])
             item.setToolTip(post["plain"][:250])
             self.post_list.addItem(item)
+            if post["id"] == self.post_id:
+                self.post_list.setCurrentItem(item)
         self.filter_posts()
         self.refresh_post_choices()
 
@@ -320,6 +414,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         post = self.store.post(item.data(Qt.ItemDataRole.UserRole))
         self.loading = True
         self.post_id = post["id"]
+        self.post_list.setCurrentItem(item)
         self.title.setText(post["title"])
         self.content.setHtml(post["html"])
         self.tags.setText(post["tags"])
@@ -329,12 +424,14 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.loading = False
         self.dirty = False
         self.save_button.setText("Lưu bài")
+        self.update_editor_actions()
 
     def new_post(self):
         if not self.confirm_discard():
             return
         self.loading = True
         self.post_id = None
+        self.post_list.setCurrentRow(-1)
         self.title.clear()
         self.content.clear()
         self.tags.clear()
@@ -342,10 +439,12 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.loading = False
         self.dirty = False
         self.save_button.setText("Lưu bài")
+        self.update_editor_actions()
         self.title.setFocus()
 
     def duplicate_post(self):
         self.post_id = None
+        self.post_list.setCurrentRow(-1)
         self.title.setText(self.title.text() + " (bản sao)")
         self.mark_dirty()
 
@@ -362,6 +461,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.dirty = False
         self.clear_active_draft()
         self.save_button.setText("Lưu bài")
+        self.update_editor_actions()
         self.refresh_posts()
         self.statusBar().showMessage("Đã lưu bài viết", 5000)
         return self.post_id
@@ -370,7 +470,9 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         if self.post_id is None:
             return
         if (
-            QMessageBox.question(self, "Xóa bài", "Xóa bài đang mở? Lịch sử đăng vẫn được giữ.")
+            QMessageBox.question(
+                self, "Xóa bài", "Xóa bài đang mở khỏi thư viện? Các lượt đã tạo vẫn được giữ."
+            )
             == QMessageBox.StandardButton.Yes
         ):
             self.store.delete_post(self.post_id)
@@ -422,53 +524,101 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
 
     def copy_editor(self):
         self.content.copy_article(self.tags.text())
-        self.statusBar().showMessage(
-            "Đã sao chép cả định dạng và chữ thuần. Nơi nhận quyết định định dạng hỗ trợ.", 10000
-        )
+        self.statusBar().showMessage("Đã sao chép bài", 10000)
 
     def build_groups(self):
         page = QWidget()
         layout = QHBoxLayout(page)
-        self.group_list = QListWidget()
-        self.group_list.itemClicked.connect(self.load_group)
+        split = QSplitter()
         sidebar = QWidget()
-        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar.setObjectName("panel")
+        sidebar.setMinimumWidth(210)
+        sidebar.setMaximumWidth(330)
+        side = QVBoxLayout(sidebar)
+        self.group_count = QLabel("Nhóm · 0")
+        self.group_count.setObjectName("sectionTitle")
+        side.addWidget(self.group_count)
         self.group_search = QLineEdit()
-        self.group_search.setPlaceholderText("Tìm nhóm theo tên hoặc nhãn…")
+        self.group_search.setPlaceholderText("Tìm tên hoặc nhãn nhóm…")
         self.group_search.textChanged.connect(self.filter_group_list)
-        sidebar_layout.addWidget(self.group_search)
-        sidebar_layout.addWidget(self.group_list)
-        layout.addWidget(sidebar, 1)
+        side.addWidget(self.group_search)
+        self.group_list = QListWidget()
+        self.group_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.group_list.setTextElideMode(Qt.TextElideMode.ElideRight)
+        self.group_list.itemClicked.connect(self.load_group)
+        side.addWidget(self.group_list, 1)
+        group_menu = menu_button("Thao tác")
+        self.delete_group_action = group_menu.menu().addAction("Xóa nhóm đang chọn", self.delete_group)
+        side.addLayout(row(button("Nhóm mới", self.new_group), group_menu))
+        split.addWidget(sidebar)
         form_widget = QWidget()
+        form_widget.setObjectName("panel")
         form = QVBoxLayout(form_widget)
-        fields = QFormLayout()
+        heading = QLabel("Thông tin nhóm")
+        heading.setObjectName("sectionTitle")
+        form.addWidget(heading)
         self.group_name = QLineEdit()
+        self.group_name.setPlaceholderText("Tên nhóm trên Facebook")
         self.group_url = QLineEdit()
         self.group_url.setPlaceholderText("https://www.facebook.com/groups/…/")
         self.category = QLineEdit()
         self.category.setPlaceholderText("Ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp")
+        self.category.setToolTip("Các nhóm có thể dùng chung nhãn; ngăn cách nhiều nhãn bằng dấu phẩy.")
         self.group_notes = QTextEdit()
         self.group_notes.setAcceptRichText(False)
-        self.group_notes.setPlaceholderText("Quy định nhóm, khung giờ, thông tin cần lưu ý…")
-        fields.addRow("Tên nhóm", self.group_name)
-        fields.addRow("Link nhóm", self.group_url)
-        fields.addRow("Nhãn nhóm", self.category)
-        fields.addRow("Ghi chú", self.group_notes)
-        form.addLayout(fields)
-        form.addLayout(
-            row(
-                button("+ Nhóm mới", self.new_group),
-                button("Lưu nhóm", lambda: self.guard(self.save_group), True),
-                button("Xóa nhóm", self.delete_group),
-            )
-        )
-        form.addWidget(
-            hint(
-                "Nhiều nhóm có thể dùng cùng nhãn. Ngăn cách các nhãn bằng dấu phẩy, ví dụ: Hà Nội, Kỹ thuật. Nhãn dùng để chọn nơi đăng; không được đưa vào bài Facebook."
-            )
-        )
-        layout.addWidget(form_widget, 2)
+        self.group_notes.setPlaceholderText("Quy định nhóm hoặc thông tin cần lưu ý…")
+        for title, field in (
+            ("Tên nhóm *", self.group_name),
+            ("Link Facebook *", self.group_url),
+            ("Nhãn phân loại", self.category),
+        ):
+            form.addWidget(QLabel(title))
+            form.addWidget(field)
+        self.group_validation = hint("")
+        self.group_validation.setStyleSheet("color:#b91c1c;")
+        form.addWidget(self.group_validation)
+        form.addWidget(QLabel("Ghi chú"))
+        form.addWidget(self.group_notes, 1)
+        self.group_open_button = button("Mở nhóm", self.open_group_editor)
+        self.group_save_button = button("Lưu nhóm", lambda: self.guard(self.save_group), True)
+        actions = row(self.group_open_button)
+        actions.addStretch()
+        actions.addWidget(self.group_save_button)
+        form.addLayout(actions)
+        split.addWidget(form_widget)
+        split.setSizes([250, 850])
+        split.setStretchFactor(0, 0)
+        split.setStretchFactor(1, 1)
+        layout.addWidget(split)
+        for field in (self.group_name, self.group_url, self.category, self.group_notes):
+            field.textChanged.connect(self.update_group_actions)
+        self.update_group_actions()
         return page
+
+    def update_group_actions(self):
+        if not hasattr(self, "group_save_button"):
+            return
+        values = self.group_values()
+        valid_url = False
+        if self.group_url.text().strip():
+            try:
+                normalize_group(self.group_url.text())
+                valid_url = True
+            except ValueError:
+                pass
+        invalid = bool(self.group_url.text().strip()) and not valid_url
+        self.group_validation.setText("Nhập link nhóm Facebook hợp lệ" if invalid else "")
+        self.group_validation.setVisible(invalid)
+        self.group_save_button.setEnabled(
+            bool(values[0].strip())
+            and valid_url
+            and values != getattr(self, "group_original", ("", "", "", ""))
+        )
+        self.group_open_button.setEnabled(valid_url)
+        self.delete_group_action.setEnabled(self.group_id is not None)
+
+    def open_group_editor(self):
+        QDesktopServices.openUrl(QUrl(normalize_group(self.group_url.text())))
 
     def refresh_groups(self):
         current = self.job_groups.currentData()
@@ -477,13 +627,18 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         for group in self.store.groups():
             item = QListWidgetItem(group["name"] + (f" · {group['category']}" if group["category"] else ""))
             item.setData(Qt.ItemDataRole.UserRole, group)
+            item.setToolTip(item.text())
             self.group_list.addItem(item)
+            if group["id"] == self.group_id:
+                self.group_list.setCurrentItem(item)
             self.job_groups.addItem(group["name"], group["id"])
         index = self.job_groups.findData(current)
         if index >= 0:
             self.job_groups.setCurrentIndex(index)
         self.refresh_audience_tags()
         self.filter_group_list()
+        self.group_count.setText(f"Nhóm · {self.group_list.count()}")
+        self.update_group_actions()
 
     def filter_group_list(self):
         query = self.group_search.text().casefold()
@@ -496,11 +651,13 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             return
         group = item.data(Qt.ItemDataRole.UserRole)
         self.group_id = group["id"]
+        self.group_list.setCurrentItem(item)
         self.group_name.setText(group["name"])
         self.group_url.setText(group["url"])
         self.category.setText(group["category"])
         self.group_notes.setPlainText(group["notes"])
         self.group_original = self.group_values()
+        self.update_group_actions()
 
     def group_values(self):
         return (
@@ -529,24 +686,30 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         if not self.confirm_group_switch():
             return
         self.group_id = None
+        self.group_list.setCurrentRow(-1)
         for field in (self.group_name, self.group_url, self.category, self.group_notes):
             field.clear()
         self.group_original = self.group_values()
+        self.update_group_actions()
 
     def save_group(self):
         self.group_id = self.store.save_group(self.group_id, *self.group_values())
         self.group_original = self.group_values()
+        self.update_group_actions()
         self.refresh_groups()
         self.statusBar().showMessage("Đã lưu nhóm", 5000)
 
     def delete_group(self):
         if (
             self.group_id is not None
-            and QMessageBox.question(self, "Xóa nhóm", "Xóa nhóm này? Lịch sử đăng vẫn được giữ.")
+            and QMessageBox.question(
+                self, "Xóa nhóm", "Xóa nhóm này khỏi danh sách? Các lượt đã tạo vẫn được giữ."
+            )
             == QMessageBox.StandardButton.Yes
         ):
             self.store.delete_group(self.group_id)
             self.group_original = self.group_values()
+            self.update_group_actions()
             self.new_group()
             self.refresh_groups()
 
@@ -968,6 +1131,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                 self.store.update_job(result["job_id"], evidence=result["evidence"])
             self.refresh_jobs()
             self.post_manager.refresh()
+            self.diagnostic_export_button.setEnabled((self.store.root / "link-diagnostics.json").exists())
             return True
 
         if self.guard(save):
@@ -1027,38 +1191,60 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
     def build_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        guide = QTextEdit()
-        guide.setReadOnly(True)
-        guide.setHtml("""
-        <h3>Cách sử dụng</h3>
-        <p>1. Đăng nhập Facebook từ nút Trợ giúp ở đầu cửa sổ.</p>
-        <p>2. Thêm nhóm trong tab Nhóm, soạn và lưu bài trong Soạn bài.</p>
-        <p>3. Vào Đăng bài, chọn bài và nhóm, xem lại rồi Bắt đầu đăng.</p>
-        <p>4. Vào Bài đã đăng, chọn đợt và khoảng ngày rồi bấm Tìm kiếm.
-        Chọn một dòng để mở bài hoặc sao chép link. Xuất Excel lấy toàn bộ kết quả tìm kiếm.</p>
-        <h3>Lưu kết quả</h3>
-        <p>Sau khi gửi, ứng dụng lưu kết quả và link nếu Facebook trả về, rồi chuyển nhóm.
-        Không chờ duyệt. Nếu chưa rõ đã gửi hay chưa, ứng dụng dừng để tránh đăng trùng.</p>
-        <p>Nội dung đang soạn được tự lưu thành nháp; bấm Lưu bài để dùng đăng.
-        Dùng Tiếp tục đợt đăng để mở công việc còn lại sau khi khởi động lại.</p>
-        <h3>Dữ liệu</h3>
-        <p>Sao lưu trước khi đổi máy hoặc khôi phục dữ liệu. Bản sao lưu không chứa phiên Facebook;
-        máy mới cần đăng nhập lại. Đóng ứng dụng trước khi khôi phục.</p>
-        """)
-        layout.addWidget(guide)
+        account = QGroupBox("Tài khoản Facebook")
+        account_layout = QVBoxLayout(account)
+        self.settings_login_button = self.browser_button("Đăng nhập Facebook", "login")
+        primary(self.settings_login_button, True)
+        account_layout.addLayout(toolbar(self.settings_login_button))
+        layout.addWidget(account)
+        data = QGroupBox("Dữ liệu trên máy")
+        data_layout = QVBoxLayout(data)
         location = QLineEdit(str(self.store.root))
         location.setReadOnly(True)
-        layout.addWidget(location)
-        layout.addLayout(
-            row(
+        data_layout.addWidget(location)
+        data_layout.addLayout(
+            toolbar(
                 button(
                     "Mở thư mục dữ liệu",
                     lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.store.root))),
                 ),
-                button("Sao lưu ZIP", self.backup),
+                button("Sao lưu dữ liệu", self.backup),
             )
         )
+        layout.addWidget(data)
+        support = QGroupBox("Hỗ trợ")
+        support_layout = QVBoxLayout(support)
+        self.diagnostic_export_button = button("Xuất chẩn đoán", self.export_diagnostics)
+        self.diagnostic_export_button.setEnabled((self.store.root / "link-diagnostics.json").exists())
+        support_layout.addLayout(
+            toolbar(
+                button("Hướng dẫn sử dụng", lambda: self.quick_start.show()),
+                self.diagnostic_export_button,
+            )
+        )
+        layout.addWidget(support)
+        layout.addStretch()
+        version = QLabel(
+            f'Facebook Helper {__version__} · <a href="https://github.com/Trung27012003/facebook-helper/releases/latest">Bản cập nhật</a>'
+        )
+        version.setOpenExternalLinks(True)
+        layout.addWidget(version)
         return page
+
+    def export_diagnostics(self):
+        source = self.store.root / "link-diagnostics.json"
+        if not source.exists():
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Xuất chẩn đoán", "facebook-helper-chan-doan.json", "JSON (*.json)"
+        )
+        if path:
+
+            def export():
+                Path(path).write_bytes(source.read_bytes())
+                self.statusBar().showMessage("Đã xuất chẩn đoán", 5000)
+
+            self.guard(export)
 
     def backup(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -1101,6 +1287,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             return
         self.dirty = False
         self.group_original = self.group_values()
+        self.update_group_actions()
         if self.browser.isRunning():
             # Do not destroy a running QThread; shutdown is asynchronous even during navigation.
             self.closing = True

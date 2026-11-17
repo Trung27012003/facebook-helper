@@ -37,3 +37,7 @@ Ruff đạt. Lượt chạy toàn bộ đầu tiên: 289 đạt, 1 kỳ vọng g
 ## Giới hạn
 
 Không có phiên Facebook thật hoặc phản hồi của tài khoản người dùng để xác định chính xác nguyên nhân thực tế. Các nguyên nhân lọc nội dung và request muộn được tái hiện bằng mô phỏng; không khẳng định đã bao phủ mọi cấu trúc Facebook. Không có URL/mã bài hợp lệ được nhận diện thì chưa lấy được link; link chờ duyệt vẫn có thể chưa mở được. Ảnh Qt offscreen không thay nghiệm thu DPI Windows.
+
+## Trạng thái phiên bản
+
+Các thay đổi này được gộp vào [0.9.0](TESTING-v0.9.0.md); không phát hành gói Windows 0.8.2. Checks nguồn của commit `e8e71729c8ac58bac835b3ec5f5b98965db3ce14` đã đạt: [run #44114194520](https://github.com/Trung27012003/facebook-helper/actions/runs/44114194520). Kiểm thử cuối và gói tải dùng báo cáo 0.9.0.

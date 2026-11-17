@@ -8,15 +8,17 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.8.2 · Summernote
+## Cách dùng bản 0.9.0 · Summernote
+
+Giao diện dùng nút xanh cho bước chính hiện tại. Khi soạn có thay đổi, **Lưu bài** nổi bật; khi đã lưu, **Chọn nhóm đăng** nổi bật. Thao tác phụ/ảnh nằm trong menu riêng, nút xóa tách khỏi nút lưu. Nút chính vẫn nằm ở cuối khung khi nội dung cuộn.
 
 ### 1. Soạn bài
 
-- Chọn **Tạo bài theo mẫu tuyển dụng**. Điền vị trí, công ty, khu vực, thu nhập, công việc, yêu cầu, quyền lợi, địa điểm, thời gian và liên hệ. Mục không cần có thể để trống.
+- Chọn **Từ mẫu**. Điền vị trí, công ty, khu vực, thu nhập, công việc, yêu cầu, quyền lợi, địa điểm, thời gian và liên hệ. Mục không cần có thể để trống.
 - Mẫu tạo tiêu đề, các phần **CƠ HỘI DÀNH CHO BẠN / YÊU CẦU / QUYỀN LỢI / ỨNG TUYỂN NGAY** và các dòng `•`, giống bố cục bài tuyển dụng tham khảo.
 - Dùng **Summernote 0.9.1 nguyên bản** (thanh công cụ của thư viện), đóng kèm jQuery và DOMPurify, chạy offline trong Qt WebEngine. Không còn thanh nút rich text tự ghép.
 - **Ctrl+V** từ Word/Facebook giữ các định dạng hỗ trợ. Khi dán từ Facebook, tự bỏ nền tối và màu chữ của giao diện để bài đọc được trên nền trắng; giữ đậm/nghiêng, tiêu đề, danh sách. Bản nháp Qt cũ có nền tối cũng được làm sạch khi mở.
-- Thanh thư viện có font, cỡ, màu, đậm/nghiêng/gạch chân, danh sách, bảng, liên kết, mã HTML, fullscreen, undo/redo. **Ctrl+Shift+V** dán chữ thuần. **Sao chép bài có định dạng** sao chép HTML và chữ kèm hashtag.
+- Thanh thư viện có font, cỡ, màu, đậm/nghiêng/gạch chân, danh sách, bảng, liên kết, mã HTML, fullscreen, undo/redo. **Ctrl+Shift+V** dán chữ thuần. **Thao tác bài → Sao chép có định dạng** sao chép HTML và chữ kèm hashtag.
 - Ảnh trong nội dung dán không tự nhập; dùng **Thêm ảnh** để đính kèm. Nguồn chỉ có chữ thuần không thể tự khôi phục kiểu chữ.
 - Sửa bài, thêm/sắp xếp ảnh, xem trước và lưu. Facebook chỉ hỗ trợ một phần định dạng; không hỗ trợ toàn bộ font/màu/bố cục Word.
 
@@ -38,7 +40,7 @@ Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiề
 
 Mở **Trợ giúp** nếu cần: đăng nhập Facebook trong cửa sổ riêng của ứng dụng, thêm nhóm rồi soạn bài.
 
-1. **Chọn bài:** trong Soạn bài bấm **Đăng bài này** để lưu và mở luồng đăng. Hoặc vào Đăng bài, chọn một bài đã lưu và xem nội dung.
+1. **Chọn bài:** trong Soạn bài bấm **Chọn nhóm đăng** để lưu và đi thẳng sang chọn nhóm. Hoặc vào Đăng bài, chọn một bài đã lưu và xem nội dung.
 2. **Chọn nơi đăng:** chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn. Có thể bỏ tích những nhóm không cần. Số nhóm và thứ tự hiển thị là thứ tự sẽ thực hiện.
 3. **Xem lại:** đọc nội dung, xem ảnh và danh sách nhóm. Chọn tự bấm Đăng hoặc chỉ chuẩn bị; có thể chỉnh thời gian giữa nhóm. Bấm **Bắt đầu đăng** là xác nhận gửi cho danh sách vừa xem. Nếu bài/nhóm thay đổi sau khi xem lại, phải quay lại xem trước khi bắt đầu. Facebook có thể đổi định dạng so với bản xem trước.
 4. **Đăng và xem kết quả:** theo dõi nhóm đang làm, thao tác và tiến độ. Có thể **Tạm dừng**; thao tác đang chạy sẽ hoàn tất. Nút Quay lại/Tiếp tục được đặt dưới vùng cuộn. **Tùy chọn khác: xử lý bằng tay** chứa điền bài, đăng bản đang mở, báo đã gửi và bỏ qua nhóm.
@@ -75,7 +77,7 @@ Trang **Đăng bài** hiển thị nút theo trạng thái: Bắt đầu/Tiếp 
 
 Bộ lấy link không còn yêu cầu nội dung gửi đi giống hệt bản lưu; chỉ nhận phản hồi từ request tạo bài bắt đầu trong thao tác Đăng này, đúng nhóm. Hỗ trợ request bắt đầu muộn và phản hồi GraphQL bổ sung theo đường dẫn story_create đã nhận diện. Không gọi API riêng, không gửi lại bài để lấy link.
 
-Nếu vẫn thiếu link, `link-diagnostics.json` trong thư mục dữ liệu lưu tối đa 30 lần gửi: phiên bản, thời gian, mã lượt cục bộ, số request/phản hồi, cờ có loại trường mã bài và kết quả lấy link. Không lưu nội dung, link, mã Facebook, cookie, token hoặc phản hồi thô trong file này. Có thể mở thư mục ở Cài đặt để lấy file khi cần hỗ trợ.
+Nếu vẫn thiếu link, `link-diagnostics.json` trong thư mục dữ liệu lưu tối đa 30 lần gửi: phiên bản, thời gian, mã lượt cục bộ, số request/phản hồi, cờ có loại trường mã bài và kết quả lấy link. Không lưu nội dung, link, mã Facebook, cookie, token hoặc phản hồi thô trong file này. Dùng **Cài đặt → Xuất chẩn đoán** để lưu file gửi hỗ trợ; nút bật sau khi có dữ liệu chẩn đoán.
 
 Kiểm tra duyệt định kỳ đã tắt, kể cả khi bản cũ từng bật. Dữ liệu cũ được giữ; không còn phần lịch sử trên giao diện quản lý.
 
@@ -93,7 +95,7 @@ Link được lưu tự động khi nhận diện được link bài mới đún
 
 ### Link, ảnh minh chứng và báo cáo
 
-Mở **Link bài, trạng thái & ảnh minh chứng** bên dưới bảng. Dán và lưu link bài, hoặc mở bài cụ thể trong trình duyệt của ứng dụng rồi **Lấy link đang mở**. Link cần thuộc cùng nhóm, dạng `/groups/ID/posts/ID/`; nếu Facebook dùng ID/tên nhóm khác nhau, hãy dùng cùng cách định danh với nhóm đã lưu.
+Mở **Chi tiết** bên dưới bảng. Dán và lưu link bài, hoặc mở bài cụ thể trong trình duyệt của ứng dụng rồi **Lấy link đang mở**. Link cần thuộc cùng nhóm, dạng `/groups/ID/posts/ID/`; nếu Facebook dùng ID/tên nhóm khác nhau, hãy dùng cùng cách định danh với nhóm đã lưu.
 
 **Mở link bài** → kiểm tra bài và vị trí cuộn → **Chụp màn hình** → **Xem ảnh minh chứng**. Ảnh chỉ là vùng đang hiển thị, không tự chứng minh bài đã được duyệt. Đổi sang permalink khác sẽ bỏ liên kết minh chứng cũ và yêu cầu xác nhận lại; file ảnh cũ vẫn được giữ.
 
@@ -158,7 +160,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Checklist kiểm thử toàn bộ](docs/TEST-CHECKLIST.md) và [bản Excel để đánh dấu](docs/TEST-CHECKLIST.xlsx) gồm đầu mục, ưu tiên, kết quả mong đợi và mẫu ghi lỗi.
 
-Xem [kiểm thử bản 0.8.2](docs/TESTING-v0.8.2.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.9.0](docs/TESTING-v0.9.0.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

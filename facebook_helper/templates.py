@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
+    QGroupBox,
     QLineEdit,
     QMessageBox,
     QScrollArea,
@@ -14,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .widgets import hint
+from .widgets import primary
 
 FIELDS = [
     ("position", "Vị trí tuyển dụng *", "Kỹ sư điện tự động hóa"),
@@ -83,38 +84,53 @@ class RecruitmentDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Tạo bài tuyển dụng theo mẫu")
-        self.resize(700, 720)
+        self.resize(700, min(720, max(520, parent.height() - 80)) if parent else 680)
         layout = QVBoxLayout(self)
-        layout.addWidget(
-            hint(
-                "Điền thông tin bên dưới. Mục nào không cần có thể để trống. "
-                "Bạn vẫn sửa toàn bộ nội dung và thêm ảnh sau khi tạo bài."
-            )
-        )
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         content = QWidget()
-        form = QFormLayout(content)
+        sections = QVBoxLayout(content)
+        forms = {}
+        for key, title in (("main", "Thông tin tuyển dụng"), ("body", "Nội dung"), ("contact", "Liên hệ")):
+            group = QGroupBox(title)
+            forms[key] = QFormLayout(group)
+            sections.addWidget(group)
         self.fields = {}
         for key, label, placeholder in FIELDS:
             field = QTextEdit() if key in MULTILINE else QLineEdit()
             field.setPlaceholderText(placeholder)
             if key in MULTILINE:
                 field.setAcceptRichText(False)
-                field.setFixedHeight(80)
+                field.setFixedHeight(72)
+                field.setToolTip("Mỗi dòng một ý")
             self.fields[key] = field
-            form.addRow(label, field)
+            section = (
+                "main"
+                if key in {"position", "company", "region", "salary"}
+                else "contact"
+                if key in {"email", "phone", "tags"}
+                else "body"
+            )
+            forms[section].addRow(label.replace(" · mỗi dòng một ý", ""), field)
         scroll.setWidget(content)
         layout.addWidget(scroll)
         actions = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
-        actions.button(QDialogButtonBox.StandardButton.Ok).setText("Tạo nội dung bài")
+        self.generate_button = actions.button(QDialogButtonBox.StandardButton.Ok)
+        self.generate_button.setText("Tạo bài")
+        primary(self.generate_button, True)
+        self.generate_button.setEnabled(False)
+        for key in ("position", "company"):
+            self.fields[key].textChanged.connect(self.update_actions)
         actions.button(QDialogButtonBox.StandardButton.Cancel).setText("Hủy")
         actions.accepted.connect(self.generate)
         actions.rejected.connect(self.reject)
         layout.addWidget(actions)
         self.article = None
+
+    def update_actions(self):
+        self.generate_button.setEnabled(all(self.fields[k].text().strip() for k in ("position", "company")))
 
     def generate(self):
         values = {

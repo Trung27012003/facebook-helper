@@ -119,6 +119,13 @@ class SummernoteEditor(QWidget):
         self._html, self._plain = data["html"], data["plain"]
         self._revision = data["revision"]
 
+    def has_content(self):
+        """Use the local document cache for button state; never wait on JavaScript."""
+        import re
+        from html import unescape
+
+        return bool(unescape(re.sub(r"<[^>]*>", "", self._html)).replace("\xa0", " ").strip())
+
     def toHtml(self):
         self._pull()
         return self._html

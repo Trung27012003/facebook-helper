@@ -94,17 +94,17 @@ class PostManager(QWidget):
         self.group_button = button("Mở nhóm", self.open_group)
         self.export_button = button("Xuất Excel", self.export_filtered)
         self.summary = QLabel()
-        self.delete_button = button("Xóa", lambda: None)
+        self.delete_button = button("Xóa", lambda: None, danger=True)
         menu = QMenu(self.delete_button)
         self.delete_current_action = menu.addAction("Xóa bài đã chọn", lambda: self.delete_records(False))
         self.delete_filtered_action = menu.addAction(
             "Xóa kết quả đang lọc", lambda: self.delete_records(True)
         )
         self.delete_button.setMenu(menu)
-        actions = row(
-            self.open_button, self.copy_button, self.group_button, self.export_button, self.delete_button
-        )
+        actions = row(self.open_button, self.copy_button, self.group_button)
         actions.addStretch()
+        actions.addWidget(self.export_button)
+        actions.addWidget(self.delete_button)
         actions.addWidget(self.summary)
         layout.addLayout(actions)
         self.follow_today = False
