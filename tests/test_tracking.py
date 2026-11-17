@@ -329,3 +329,13 @@ def test_editing_status_does_not_invent_send_time(store, job):
     assert sent
     store.update_job(job, status="rejected")
     assert store.job(job)["sent_at"] == sent
+
+
+@pytest.mark.parametrize("badge,tab", [("Published", "Pending"), ("Chờ duyệt", "Published")])
+def test_conflicting_card_and_selected_category_stays_unknown(page, badge, tab):
+    prepare(
+        page,
+        f'<div role="tab" aria-selected="true">{tab}</div>' + card(f'<div role="status">{badge}</div>'),
+        GROUP + "your_content/",
+    )
+    assert inspect_page(page, payload(), own_content=True)["outcome"] == "unknown"

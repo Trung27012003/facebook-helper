@@ -1,11 +1,11 @@
 # Kiểm thử 0.6.0
 
-Ngày 17/11/2026 (giờ Việt Nam). Bộ đầy đủ: **162 passed, 96.57 giây**, [log](test-output-v0.6.0.txt). Sau bổ sung quy tắc chỉ ghi ngày gửi khi thực sự gửi/xác nhận vừa gửi, nhóm tracking và queue: **50 passed, 29.14 giây**, [log](test-tracking-v0.6.0.txt); kết quả CI trên mã phát hành và gói Windows ghi bên dưới khi hoàn tất.
+Ngày 17/11/2026 (giờ Việt Nam). Bộ đầy đủ: **162 passed, 96.57 giây**, [log](test-output-v0.6.0.txt). Sau bổ sung quy tắc chỉ ghi ngày gửi khi thực sự gửi/xác nhận vừa gửi, nhóm tracking và queue: **50 passed, 29.14 giây**, [log](test-tracking-v0.6.0.txt); 35 test tracking sau bổ sung kiểm tra nhãn mâu thuẫn cũng đạt (21.76 giây), [log](test-inspection-v0.6.0.txt); kết quả CI trên mã phát hành và gói Windows ghi bên dưới khi hoàn tất.
 
 | Phần | Kiểm tra |
 |---|---|
 | Theo dõi trạng thái | Đúng link và nội dung; chờ duyệt, đã hiển thị, bị từ chối, bị gỡ; nhãn VN/EN |
-| Không kết luận sai | Bài không thấy, sai link, nhiều bài giống nhau, bài trong modal; link mở riêng chưa có bằng chứng; Not approved/Unpublished và chữ phê duyệt trong nội dung/bình luận |
+| Không kết luận sai | Bài không thấy, sai link, nhiều bài giống nhau, bài trong modal; link mở riêng chưa có bằng chứng; Nhãn bài mâu thuẫn với tab đang chọn, Not approved/Unpublished và chữ phê duyệt trong nội dung/bình luận |
 | Chưa có link | Chỉ nhận diện trong phần nội dung của chính bạn khi khớp nội dung và thời gian; không nhận bài cũ cùng nội dung |
 | Tab kiểm tra riêng | Không thay đổi bản đang soạn; đóng tab tạm sau kiểm tra; không gửi hay xóa bài |
 | Hàng đợi kiểm tra | Nhiều bài theo thứ tự; dừng không đọc bài sau; lỗi đăng nhập giữ trạng thái và dừng đợt; không chạy song song với đăng bài |

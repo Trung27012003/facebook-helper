@@ -116,6 +116,7 @@ def inspect_page(page, payload, own_content=False):
             if normalized(line) not in body_lines and label_pattern.fullmatch(line.strip())
         )
     selected_outcome = None
+    card_outcome = classify(status_text)
     if own_content:
         selected = page.locator('[role="tab"][aria-selected="true"]')
         selected_outcome = next(
@@ -125,7 +126,12 @@ def inspect_page(page, payload, own_content=False):
         status_text += " " + " ".join(x.inner_text() for x in selected.all() if x.is_visible())
     if re.search(r"not (?:yet )?(?:approved|published)|\bunapproved\b|\bunpublished\b", status_text, re.I):
         return {"outcome": "unknown", "message": "Nhãn chưa đủ rõ để kết luận đã duyệt. " + UNKNOWN}
-    outcome = classify(status_text) or selected_outcome
+    if card_outcome and selected_outcome and card_outcome != selected_outcome:
+        return {
+            "outcome": "unknown",
+            "message": "Nhãn bài và mục đang mở chưa khớp; trang có thể đang cập nhật. " + UNKNOWN,
+        }
+    outcome = card_outcome or selected_outcome
     if outcome and (own_content or payload.get("url")):
         if outcome == "published" and len(urls) != 1:
             return {
