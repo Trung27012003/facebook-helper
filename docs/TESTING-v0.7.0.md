@@ -1,6 +1,6 @@
 # Kiểm thử 0.7.0
 
-Ngày 17/11/2026 (giờ Việt Nam). Bộ đầy đủ: **180 passed, 104.42 giây**, [log](test-output-v0.7.0.txt). Sau mở rộng smoke test gói và thông tin nhóm đang chạy, nhóm beginner/queue/packaging: **33 passed, 15.79 giây**, [log](test-ui-v0.7.0.txt). Ruff đạt. CI cuối và gói Windows được ghi bên dưới khi hoàn tất.
+Ngày 17/11/2026 (giờ Việt Nam). **180 passed, 113.15 giây** trên mã phát hành `b63402aecc0a6c1d2b25e830106be05f9e0717d4`: [Checks #44019641501](https://github.com/Trung27012003/facebook-helper/actions/runs/44019641501), [log](test-output-v0.7.0.txt). Ruff đạt. Nhóm beginner/queue/packaging chạy riêng: **33 passed, 15.79 giây**, [log](test-ui-v0.7.0.txt).
 
 | Luồng | Bằng chứng kiểm tra |
 |---|---|
@@ -23,3 +23,9 @@ Ngày 17/11/2026 (giờ Việt Nam). Bộ đầy đủ: **180 passed, 104.42 gi�
 Nháp lưu qua preferences trong SQLite hiện có, không thay schema bản 0.6. Bấm Lưu bài mới cập nhật bài có thể đăng; các lượt đã tạo vẫn giữ snapshot cũ. Nháp chưa hoàn tất có trong bản sao lưu DB; ảnh vẫn dùng thư mục ảnh đã nhập. Thay đổi ngay trước mất điện trong khoảng chờ 1,2 giây có thể chưa được lưu.
 
 Các test Facebook chạy Chromium với trang mô phỏng; chưa xác minh trên tài khoản Facebook thật. Thay đổi này tập trung giao diện và nháp, không nâng mức bảo đảm phát hiện duyệt hay định dạng Facebook. Không có hẹn giờ đăng.
+
+## Gói Windows
+
+[Build Windows #44019642407](https://github.com/Trung27012003/facebook-helper/actions/runs/44019642407) thành công từ cùng mã phát hành. Chạy `.exe` với giao diện Windows thực xác nhận Chromium, Summernote, dán/copy HTML, bốn bước, bảng năm cột, tự lưu nháp, năm tab và dừng worker sạch. CI nguồn thành công trước khi phát hành.
+
+[Tải 0.7.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.7.0). ZIP 620.975.679 byte; SHA256 công bố `7c36ce6b7962623f39a7631885d83a5dcb0eefcabcfdcb998a842eae45ecd122`. Đã đọc checksum và kiểm tra đầu tệp ZIP qua phản hồi tải HTTP 206, chữ ký ZIP đúng; không tải toàn bộ ZIP để tính lại hash ở máy này.
