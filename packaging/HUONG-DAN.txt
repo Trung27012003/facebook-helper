@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.8.1 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.8.2 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -15,6 +15,8 @@ thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome c
    Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu, chưa gửi.
 4. Theo dõi nhóm đang làm và tiến độ. Có thể Tạm dừng.
    Công cụ điền bài, đăng bản đang mở, báo đã đăng và bỏ qua nhóm nằm trong Tùy chọn khác.
+Khi hoàn tất, nút Bài đã đăng được làm nổi bật; không còn nút Bắt đầu.
+Link hiển thị trong bảng, các nút Mở bài / Sao chép link / Mở nhóm nằm cùng hàng.
 Không cần xác nhận giữa các nhóm. Bài chờ duyệt vẫn tiếp tục nhóm sau.
 Lỗi hoặc chưa rõ kết quả sẽ dừng, không tự gửi lại.
 
@@ -26,8 +28,8 @@ Nháp cũ chưa khôi phục vẫn được giữ khi bạn soạn bài khác.
 Nếu không lưu được nháp khi đóng, cửa sổ sẽ giữ mở để tránh mất nội dung.
 
 BÀI ĐÃ ĐĂNG
-Chọn đợt đăng, từ ngày–đến ngày và nhập từ khóa nếu cần, rồi bấm Tìm kiếm.
-Chọn một dòng để Mở bài hoặc Sao chép link. Xuất Excel lấy kết quả đang tìm.
+Mặc định lọc hôm nay. Chọn đợt đăng, từ ngày–đến ngày và nhập từ khóa nếu cần, rồi bấm Tìm kiếm.
+Chọn một dòng để Mở bài, Sao chép link hoặc Mở nhóm. Xuất Excel lấy kết quả đang tìm.
 Ứng dụng lưu link ngay khi nhận diện được từ lần gửi, kể cả bài chờ duyệt.
 Nếu Facebook chưa trả link, vẫn lưu Đã gửi và chuyển nhóm sau.
 Nút Xóa cho phép gỡ dòng đang chọn hoặc bài đã gửi trong kết quả lọc.

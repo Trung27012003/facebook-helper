@@ -207,12 +207,11 @@ class BeginnerMixin:
         if index < 3 and (self.busy or self.queue_active or getattr(self, "monitor_running", False)):
             raise ValueError("Tạm dừng và chờ thao tác hiện tại hoàn tất trước khi thay đổi bài hoặc nhóm.")
         self.posting_steps.setCurrentIndex(index)
-        names = ["1. Chọn bài", "2. Chọn nơi đăng", "3. Xem lại", "4. Đăng và xem kết quả"]
-        self.posting_step_label.setText(
-            "  →  ".join(f"【{name}】" if i == index else name for i, name in enumerate(names))
-        )
-        self.posting_back.setVisible(index > 0)
-        self.posting_back.setText("Tạo đợt đăng mới" if index == 3 else "Quay lại")
+        names = ["Chọn bài", "Chọn nhóm", "Xem lại", "Đăng bài"]
+        self.posting_step_label.setText(f"Bước {index + 1}/4 · {names[index]}")
+        self.posting_step_label.setVisible(index < 3)
+        self.posting_back.setVisible(0 < index < 3)
+        self.posting_back.setText("Quay lại")
         self.posting_next.setVisible(index < 3)
         self.posting_next.setText(
             [
@@ -306,9 +305,7 @@ class BeginnerMixin:
         batch = self.create_posting_batch()
         if batch is not None:
             self.set_posting_step(3)
-            self.current_action.setText(
-                "Đã lưu đợt đăng. Bấm Bắt đầu khi muốn chạy; có thể lưu thêm đợt khác trước."
-            )
+            self.current_action.setText("Đã lưu đợt đăng.")
         return batch
 
     def post_this_article(self):

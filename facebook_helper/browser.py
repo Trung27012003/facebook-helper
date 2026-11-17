@@ -278,6 +278,7 @@ class BrowserWorker(QThread):
                     result["message"] = "Đã gửi và lưu link; tiếp tục nhóm tiếp theo."
         except Exception:
             pass  # Optional status enrichment must never repeat or block a successful send.
+        captured.save_diagnostic(self.root, result)
         return result
 
 

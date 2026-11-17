@@ -7,10 +7,12 @@ shapes deliberately produce no link; the rendered post remains a fallback.
 import json
 import re
 import time
+from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from . import __version__
 from .domain import group_key, normalize_group, post_url
-from .monitoring import normalized
 
 
 def matching_submission(request, payload):
@@ -30,12 +32,11 @@ def matching_submission(request, payload):
     try:
         variables = json.loads(fields["variables"][0])
         data = variables["input"]
-        body = payload.get("body", "")
+        text = data.get("message", {}).get("text", "")
         audience = str(data["audience"]["to_id"])
         return (
-            bool(body.strip())
+            (isinstance(text, str) and (bool(text.strip()) or bool(payload.get("images"))))
             and bool(audience)
-            and normalized(data["message"]["text"]) == normalized(body)
             and audience in {group_key(payload["group_url"]), payload.get("target_group_id", "")}
         )
     except (KeyError, TypeError, ValueError, IndexError):
@@ -59,13 +60,24 @@ def response_link(text, group_url, group_id=None):
         try:
             if document.get("errors"):
                 return ""
-            created = document["data"]["story_create"]
+            data = document.get("data", {})
+            if document.get("path") in (["story_create", "story"], ["data", "story_create", "story"]):
+                created = {"story": data}
+            elif document.get("path") in (["story_create"], ["data", "story_create"]):
+                created = data
+            else:
+                created = data["story_create"]
             if created.get("errors"):
                 return ""
             story = created.get("story") or {}
             if not isinstance(story, dict):
                 continue
-            urls = [story[field] for field in ("url", "permalink_url") if story.get(field)]
+            urls = [
+                node[field]
+                for node in (created, story)
+                for field in ("url", "permalink_url")
+                if node.get(field)
+            ]
             if urls:
                 # Explicit foreign/ambiguous URLs must never fall back to a guessed ID.
                 validated = set()
@@ -104,6 +116,10 @@ class SubmissionLinks:
         self.payload = dict(payload)
         self.responses = []
         self.pending = set()
+        self.started_requests = set()
+        self.observed = 0
+        self.matched = 0
+        self.response_flags = []
         # A named group can expose its numeric identity in its canonical metadata.
         # Only trust metadata from the exact group page already validated by the worker.
         try:
@@ -124,8 +140,16 @@ class SubmissionLinks:
 
     def started(self, request):
         try:
+            fields = parse_qs(request.post_data or "")
+            name = fields.get(
+                "fb_api_req_friendly_name", [getattr(request, "headers", {}).get("x-fb-friendly-name", "")]
+            )[0]
+            if name == "ComposerStoryCreateMutation":
+                self.observed += 1
             if matching_submission(request, self.payload):
+                self.matched += 1
                 self.pending.add(request)
+                self.started_requests.add(request)
         except Exception:
             pass
 
@@ -135,7 +159,7 @@ class SubmissionLinks:
     def completed(self, request):
         self.pending.discard(request)
         try:
-            if matching_submission(request, self.payload):
+            if request in self.started_requests:
                 response = request.response()
                 if response and response.ok:
                     self.responses.append(response)
@@ -155,7 +179,10 @@ class SubmissionLinks:
 
     def wait_for_link(self, timeout_ms=3000):
         deadline = time.monotonic() + timeout_ms / 1000
-        while self.pending and time.monotonic() < deadline:
+        while time.monotonic() < deadline:
+            link = self.link()
+            if link or (self.started_requests and not self.pending):
+                return link
             try:
                 self.page.wait_for_timeout(100)
             except Exception:
@@ -166,11 +193,43 @@ class SubmissionLinks:
         candidates = set()
         for response in self.responses:
             try:
-                link = response_link(
-                    response.text(), self.payload["group_url"], self.payload.get("target_group_id")
+                raw = response.text()
+                self.response_flags.append(
+                    {
+                        "story_create": '"story_create"' in raw,
+                        "post_id": '"post_id"' in raw,
+                        "legacy_story_hideable_id": '"legacy_story_hideable_id"' in raw,
+                        "story_id": '"id"' in raw,
+                        "errors": '"errors"' in raw,
+                    }
                 )
+                link = response_link(raw, self.payload["group_url"], self.payload.get("target_group_id"))
                 if link:
                     candidates.add(link)
             except Exception:
                 pass
         return candidates.pop() if len(candidates) == 1 else ""
+
+    def save_diagnostic(self, root, result):
+        """Keep bounded local metadata only: no body, URL, token, or raw response."""
+        try:
+            path = Path(root) / "link-diagnostics.json"
+            history = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+            if not isinstance(history, list):
+                history = []
+            history.append(
+                {
+                    "version": __version__,
+                    "at": datetime.now(timezone.utc).isoformat(),
+                    "job_id": result.get("job_id"),
+                    "sent": bool(result.get("sent")),
+                    "saved_link": bool(result.get("url")),
+                    "observed_create_requests": self.observed,
+                    "matched_create_requests": self.matched,
+                    "completed_responses": len(self.responses),
+                    "response_flags": self.response_flags[-5:],
+                }
+            )
+            path.write_text(json.dumps(history[-30:], indent=2), encoding="utf-8")
+        except Exception:
+            pass

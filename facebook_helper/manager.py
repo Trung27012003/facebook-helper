@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .domain import normalize_group
 from .widgets import button, row
 
 
@@ -55,7 +56,7 @@ class PostManager(QWidget):
         self.batch.setMinimumWidth(220)
         self.batch.setMinimumContentsLength(20)
         self.batch.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
-        self.start = QDateEdit(QDate.currentDate().addDays(-30))
+        self.start = QDateEdit(QDate.currentDate())
         self.end = QDateEdit(QDate.currentDate())
         for field in (self.start, self.end):
             field.setCalendarPopup(True)
@@ -90,6 +91,7 @@ class PostManager(QWidget):
         layout.addWidget(self.table, 1)
         self.open_button = button("Mở bài", self.open_link)
         self.copy_button = button("Sao chép link", self.copy_link)
+        self.group_button = button("Mở nhóm", self.open_group)
         self.export_button = button("Xuất Excel", self.export_filtered)
         self.summary = QLabel()
         self.delete_button = button("Xóa", lambda: None)
@@ -99,13 +101,18 @@ class PostManager(QWidget):
             "Xóa kết quả đang lọc", lambda: self.delete_records(True)
         )
         self.delete_button.setMenu(menu)
-        actions = row(self.open_button, self.copy_button, self.export_button, self.delete_button)
+        actions = row(
+            self.open_button, self.copy_button, self.group_button, self.export_button, self.delete_button
+        )
         actions.addStretch()
         actions.addWidget(self.summary)
         layout.addLayout(actions)
+        self.follow_today = False
         self.search()
+        self.follow_today = True
 
     def search(self):
+        self.follow_today = False
         if self.start.date() > self.end.date():
             self.summary.setText("Từ ngày phải trước hoặc bằng Đến ngày.")
             return
@@ -118,6 +125,19 @@ class PostManager(QWidget):
         self.refresh()
 
     def refresh(self, *args):
+        if self.follow_today and self.criteria:
+            batch, start, end, query = self.criteria
+            today = QDate.currentDate()
+            if (
+                start != today
+                and self.start.date() == start
+                and self.end.date() == end
+                and self.batch.currentData() == batch
+                and not self.keyword.text().strip()
+            ):
+                self.start.setDate(today)
+                self.end.setDate(today)
+                self.criteria = (batch, today, today, query)
         selected_job = self.current_job_record()
         selected_batch = self.batch.currentData()
         self.batch.clear()
@@ -198,6 +218,7 @@ class PostManager(QWidget):
         self.copy_button.setEnabled(available)
         self.export_button.setEnabled(bool(self.filtered_jobs))
         current = self.current_job_record()
+        self.group_button.setEnabled(bool(current))
         self.delete_current_action.setEnabled(bool(current and self.can_remove(current)))
         count = sum(self.can_remove(j) for j in self.filtered_jobs)
         self.delete_filtered_action.setEnabled(bool(count))
@@ -235,6 +256,11 @@ class PostManager(QWidget):
     def open_link(self):
         if self.selected_link():
             QDesktopServices.openUrl(QUrl(self.selected_link()))
+
+    def open_group(self):
+        job = self.current_job_record()
+        if job:
+            QDesktopServices.openUrl(QUrl(normalize_group(job["group_url"])))
 
     def copy_link(self):
         if self.selected_link():

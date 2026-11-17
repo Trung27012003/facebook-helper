@@ -39,7 +39,6 @@ def test_capture_only_own_matching_submit():
     payload = {"group_url": GROUP, "body": BODY}
     assert matching_submission(request(), payload)
     for r in [
-        request(body="Khác"),
         request(group="999"),
         request(name="CommentsCreateMutation"),
         request(method="GET"),
@@ -47,7 +46,9 @@ def test_capture_only_own_matching_submit():
         request(url="https://www.facebook.com/api/other/"),
     ]:
         assert not matching_submission(r, payload)
-    assert not matching_submission(request(), {**payload, "body": ""})
+    assert matching_submission(request(body="Bản đang mở đã sửa"), payload)
+    assert matching_submission(request(), {**payload, "body": ""})
+    assert not matching_submission(request(body=""), payload)
 
 
 @pytest.mark.parametrize(
@@ -154,3 +155,46 @@ def test_link_enrichment_does_not_fail_successful_submit_when_page_closes():
     )
     capture.pending.add("inflight")
     assert capture.wait_for_link() == ""
+
+
+@pytest.mark.parametrize("path", [["story_create", "story"], ["data", "story_create", "story"]])
+def test_incremental_story_payload(path):
+    text = (
+        json.dumps({"data": {"story_create": {"story": {"id": "opaque"}}}})
+        + "\n"
+        + json.dumps({"path": path, "data": {"post_id": "777"}})
+    )
+    assert response_link(text, GROUP) == GROUP + "posts/777/"
+
+
+def test_response_to_preexisting_request_is_not_this_click():
+    from facebook_helper.postlinks import SubmissionLinks
+
+    capture = SubmissionLinks(SimpleNamespace(url="about:blank"), {"group_url": GROUP, "body": BODY})
+
+    class Request:
+        pass
+
+    r = Request()
+    r.__dict__.update(request(body="Định dạng Facebook thay đổi").__dict__)
+    r.headers = {}
+    r.response = lambda: SimpleNamespace(ok=True, text=lambda: response())
+    capture.completed(r)
+    assert capture.link() == ""
+    capture.started(r)
+    capture.completed(r)
+    assert capture.link() == LINK and capture.matched == 1
+
+
+def test_private_payload_is_not_written_to_diagnostic_and_history_is_bounded(tmp_path):
+    from facebook_helper.postlinks import SubmissionLinks
+
+    capture = SubmissionLinks(SimpleNamespace(url="about:blank"), {"group_url": GROUP, "body": BODY})
+    capture.responses = [SimpleNamespace(text=lambda: response(access_token="private-secret-token"))]
+    link = capture.link()
+    for job_id in range(35):
+        capture.save_diagnostic(tmp_path, {"job_id": job_id, "sent": True, "url": link})
+    raw = (tmp_path / "link-diagnostics.json").read_text()
+    records = json.loads(raw)
+    assert len(records) == 30 and records[-1]["saved_link"]
+    assert BODY not in raw and GROUP not in raw and LINK not in raw and "private-secret-token" not in raw

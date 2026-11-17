@@ -55,6 +55,7 @@ def test_minimal_manager_actions(window):
         "Tìm kiếm",
         "Mở bài",
         "Sao chép link",
+        "Mở nhóm",
         "Xuất Excel",
         "Xóa",
     }
@@ -152,3 +153,60 @@ def test_delete_storage_is_atomic_and_survives_reopen(store, task_data):
         assert reopened.job(sent)["status"] == "pending"
     finally:
         reopened.close()
+
+
+def test_manager_starts_today_and_excludes_yesterdays_posts(window, store, task_data):
+    from datetime import datetime, timedelta
+
+    jobs = [store.create_job(task_data[0][0], g) for g in task_data[1][:2]]
+    yesterday = (datetime.now().astimezone() - timedelta(days=1)).isoformat()
+    with store.db:
+        store.db.execute("UPDATE jobs SET created_at=? WHERE id=?", (yesterday, jobs[0]))
+    view = window.post_manager
+    view.refresh()
+    assert view.start.date() == view.end.date() == QDate.currentDate()
+    assert [j["id"] for j in view.filtered_jobs] == [jobs[1]]
+    view.start.setDate(QDate.currentDate().addDays(-1))
+    view.search()
+    view.refresh()
+    assert len(view.filtered_jobs) == 2 and view.start.date() == QDate.currentDate().addDays(-1)
+
+
+def test_default_today_rolls_over_but_manual_filter_does_not(window, monkeypatch):
+    import facebook_helper.manager as module
+
+    today = QDate.currentDate()
+
+    class ClockDate(QDate):
+        @staticmethod
+        def currentDate():
+            return today.addDays(1)
+
+    view = window.post_manager
+    monkeypatch.setattr(module, "QDate", ClockDate)
+    view.refresh()
+    assert view.start.date() == view.end.date() == today.addDays(1)
+    view.start.setDate(today.addDays(-10))
+    view.end.setDate(today)
+    view.search()
+    view.refresh()
+    assert view.start.date() == today.addDays(-10) and view.end.date() == today
+
+
+def test_open_group_uses_selected_record_even_without_post_link(window, store, task_data, monkeypatch):
+    from PySide6.QtGui import QDesktopServices
+
+    ids = [store.create_job(task_data[0][0], g) for g in task_data[1][:2]]
+    view = window.post_manager
+    view.refresh()
+    opened = []
+    monkeypatch.setattr(QDesktopServices, "openUrl", lambda url: opened.append(url.toString()))
+    view.table.setCurrentCell(1, 0)
+    selected = view.current_job_record()
+    assert view.group_button.isEnabled() and not view.open_button.isEnabled()
+    view.group_button.click()
+    assert opened == [selected["group_url"]]
+    assert selected["id"] in ids
+    view.keyword.setText("Không có kết quả")
+    view.search()
+    assert not view.group_button.isEnabled()

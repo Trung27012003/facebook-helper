@@ -1,6 +1,6 @@
 """Audience selection and sequential posting, with one browser operation at a time."""
 
-from PySide6.QtCore import QSize, Qt, QTimer
+from PySide6.QtCore import QDate, QSize, Qt, QTimer
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .manager import local_date
 from .widgets import button, hint, row
 
 SENT = {"submitted", "pending", "published", "rejected", "removed", "skipped"}
@@ -36,7 +37,6 @@ class PostingMixin:
         choose, audience, review, run = self.init_posting_steps(layout)
         choose.addLayout(
             row(
-                hint("Chọn bài bạn đã lưu, rồi bấm Tiếp tục."),
                 self.browser_button("Đăng nhập Facebook", "login"),
                 button("Mở danh sách đã tạo", lambda: self.set_posting_step(3)),
             )
@@ -73,11 +73,6 @@ class PostingMixin:
         self.audience_list = QListWidget()
         self.audience_list.itemChanged.connect(self.update_audience_count)
         audience.addWidget(self.audience_list, 1)
-        audience.addWidget(
-            hint(
-                "Tích các nhóm muốn đăng. Chọn theo nhãn để chọn nhanh nhiều nhóm; có thể bỏ tích nhóm không cần."
-            )
-        )
         self.select_all_groups = button("Chọn tất cả", lambda: self.check_audience(True))
         self.clear_groups = button("Bỏ chọn tất cả", lambda: self.check_audience(False))
         self.audience_count = hint("")
@@ -94,11 +89,6 @@ class PostingMixin:
         self.review_images.setIconSize(QSize(55, 55))
         self.review_images.setMaximumHeight(85)
         review.addWidget(self.review_images)
-        review.addWidget(
-            hint(
-                "Kiểm tra nội dung, ảnh và các nhóm ở trên. Facebook có thể hiển thị định dạng khác bản xem trước."
-            )
-        )
         self.auto_send = QCheckBox("Tự bấm Đăng và chuyển sang nhóm tiếp theo")
         self.auto_send.setChecked(True)
         self.group_delay = QSpinBox()
@@ -109,13 +99,26 @@ class PostingMixin:
         review.addWidget(self.batch_name)
         review.addWidget(button("Lưu đợt đăng để chạy sau", lambda: self.guard(self.save_reviewed_batch)))
         self.batch_filter = QComboBox()
+        self.batch_filter.setMinimumContentsLength(20)
+        self.batch_filter.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
         self.batch_filter.addItem("Tất cả lượt đăng", None)
         self.batch_filter.currentIndexChanged.connect(self.batch_changed)
-        run.addLayout(row(QLabel("Đợt đăng đang xem"), self.batch_filter))
+        self.new_batch_button = button("Đợt đăng mới", lambda: self.guard(lambda: self.set_posting_step(0)))
+        self.results_button = button("Bài đã đăng", self.show_batch_results)
+        batch_row = row(QLabel("Đợt đăng"), self.batch_filter, self.new_batch_button, self.results_button)
+        batch_row.setStretch(1, 1)
+        run.addLayout(batch_row)
+        self.run_state = QLabel("Chưa bắt đầu")
         self.queue_progress = hint("Chọn một đợt đã tạo, hoặc Quay lại để tạo đợt đăng mới.")
-        run.addWidget(self.queue_progress)
+        progress_row = row(self.run_state, self.queue_progress)
+        progress_row.addStretch()
+        run.addLayout(progress_row)
         self.queue_progress_bar = QProgressBar()
         self.queue_progress_bar.setRange(0, 1)
+        self.queue_progress_bar.setTextVisible(False)
+        self.queue_progress_bar.setFixedHeight(8)
         run.addWidget(self.queue_progress_bar)
         self.current_action = hint("Sẵn sàng. Ứng dụng chỉ đăng sau khi bạn bấm Bắt đầu.")
         run.addWidget(self.current_action)
@@ -142,19 +145,22 @@ class PostingMixin:
         self.begin_posting_button = button(
             "Bắt đầu tự đăng", lambda: self.guard(self.start_posting_queue), True
         )
-        self.posting_mode_hint = hint("")
-        run.addWidget(self.posting_mode_hint)
+        self.mode_badge = QLabel("")
         self.auto_send.toggled.connect(self.update_posting_mode)
         self.update_posting_mode()
         self.browser_buttons.append(self.begin_posting_button)
-        run.addLayout(row(self.begin_posting_button, button("Tạm dừng", self.pause_posting_queue)))
+        self.pause_posting_button = button("Tạm dừng", self.pause_posting_queue)
+        self.pause_posting_button.setStyleSheet("background:#fef3c7;color:#92400e;font-weight:600;")
         self.manual_posting_tools = QWidget()
         manual = QVBoxLayout(self.manual_posting_tools)
-        toggle = button("Tùy chọn khác: xử lý bằng tay", lambda: None)
+        toggle = button("Thao tác khác", lambda: None)
         self.manual_tools_toggle = toggle
         toggle.setCheckable(True)
         toggle.toggled.connect(self.manual_posting_tools.setVisible)
-        run.addWidget(toggle)
+        actions = row(self.begin_posting_button, self.pause_posting_button, self.mode_badge)
+        actions.addStretch()
+        actions.addWidget(toggle)
+        run.addLayout(actions)
         run.addWidget(self.manual_posting_tools)
         following = button("Tôi đã đăng · sang nhóm sau", lambda: self.guard(self.complete_queue_job))
         skip = button("Bỏ qua nhóm này", lambda: self.guard(self.skip_queue_job))
@@ -195,12 +201,30 @@ class PostingMixin:
             self.manual_tools_toggle.setChecked(not automatic)
         if hasattr(self, "posting_steps") and self.posting_steps.currentIndex() == 2:
             self.posting_next.setText("Bắt đầu đăng" if automatic else "Chuẩn bị bài")
-        self.begin_posting_button.setText("Bắt đầu tự đăng" if automatic else "Chỉ chuẩn bị bài")
-        self.posting_mode_hint.setText(
-            "TỰ ĐĂNG: mở nhóm → dán bài → tải ảnh → bấm Đăng. Tự cập nhật kết quả và chuyển nhóm tiếp theo."
-            if automatic
-            else "CHỈ CHUẨN BỊ: ứng dụng điền bài; bạn tự bấm Đăng trên Facebook."
-        )
+        self.mode_badge.setText("Tự đăng" if automatic else "Chỉ chuẩn bị")
+        if hasattr(self, "history"):
+            self.update_queue_progress()
+
+    def show_batch_results(self):
+        view = self.post_manager
+        batch_id = self.batch_filter.currentData()
+        view.refresh()
+        view.batch.setCurrentIndex(max(0, view.batch.findData(batch_id)))
+        view.keyword.clear()
+        dates = [
+            local_date(j["activity_at"]).date()
+            for j in self.store.posting_register()
+            if j["batch_id"] == batch_id
+        ]
+        if dates:
+            first, last = min(dates), max(dates)
+            view.start.setDate(QDate(first.year, first.month, first.day))
+            view.end.setDate(QDate(last.year, last.month, last.day))
+        else:
+            view.start.setDate(QDate.currentDate())
+            view.end.setDate(QDate.currentDate())
+        view.search()
+        self.tabs.setCurrentIndex(3)
 
     def refresh_audience(self, *args):
         if not hasattr(self, "audience_list"):
@@ -328,30 +352,65 @@ class PostingMixin:
     def update_queue_progress(self):
         batch_id = self.batch_filter.currentData()
         jobs = self.store.batch_jobs(batch_id) if batch_id is not None else []
-        if not jobs:
-            self.queue_progress_bar.setRange(0, 1)
-            self.queue_progress_bar.setValue(0)
-            self.queue_progress.setText(
-                "Chọn một danh sách để bắt đầu. Bạn có thể lưu nhiều danh sách cho nhiều bài khác nhau."
-            )
-            return
-        done = sum(
-            job["status"] in {"submitted", "pending", "published", "rejected", "removed", "skipped"}
+        done = sum(job["status"] in SENT for job in jobs)
+        errors = sum(
+            job["status"] in {"error", "uncertain"}
+            or (job["status"] == "sending" and not self.busy and not self.queue_active)
             for job in jobs
         )
-        self.queue_progress_bar.setRange(0, len(jobs))
+        complete = bool(jobs) and done == len(jobs)
+        blocked = any(job["status"] in {"uncertain", "sending"} for job in jobs)
+        self.queue_progress_bar.setRange(0, max(1, len(jobs)))
         self.queue_progress_bar.setValue(done)
-        errors = sum(job["status"] in {"error", "uncertain"} for job in jobs)
-        suffix = (
-            " · Đang thực hiện"
-            if self.queue_active
-            else " · Đang tạm dừng"
-            if done < len(jobs)
-            else " · Đã xử lý hết"
-        )
         self.queue_progress.setText(
-            f"Tiến độ: {done}/{len(jobs)} nhóm đã xử lý · {errors} nhóm cần kiểm tra" + suffix
+            f"{done}/{len(jobs)} nhóm" + (f" · {errors} cần xem lại" if errors else "")
         )
+        state = (
+            "Đang đăng"
+            if self.queue_active
+            else "Hoàn tất"
+            if complete
+            else "Cần xem lại"
+            if errors
+            else "Chưa bắt đầu"
+            if not done
+            else "Tạm dừng"
+        )
+        color, background = (
+            ("#166534", "#dcfce7")
+            if complete
+            else ("#1d4ed8", "#dbeafe")
+            if self.queue_active
+            else ("#92400e", "#fef3c7")
+            if errors
+            else ("#475569", "#e8edf5")
+        )
+        self.run_state.setText(state if jobs else "Chưa có đợt đăng")
+        self.run_state.setStyleSheet(
+            f"color:{color};background:{background};font-weight:600;padding:6px 10px;border-radius:6px;"
+        )
+        self.begin_posting_button.setVisible(bool(jobs) and not complete and not self.queue_active)
+        self.begin_posting_button.setEnabled(
+            bool(jobs) and not complete and not self.busy and not blocked and not self.queue_active
+        )
+        self.begin_posting_button.setText(
+            ("Tiếp tục đăng" if done else "Bắt đầu đăng") if self.auto_send.isChecked() else "Chuẩn bị bài"
+        )
+        self.pause_posting_button.setVisible(self.queue_active)
+        self.new_batch_button.setEnabled(not self.busy and not self.queue_active)
+        self.results_button.setEnabled(bool(jobs))
+        self.current_action.setVisible(bool(self.busy or self.queue_active))
+        self.mode_badge.setVisible(bool(jobs) and not complete)
+        self.manual_tools_toggle.setVisible(bool(jobs) and not complete)
+        if complete or not jobs:
+            self.manual_tools_toggle.setChecked(False)
+        elif not self.auto_send.isChecked():
+            self.manual_tools_toggle.setChecked(True)
+        for widget, primary in ((self.results_button, complete), (self.new_batch_button, not jobs)):
+            if widget.property("primary") != primary:
+                widget.setProperty("primary", primary)
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
 
     def next_queue_job(self, batch_id):
         for job in self.store.batch_jobs(batch_id):
@@ -437,12 +496,8 @@ class PostingMixin:
         if job is None:
             self.pause_posting_queue(announce=False)
             self.update_queue_progress()
-            self.current_action.setText(
-                "Đã hoàn tất đợt đăng. Xem kết quả từng nhóm bên dưới hoặc vào Bài đã đăng để kiểm tra duyệt."
-            )
-            self.statusBar().showMessage(
-                "Đã xử lý hết danh sách. Hãy kiểm tra bài, lấy link và lưu minh chứng.", 20000
-            )
+            self.current_action.setText("Đã hoàn tất đợt đăng.")
+            self.statusBar().showMessage("Đã hoàn tất đợt đăng.", 20000)
             return
         self.dispatch_queue_job(job)
 

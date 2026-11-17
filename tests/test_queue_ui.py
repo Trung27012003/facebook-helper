@@ -207,10 +207,10 @@ def test_pause_during_publish_does_not_advance_when_result_arrives(window, store
 
 def test_auto_mode_is_default_and_button_explains_its_action(window):
     assert window.auto_send.isChecked()
-    assert window.begin_posting_button.text() == "Bắt đầu tự đăng"
-    assert "TỰ ĐĂNG" in window.posting_mode_hint.text()
+    assert window.begin_posting_button.text() == "Bắt đầu đăng"
+    assert window.mode_badge.text() == "Tự đăng"
     window.auto_send.setChecked(False)
-    assert window.begin_posting_button.text() == "Chỉ chuẩn bị bài"
+    assert window.begin_posting_button.text() == "Chuẩn bị bài"
 
 
 def test_publish_open_draft_requires_confirmation_and_uses_recovery_action(
@@ -308,3 +308,58 @@ def test_verified_link_kept_even_when_send_confirmation_uncertain(window, store,
     record = store.job(jobs[0]["id"])
     assert record["status"] == "uncertain" and record["url"] == link
     assert not record["sent_at"] and not window.queue_active and len(commands) == 1
+
+
+def test_finished_batch_highlights_results_hides_start_and_stale_instructions(window, store, task_data):
+    batch, jobs = batch_for_window(window, store, task_data)
+    window.set_posting_step(3)
+    for job in jobs:
+        store.update_job(job["id"], source="browser", status="pending", url=job["group_url"] + "posts/777/")
+    window.current_action.setText("Hãy mở ô tạo bài trên Facebook, rồi bấm Điền bài.")
+    window.refresh_jobs(jobs[0]["id"])
+    window.update_queue_progress()
+    assert window.run_state.text() == "Hoàn tất"
+    assert window.queue_progress.text() == "3/3 nhóm"
+    assert window.begin_posting_button.isHidden() and not window.begin_posting_button.isEnabled()
+    assert window.pause_posting_button.isHidden() and window.current_action.isHidden()
+    assert window.results_button.property("primary")
+    assert not window.history.isColumnHidden(5) and window.history.isColumnHidden(4)
+    assert window.history.item(0, 3).text() == "Đã gửi"
+    assert window.result_copy_button.isEnabled()
+    window.post_manager.keyword.setText("Từ khóa của lần tìm trước")
+    window.results_button.click()
+    assert len(window.post_manager.filtered_jobs) == 3
+    assert window.tabs.currentIndex() == 3 and window.post_manager.criteria[0] == batch
+
+
+def test_posting_controls_follow_running_and_paused_state(window, store, task_data):
+    _, jobs = batch_for_window(window, store, task_data)
+    window.set_posting_step(3)
+    window.update_queue_progress()
+    assert window.begin_posting_button.isEnabled() and not window.begin_posting_button.isHidden()
+    assert not window.begin_posting_button.text().startswith("Tiếp tục")
+    store.update_job(jobs[0]["id"], status="submitted")
+    window.queue_active = True
+    window.busy = True
+    window.update_queue_progress()
+    assert window.begin_posting_button.isHidden() and not window.pause_posting_button.isHidden()
+    assert not window.new_batch_button.isEnabled()
+    window.busy = False
+    window.pause_posting_queue()
+    assert window.begin_posting_button.text() == "Tiếp tục đăng" and window.begin_posting_button.isEnabled()
+    assert window.pause_posting_button.isHidden()
+
+
+def test_open_group_from_posting_results_does_not_interrupt_worker(window, store, task_data, monkeypatch):
+    from PySide6.QtGui import QDesktopServices
+
+    _, jobs = batch_for_window(window, store, task_data)
+    window.refresh_jobs(jobs[1]["id"])
+    opened = []
+    monkeypatch.setattr(QDesktopServices, "openUrl", lambda url: opened.append(url.toString()))
+    monkeypatch.setattr(
+        window.browser, "submit", lambda *args: pytest.fail("Do not navigate the posting worker")
+    )
+    assert window.result_group_button.isEnabled() and not window.result_copy_button.isEnabled()
+    window.result_group_button.click()
+    assert opened == [jobs[1]["group_url"]]

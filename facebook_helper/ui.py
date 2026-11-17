@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtGui import QColor, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -32,9 +32,9 @@ from PySide6.QtWidgets import (
 from . import __version__
 from .beginner import BeginnerMixin
 from .browser import BrowserWorker
-from .domain import STATUSES, post_url
+from .domain import STATUSES, normalize_group, post_url
 from .editor import SummernoteEditor
-from .manager import PostManager
+from .manager import PostManager, send_label
 from .posting import SENT, PostingMixin
 from .templates import RecruitmentDialog
 from .tracking import TrackingMixin
@@ -558,7 +558,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.build_audience(layout)
         layout = self.run_layout
         self.history_search = QLineEdit()
-        self.history_search.setPlaceholderText("Lọc lịch sử theo bài, nhóm, trạng thái…")
+        self.history_search.setPlaceholderText("Tìm bài hoặc nhóm trong đợt…")
         self.history_search.textChanged.connect(self.filter_jobs)
         layout.addWidget(self.history_search)
         self.history = QTableWidget(0, 6)
@@ -572,18 +572,25 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.history.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.history.itemSelectionChanged.connect(self.load_job)
         self.history.setColumnHidden(0, True)
-        self.history.setColumnHidden(5, True)
+        self.history.setColumnHidden(4, True)
         self.history.setMinimumHeight(120)
+        self.history.verticalHeader().hide()
         layout.addWidget(self.history, 1)
         self.job_detail = hint("Chọn một lượt đăng để thao tác.")
-        layout.addWidget(self.job_detail)
         self.extra_tools = QWidget()
-        toggle = button("Link bài, trạng thái & ảnh minh chứng ▾", lambda: None)
+        toggle = button("Chi tiết", lambda: None)
         toggle.setCheckable(True)
         toggle.toggled.connect(self.extra_tools.setVisible)
-        layout.addWidget(toggle)
+        self.result_open_button = button("Mở bài", self.open_selected_post)
+        self.result_copy_button = button("Sao chép link", self.copy_link)
+        self.result_group_button = button("Mở nhóm", self.open_selected_group)
+        result_actions = row(self.result_open_button, self.result_copy_button, self.result_group_button)
+        result_actions.addStretch()
+        result_actions.addWidget(toggle)
+        layout.addLayout(result_actions)
         layout.addWidget(self.extra_tools)
         layout = QVBoxLayout(self.extra_tools)
+        layout.addWidget(self.job_detail)
         self.extra_tools.hide()
         self.link = QLineEdit()
         self.link.setPlaceholderText("Dán link bài cụ thể: https://www.facebook.com/groups/…/posts/…/")
@@ -620,12 +627,6 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                 self.browser_button("Chụp màn hình", "screenshot"),
                 button("Xem ảnh minh chứng", self.open_evidence),
                 button("Xuất Excel", self.export_excel),
-            )
-        )
-        layout.addWidget(
-            hint(
-                "Nếu Facebook thay đổi giao diện, dùng Sao chép bài và Mở thư mục ảnh để đăng thủ công. "
-                "Ảnh minh chứng chỉ chụp vùng trình duyệt đang hiển thị; hãy kiểm tra trước khi chụp."
             )
         )
         scroll = QScrollArea()
@@ -696,12 +697,23 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                     job["id"],
                     job["title"],
                     job["group_name"],
-                    STATUSES[job["status"]],
+                    send_label(job),
                     local_time(job["updated_at"]),
                     job["url"],
                 )
             ):
-                item = QTableWidgetItem(str(value))
+                item = QTableWidgetItem(str(value) if col != 5 or value else "Chưa có link")
+                item.setToolTip(item.text())
+                if col == 3:
+                    item.setForeground(
+                        QColor(
+                            "#166534"
+                            if job["status"] in SENT
+                            else "#92400e"
+                            if job["status"] in {"error", "uncertain"}
+                            else "#334155"
+                        )
+                    )
                 if col == 0:
                     item.setData(Qt.ItemDataRole.UserRole, job["batch_id"])
                 self.history.setItem(index, col, item)
@@ -722,7 +734,10 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             self.history.setCurrentCell(-1, -1)
             self.link.clear()
             self.job_note.clear()
-            self.job_detail.setText("Chọn một lượt đăng để thao tác.")
+            self.job_detail.clear()
+            self.result_open_button.setEnabled(False)
+            self.result_copy_button.setEnabled(False)
+            self.result_group_button.setEnabled(False)
 
     def filter_jobs(self):
         query = self.history_search.text().casefold()
@@ -733,6 +748,14 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                 batch_id is None or self.history.item(index, 0).data(Qt.ItemDataRole.UserRole) == batch_id
             )
             self.history.setRowHidden(index, not matches_batch or query not in text.casefold())
+        if hasattr(self, "result_group_button"):
+            try:
+                current = self.current_job()
+            except ValueError:
+                current = None
+            self.result_group_button.setEnabled(bool(current))
+            self.result_open_button.setEnabled(bool(current and current["url"]))
+            self.result_copy_button.setEnabled(bool(current and current["url"]))
 
     def load_job(self):
         try:
@@ -743,14 +766,20 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.status_choice.setCurrentIndex(self.status_choice.findData(job["status"]))
         self.job_note.setText(job["note"])
         self.job_detail.setText(
-            f"#{job['id']} · {job['title']} → {job['group_name']} · "
-            f"{len(json.loads(job['images']))} ảnh · Nội dung được chốt lúc tạo lượt đăng"
+            f"{job['title']} · {job['group_name']} · {len(json.loads(job['images']))} ảnh"
         )
-        if job["status"] == "prepared":
-            self.job_detail.setText(
-                self.job_detail.text()
-                + "\nBài đã sẵn sàng: chọn Đăng bản đang mở để ứng dụng gửi, hoặc tự bấm Đăng trên Facebook; sau đó cập nhật kết quả."
-            )
+        self.result_open_button.setEnabled(bool(job["url"]))
+        self.result_copy_button.setEnabled(bool(job["url"]))
+        self.result_group_button.setEnabled(True)
+
+    def open_selected_group(self):
+        job = self.current_job()
+        QDesktopServices.openUrl(QUrl(normalize_group(job["group_url"])))
+
+    def open_selected_post(self):
+        job = self.current_job()
+        if job["url"]:
+            QDesktopServices.openUrl(QUrl(job["url"]))
 
     def save_link(self):
         if self.queue_active and self.queue_auto:
@@ -876,6 +905,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.busy = True
         for widget in self.browser_buttons:
             widget.setEnabled(False)
+        self.update_queue_progress()
         self.browser.submit(action, payload)
 
     def browser_progress(self, message):
@@ -893,6 +923,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.busy = False
         for widget in self.browser_buttons:
             widget.setEnabled(True)
+        self.update_queue_progress()
 
     def browser_done(self, action, result):
         self.finish_browser()

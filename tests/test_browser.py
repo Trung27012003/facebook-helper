@@ -657,9 +657,10 @@ def test_pending_submission_saves_rendered_link_without_approval(page, store):
     assert result["url"].endswith("/posts/777/")
 
 
+@pytest.mark.parametrize("edited", [False, True])
 @pytest.mark.parametrize("field", ["url", "post_id", "legacy_story_hideable_id"])
 @pytest.mark.parametrize("named", [False, True])
-def test_pending_submission_captures_own_response_and_removes_listener(page, store, field, named):
+def test_pending_submission_captures_own_response_and_removes_listener(page, store, field, named, edited):
     import json
 
     group = "https://www.facebook.com/groups/jobs/" if named else "https://www.facebook.com/groups/123/"
@@ -695,13 +696,23 @@ def test_pending_submission_captures_own_response_and_removes_listener(page, sto
         else:
             r.fulfill(content_type="text/html; charset=utf-8", body=html)
 
+    if edited and not named and field == "post_id":
+        html = html.replace("fetch('/api/graphql/',", "setTimeout(() => fetch('/api/graphql/',").replace(
+            "})});", "})}), 1800);"
+        )
     if named:
         html = '<link rel="canonical" href="https://www.facebook.com/groups/123/">' + html
     page.route("https://www.facebook.com/**", route)
     worker = BrowserWorker(store.root)
     worker.page = page
     result = worker.execute(
-        "publish", {"group_url": group, "body": "Tuyển mới", "images": [], "url": group + "posts/111/"}
+        "publish",
+        {
+            "group_url": group,
+            "body": "Bản đang mở đã thay đổi định dạng" if edited else "Tuyển mới",
+            "images": [],
+            "url": group + "posts/111/",
+        },
     )
     assert result["sent"] and result["status"] == "pending" and result["link_captured"]
     assert result["url"] == group + "posts/777/"

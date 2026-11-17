@@ -3,7 +3,7 @@
 import json
 import traceback
 
-from PySide6.QtCore import QCoreApplication, QEvent, QMimeData, QTimer
+from PySide6.QtCore import QCoreApplication, QDate, QEvent, QMimeData, QTimer
 
 from .ui import MainWindow
 
@@ -39,6 +39,10 @@ def run_smoke(app, store):
         result["rich_paste_and_copy"] = True
         assert window.posting_steps.count() == 4
         assert window.post_manager.table.columnCount() == 6
+        assert window.post_manager.start.date() == window.post_manager.end.date() == QDate.currentDate()
+        assert not window.history.isColumnHidden(5)
+        assert window.result_group_button.text() == window.post_manager.group_button.text() == "Mở nhóm"
+        result.update(today_filter=True, posting_link_column=True, group_actions=True)
         window.mark_dirty()
         assert window.autosave_draft()
         assert window.stored_drafts() and not store.posts()

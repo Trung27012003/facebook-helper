@@ -1,9 +1,11 @@
-**Facebook Helper 0.8.1 — xóa bản ghi và lấy link bài chờ duyệt**
+**Facebook Helper 0.8.2 — lọc hôm nay và gọn màn hình đăng bài**
 
-- Nút Xóa trên Bài đã đăng: xóa dòng đang chọn hoặc các bài đã gửi trong kết quả lọc, có xác nhận số lượng. Không xóa bài Facebook, bài soạn hoặc nhóm. Giữ biên nhận nội bộ chống gửi trùng.
-- Nhận link cả khi phản hồi gửi chỉ có mã bài hợp lệ, không có URL; hỗ trợ nhóm có tên khi xác minh được mã nhóm qua canonical. Không cần chờ duyệt.
-- Chờ thêm tối đa 3 giây cho phản hồi gửi đang tải, không bấm Đăng lại. Mã người dùng, ID không rõ loại và phản hồi sai nhóm bị bỏ qua.
+- Bài đã đăng mặc định lọc hôm nay. Giữ khoảng ngày do bạn tự chọn.
+- Bố trí lại Đăng bài: chỉ làm nổi bật thao tác phù hợp; hoàn tất thì ẩn Bắt đầu và làm nổi bật Bài đã đăng. Bỏ hướng dẫn thừa, thanh bước và nút tạo đợt lớn ở cuối màn hình.
+- Hiện link trong bảng. Mở bài / Sao chép link / Mở nhóm nằm cùng hàng ở cả hai màn hình. Mở nhóm vẫn dùng được khi chưa có link bài và không làm gián đoạn cửa sổ đang tự đăng.
+- Bỏ yêu cầu nội dung gửi đi phải khớp bản lưu khi lấy link, vì Facebook có thể đổi biểu diễn định dạng hoặc bạn sửa bản đang mở. Chỉ nhận phản hồi đúng thao tác Đăng và nhóm; không lấy phản hồi của request cũ.
+- Chờ cả request bắt đầu muộn, đọc phản hồi story_create bổ sung. Thêm chẩn đoán cục bộ giới hạn 30 lượt, không lưu nội dung/link/cookie/token hoặc phản hồi thô.
 
-Link chờ duyệt có thể chưa mở được. Nếu Facebook không cung cấp mã/link hợp lệ, vẫn lưu Đã gửi và chuyển nhóm; không bảo đảm lấy link cho mọi bài. Kiểm thử dùng mô phỏng, chưa kiểm chứng tài khoản Facebook thật.
+Chưa có phiên Facebook thật để xác minh lỗi tài khoản người dùng. Nếu Facebook không cung cấp URL/mã bài được nhận diện, chưa lấy được link. Link chờ duyệt có thể chưa mở được.
 
-Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy FacebookHelper/FacebookHelper.exe. Không cần cài Python. Dữ liệu cũ được giữ, schema nâng lên 6.
+Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi mở FacebookHelper/FacebookHelper.exe. Không cần cài Python; dữ liệu cũ được giữ (schema 6).

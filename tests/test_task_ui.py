@@ -138,7 +138,13 @@ def test_busy_browser_blocks_second_task_and_buttons_reenable_after_failure(
             window.run_browser("open_group")
         assert len(commands) == 1 and commands[0][1]["job_id"] == first
         window.browser_failed("open_group", "Lỗi mạng mô phỏng", commands[0][1])
-        assert not window.busy and all(widget.isEnabled() for widget in window.browser_buttons)
+        assert not window.busy
+        assert all(
+            widget.isEnabled()
+            for widget in window.browser_buttons
+            if widget is not window.begin_posting_button
+        )
+        assert not window.begin_posting_button.isEnabled()  # No batch selected for standalone tasks.
         window.run_browser("open_group")
         assert commands[1][1]["job_id"] == second
         window.finish_browser()
