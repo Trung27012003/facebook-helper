@@ -1,42 +1,43 @@
-FACEBOOK HELPER 0.6.0 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.7.0 — WINDOWS 10/11 64-BIT
 
-Đóng bản cũ, giải nén toàn bộ ZIP rồi mở FacebookHelper.exe.
-Giữ _internal đi kèm. Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
+Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
+Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
+Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
 
-TỰ ĐĂNG TOÀN BỘ DANH SÁCH
-Soạn/lưu bài, thêm nhóm và nhãn. Chọn bài + nhóm/nhãn, tạo danh sách.
-Bật Tự đăng, chọn thời gian giữa nhóm, bấm Bắt đầu và xác nhận một lần.
-Hệ thống tự gửi, tự cập nhật kết quả và chuyển nhóm, không cần xác nhận từng bài.
-Có thể Tạm dừng/Tiếp tục/Bỏ qua; thanh tiến độ hiển thị số nhóm đã xử lý.
-Bài chờ duyệt vẫn tiếp tục nhóm sau. Lỗi hoặc chưa rõ đã gửi chưa thì dừng,
-không tự gửi lại để tránh trùng.
+LẦN ĐẦU
+Bấm Hướng dẫn nhanh nếu cần: đăng nhập trực tiếp trong cửa sổ Facebook,
+thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome cá nhân.
 
-QUẢN LÝ BÀI ĐĂNG
-Tab 4 tìm từ khóa trong bài/nhóm/link/ghi chú, lọc khoảng ngày tạo lượt và trạng thái.
-Khoảng ngày bao gồm cả ngày đầu và ngày cuối, theo giờ trên máy.
-Có thể mở bài và copy link. Trạng thái và bảng tự cập nhật khi đăng.
-Link tự lưu nếu nhận diện được bài mới; nếu chưa xác định được thì để trống.
-Đã gửi không đồng nghĩa đã hiển thị. Quản trị viên nhóm vẫn quyết định duyệt bài.
+ĐĂNG BÀI QUA BỐN BƯỚC
+1. Trong Soạn bài, bấm Đăng bài này. Hoặc vào Đăng bài và chọn bài đã lưu.
+2. Chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn, rồi Tiếp tục.
+3. Xem lại nội dung, ảnh và nhóm. Chọn tự bấm Đăng hoặc chỉ chuẩn bị.
+   Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu, chưa gửi.
+4. Theo dõi nhóm đang làm và tiến độ. Có thể Tạm dừng.
+   Công cụ điền bài, đăng bản đang mở, báo đã đăng và bỏ qua nhóm nằm trong Tùy chọn khác.
+Không cần xác nhận giữa các nhóm. Bài chờ duyệt vẫn tiếp tục nhóm sau.
+Lỗi hoặc chưa rõ kết quả sẽ dừng, không tự gửi lại.
 
-Có thể dùng Đăng bản đang mở để gửi bản nháp Facebook đã chuẩn bị;
-không dán hoặc thêm ảnh lại. Bỏ chọn Tự đăng nếu chỉ muốn chuẩn bị bài.
-Summernote và dữ liệu cũ được giữ. Không còn kiểm tra số ký tự sau dán.
+NHÁP TỰ LƯU
+Bản đang soạn tự lưu riêng sau khoảng 1,2 giây ngừng nhập và trước khi đóng.
+Bấm Lưu bài để đưa vào danh sách bài có thể đăng. Nháp chưa hoàn tất không tự đăng.
+Mở lại → Soạn bài → Khôi phục bản nháp. Có thể chọn nháp theo tên/thời gian.
+Nháp cũ chưa khôi phục vẫn được giữ khi bạn soạn bài khác.
+Nếu không lưu được nháp khi đóng, cửa sổ sẽ giữ mở để tránh mất nội dung.
+
+BÀI ĐÃ ĐĂNG
+Tích ô trước bài, không cần Ctrl/Shift. Có nút chọn tất cả kết quả đang hiện.
+Lọc nhanh Hôm nay, 7 ngày qua, Chờ duyệt hoặc Cần xử lý.
+Lọc thêm và cài đặt kiểm tra chứa lọc nhóm, nhãn, bài, trạng thái và khoảng ngày.
+Bấm vào dòng rồi Xem chi tiết để xem link, ghi chú, thời gian kiểm tra và lịch sử.
+Kiểm tra bài đã chọn để cập nhật trạng thái; có thể bật kiểm tra định kỳ.
+Mặc định kiểm tra định kỳ tắt, khi bật là 30 phút/lần và chỉ chạy lúc không đăng.
+Thiếu bằng chứng giữ Chưa xác minh được. Link mở được chưa chứng minh đã duyệt.
+Có thể xuất Excel theo bài đã tích hoặc toàn bộ kết quả đang lọc.
+
+Dùng Tiếp tục danh sách còn lại để mở công việc chưa xong.
+Bài đang gửi lúc ứng dụng tắt thành Chưa rõ kết quả; kiểm tra trước khi gửi lại.
+Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cảnh báo trước khi tạo lượt mới.
 
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
-
-MỚI TRONG 0.6
-Tab Quản lý bài đăng: lọc ngày gửi thực tế, nhóm, nhãn, bài và trạng thái.
-Giữ Ctrl/Shift để chọn nhiều bài; Kiểm tra bài đã chọn hoặc Kiểm tra các bài đang lọc.
-Tự kiểm tra mặc định tắt. Khi bật, chỉ chạy nếu ứng dụng mở và không đăng bài.
-Mặc định 30 phút/lần, tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả mỗi đợt.
-Xem Kết quả kiểm tra, thời gian kiểm tra và Lịch sử trạng thái để biết bằng chứng.
-Chưa xác minh được không đồng nghĩa bị xóa; chỉ mở được link không có nghĩa đã duyệt.
-Bài đã hiển thị có thể kiểm tra lại bằng tay. Dừng kiểm tra hủy các bài còn lại;
-bài đang đọc sẽ hoàn tất. Xuất Excel được theo bài đã chọn hoặc bộ lọc.
-
-Cảnh báo trùng dựa trên nội dung và ảnh, kể cả đổi tên bài.
-Muốn đăng lại có chủ đích hãy tạo lượt mới và xác nhận cảnh báo.
-Nếu ứng dụng tắt khi đang gửi, lượt đó thành Chưa rõ kết quả khi mở lại.
-Dùng Tiếp tục danh sách còn lại; kiểm tra các lượt chưa rõ trước khi gửi tiếp.
-Không tự đăng lại khi khởi động. Ngày gửi cũ chưa biết sẽ để trống.

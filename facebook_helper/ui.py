@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
+from .beginner import BeginnerMixin
 from .browser import BrowserWorker
 from .domain import STATUSES, post_url
 from .editor import SummernoteEditor
@@ -40,7 +41,7 @@ from .tracking import TrackingMixin
 from .widgets import button, hint, row
 
 STYLE = """
-QMainWindow, QWidget { background: #f6f8fc; color: #17243a; font-size: 13px; }
+QMainWindow, QWidget { background: #f6f8fc; color: #17243a; font-size: 14px; }
 QLineEdit, QTextEdit, QListWidget, QTableWidget, QComboBox, QSpinBox {
  background: white; border: 1px solid #d9e1ee; border-radius: 6px; padding: 6px;
  selection-background-color: #dbeafe; selection-color: #17243a;
@@ -63,7 +64,7 @@ def local_time(value):
     return datetime.fromisoformat(value).astimezone().strftime("%d/%m/%Y %H:%M")
 
 
-class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
+class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
     def __init__(self, store):
         super().__init__()
         self.store = store
@@ -95,15 +96,17 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             row(
                 hint("Soạn bài → Chọn nhóm → Xem lại → Chạy · Tiến độ luôn được lưu trên máy"),
                 button("Tiếp tục danh sách còn lại", lambda: self.guard(self.resume_saved_queue)),
+                button("Hướng dẫn nhanh", lambda: self.quick_start.show()),
             )
         )
+        layout.addWidget(self.build_quick_start())
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.build_editor(), "1. Soạn bài")
-        self.tabs.addTab(self.build_groups(), "2. Nhóm & nhãn")
-        self.tabs.addTab(self.build_jobs(), "3. Đăng bài")
+        self.tabs.addTab(self.build_editor(), "Soạn bài")
+        self.tabs.addTab(self.build_groups(), "Nhóm & nhãn")
+        self.tabs.addTab(self.build_jobs(), "Đăng bài")
         self.post_manager = PostManager(store, self)
-        self.tabs.addTab(self.post_manager, "4. Quản lý bài đăng")
-        self.tabs.addTab(self.build_settings(), "Dữ liệu & hướng dẫn")
+        self.tabs.addTab(self.post_manager, "Bài đã đăng")
+        self.tabs.addTab(self.build_settings(), "Cài đặt & trợ giúp")
         layout.addWidget(self.tabs)
         self.setCentralWidget(container)
         self.refresh_posts()
@@ -111,6 +114,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         self.refresh_jobs()
         self.tabs.currentChanged.connect(lambda *_: self.post_manager.refresh())
         self.setup_tracking()
+        self.setup_drafts()
         saved_batch = self.store.preference("last_batch")
         if saved_batch.isdigit():
             self.refresh_batches(int(saved_batch))
@@ -132,9 +136,11 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         if not self.loading:
             self.dirty = True
             self.save_button.setText("Lưu bài *")
+            if hasattr(self, "draft_timer"):
+                self.draft_timer.start()
 
     def confirm_discard(self):
-        return (
+        accepted = (
             not self.dirty
             or QMessageBox.question(
                 self,
@@ -145,6 +151,9 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             )
             == QMessageBox.StandardButton.Yes
         )
+        if accepted:
+            self.clear_active_draft()
+        return accepted
 
     def build_editor(self):
         page = QWidget()
@@ -168,6 +177,17 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         self.title = QLineEdit()
         self.title.setPlaceholderText("Tên quản lý bài · ví dụ: Kế toán — Quận 7")
         self.title.textChanged.connect(self.mark_dirty)
+        self.draft_recovery = QWidget()
+        recovery = QVBoxLayout(self.draft_recovery)
+        self.draft_recovery_text = hint("")
+        recovery.addWidget(self.draft_recovery_text)
+        recovery.addLayout(
+            row(
+                button("Khôi phục bản nháp", lambda: self.guard(self.recover_draft), True),
+                button("Bỏ các bản nháp cũ", self.discard_recovery_drafts),
+            )
+        )
+        main.addWidget(self.draft_recovery)
         main.addWidget(self.title)
         self.content = SummernoteEditor()
         self.content.notice = lambda message: self.statusBar().showMessage(message, 15000)
@@ -176,8 +196,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         main.addWidget(self.content, 1)
         main.addWidget(
             hint(
-                "Summernote · Ctrl+V giữ định dạng và tự bỏ nền tối Facebook. Khi dán sang Facebook giữ phần định dạng được hỗ trợ; "
-                "Facebook quyết định định dạng hiển thị."
+                "Dán từ Word hoặc Facebook bằng Ctrl+V. Ứng dụng bỏ nền tối; Facebook có thể thay đổi kiểu chữ khi đăng."
             )
         )
         self.tags = QLineEdit()
@@ -192,15 +211,18 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             row(
                 button("Thêm ảnh", self.add_images),
                 button("Bỏ ảnh", self.remove_image),
-                button("↑", lambda: self.move_image(-1)),
-                button("↓", lambda: self.move_image(1)),
+                button("Đưa ảnh lên", lambda: self.move_image(-1)),
+                button("Đưa ảnh xuống", lambda: self.move_image(1)),
                 button("Mở ảnh", self.open_image),
             )
         )
-        self.save_button = button("Lưu bài", lambda: self.guard(self.save_post), True)
+        self.autosave_note = hint("Bản đang soạn được tự lưu sau khi bạn ngừng nhập một lúc.")
+        main.addWidget(self.autosave_note)
+        self.save_button = button("Lưu bài", lambda: self.guard(self.save_post))
         main.addLayout(
             row(
                 self.save_button,
+                button("Đăng bài này", lambda: self.guard(self.post_this_article), True),
                 button("Xem trước bài", self.preview_article),
                 button("Sao chép bài có định dạng", self.copy_editor),
             )
@@ -338,6 +360,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             images,
         )
         self.dirty = False
+        self.clear_active_draft()
         self.save_button.setText("Lưu bài")
         self.refresh_posts()
         self.statusBar().showMessage("Đã lưu bài viết", 5000)
@@ -361,6 +384,11 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         item.setData(Qt.ItemDataRole.UserRole, image)
         item.setToolTip(str(path))
         self.images.addItem(item)
+        self.renumber_images()
+
+    def renumber_images(self):
+        for i in range(self.images.count()):
+            self.images.item(i).setText(f"Ảnh {i + 1}")
 
     def add_images(self):
         paths, _ = QFileDialog.getOpenFileNames(self, "Chọn ảnh", "", "Ảnh (*.jpg *.jpeg *.png *.webp)")
@@ -374,6 +402,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         index = self.images.currentRow()
         if index >= 0:
             self.images.takeItem(index)
+            self.renumber_images()
             self.mark_dirty()
 
     def move_image(self, delta):
@@ -383,6 +412,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             item = self.images.takeItem(index)
             self.images.insertItem(target, item)
             self.images.setCurrentRow(target)
+            self.renumber_images()
             self.mark_dirty()
 
     def open_image(self):
@@ -521,9 +551,12 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             self.refresh_groups()
 
     def build_jobs(self):
+        container = QWidget()
+        outer = QVBoxLayout(container)
         page = QWidget()
         layout = QVBoxLayout(page)
         self.build_audience(layout)
+        layout = self.run_layout
         self.history_search = QLineEdit()
         self.history_search.setPlaceholderText("Lọc lịch sử theo bài, nhóm, trạng thái…")
         self.history_search.textChanged.connect(self.filter_jobs)
@@ -538,6 +571,8 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         self.history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.history.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.history.itemSelectionChanged.connect(self.load_job)
+        self.history.setColumnHidden(0, True)
+        self.history.setColumnHidden(5, True)
         self.history.setMinimumHeight(120)
         layout.addWidget(self.history, 1)
         self.job_detail = hint("Chọn một lượt đăng để thao tác.")
@@ -596,7 +631,9 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setWidget(page)
-        return scroll
+        outer.addWidget(scroll, 1)
+        outer.addLayout(self.posting_navigation)
+        return container
 
     def refresh_post_choices(self):
         current = self.job_posts.currentData()
@@ -843,6 +880,13 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
 
     def browser_progress(self, message):
         if message:
+            job = getattr(self, "queue_current_job", None)
+            prefix = (
+                f"Nhóm {job['position'] + 1}/{self.queue_current_total}: {job['group_name']}\n"
+                if self.queue_active and job
+                else ""
+            )
+            self.current_action.setText(prefix + message)
             self.statusBar().showMessage(message)
 
     def finish_browser(self):
@@ -894,6 +938,7 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             return True
 
         if self.guard(save):
+            self.current_action.setText(result["message"])
             self.statusBar().showMessage(result["message"], 20000)
             self.queue_browser_done(action, result)
         else:
@@ -917,7 +962,25 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
                 )
                 self.refresh_jobs()
         self.statusBar().showMessage("Thao tác trình duyệt chưa hoàn tất", 15000)
-        QMessageBox.warning(self, "Thao tác Facebook cần kiểm tra", message)
+        if payload.get("submission_started"):
+            help_text = (
+                "Chưa rõ bài đã gửi hay chưa. Mở nhóm để kiểm tra trước khi thử lại, tránh đăng trùng."
+            )
+        elif any(word in message.casefold() for word in ("đăng nhập", "login", "checkpoint", "xác thực")):
+            help_text = (
+                "Facebook cần đăng nhập hoặc xác thực. Bấm Mở Facebook để xử lý, rồi quay lại Tiếp tục."
+            )
+        elif any(word in message.casefold() for word in ("blocked", "hạn chế", "bị chặn")):
+            help_text = (
+                "Facebook đang hạn chế thao tác. Kiểm tra thông báo trong Facebook trước khi tiếp tục."
+            )
+        else:
+            help_text = "Chưa hoàn tất thao tác. Kiểm tra kết nối mạng và cửa sổ Facebook. Đợt đăng đã tạm dừng; các nhóm còn lại được giữ."
+        self.problem_help.setText(help_text)
+        self.problem_details.setPlainText(message)
+        self.problem_panel.show()
+        self.current_action.setText(help_text)
+        QMessageBox.warning(self, "Cần bạn kiểm tra", help_text)
 
     def export_excel(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -934,40 +997,40 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
         guide = QTextEdit()
         guide.setReadOnly(True)
         guide.setHtml("""
-        <h2>Ba bước để đăng tin tuyển dụng</h2>
-        <ol><li><b>Soạn bài:</b> chọn Tạo bài theo mẫu tuyển dụng, điền vị trí, công ty, công việc,
-        yêu cầu, quyền lợi và liên hệ. Thêm ảnh, Xem trước bài rồi Lưu bài.</li>
-        <li><b>Nhóm &amp; nhãn:</b> thêm link nhóm. Gắn nhãn như Hà Nội, Kỹ thuật. Nhiều nhóm có thể
-        dùng chung nhãn; một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy.</li>
-        <li><b>Đăng bài:</b> chọn bài, chọn một nhóm/nhiều nhóm/theo nhãn, kiểm tra nhóm đã chọn rồi
-        Tạo danh sách đăng. Đăng nhập Facebook một lần, sau đó Bắt đầu / tiếp tục.</li></ol>
-        <h3>Chọn cách thực hiện phù hợp</h3>
-        <p><b>Chỉ chuẩn bị (bỏ chọn Tự đăng bài):</b> ứng dụng mở nhóm và điền bài. Bạn kiểm tra,
-        tự bấm Đăng trong Facebook rồi bấm Đã gửi · sang nhóm sau và chọn kết quả thực tế.</p>
-        <p><b>Tự đăng bài (mặc định bật):</b> bấm Bắt đầu tự đăng, xác nhận bài và danh sách nhóm.
-        Ứng dụng mở ô soạn, dán HTML, đính kèm ảnh, chờ tải xong rồi bấm Đăng. Không so khớp ký tự hay độ dài nội dung đọc lại. Tự cập nhật kết quả gửi rồi chuyển sang nhóm tiếp theo; chỉ dừng khi có lỗi hoặc kết quả chưa rõ.
-        Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
-        <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
-        quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>
-        <h3>Theo dõi sau đăng và tiếp tục công việc</h3>
-        <p>Tab Quản lý bài đăng cho phép lọc theo ngày gửi thực tế, ngày tạo, ngày kiểm tra, bài, nhóm, nhãn và trạng thái.
-        Giữ Ctrl/Shift để chọn nhiều bài rồi Kiểm tra bài đã chọn. Có thể bật kiểm tra định kỳ khi ứng dụng đang mở và không đăng bài.
-        Mỗi đợt tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả. Xem lần kiểm tra và lịch sử để biết bằng chứng.</p>
-        <p>Chưa xác minh được không đồng nghĩa bị xóa. Link mở được không tự chứng minh đã duyệt. Lượt cũ chưa biết ngày gửi sẽ để trống.
-        Sau gián đoạn, dùng Tiếp tục danh sách còn lại. Lượt đang gửi chuyển thành Chưa rõ kết quả và không tự gửi lại.
-        Nếu muốn đăng lại cùng nội dung/ảnh, tạo lượt mới và xác nhận cảnh báo trùng.</p>
-        <h3>Link bài và minh chứng</h3>
-        <p>Đã bấm Đăng không có nghĩa bài đã được duyệt. Mở phần Link bài, trạng thái &amp; ảnh minh chứng. Mở bài thật để kiểm tra, lấy link đang mở
-        hoặc dán link bài, rồi lưu đúng trạng thái. Mở link bài, kiểm tra vị trí cuộn, Chụp màn hình
-        và Xem ảnh minh chứng. Đổi sang bài khác cần chụp và xác nhận lại.</p>
-<p>Summernote là thư viện soạn thảo có sẵn. Dán từ Facebook sẽ bỏ nền tối, giữ đậm/nghiêng/danh sách. Luồng dán sang Facebook dùng HTML; nếu không giữ được định dạng, ứng dụng dừng để bạn kiểm tra. Facebook không hỗ trợ đầy đủ màu và font như Word.</p>
-        <h3>Dữ liệu của bạn</h3>
-        <p>Bài, ảnh, nhóm, nhãn, danh sách và lịch sử nằm trên máy. Sao lưu ZIP thường xuyên.
-        ZIP không chứa phiên đăng nhập Facebook. Đóng ứng dụng trước khi giải nén bản sao lưu
-        vào thư mục dữ liệu. Không chia sẻ thư mục browser chứa phiên đăng nhập.</p>
-        <p>Cập nhật ứng dụng bằng cách giải nén bản mới vào thư mục khác. Dữ liệu cũ tự được giữ lại.
-        Không có hẹn giờ hoặc tự phát hiện bài được duyệt. Facebook thay đổi có thể làm thao tác
-        tự động cần điều chỉnh; ứng dụng không vượt xác thực hoặc hạn chế tài khoản.</p>
+        <h2>Bắt đầu sử dụng</h2>
+        <p>Bấm Hướng dẫn nhanh ở đầu cửa sổ để mở lại hướng dẫn. Đăng nhập trực tiếp trong cửa sổ Facebook của ứng dụng,
+        thêm nhóm ở Nhóm &amp; nhãn, rồi soạn bài. Phiên đăng nhập được giữ trên máy; không cần nhập mật khẩu vào ứng dụng.</p>
+        <h3>Đăng bài qua bốn bước</h3>
+        <ol><li><b>Chọn bài:</b> trong Soạn bài, bấm Đăng bài này để lưu bài và mở phần chọn bài.
+        Hoặc vào Đăng bài rồi chọn một bài đã lưu.</li>
+        <li><b>Chọn nơi đăng:</b> chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn. Kiểm tra số nhóm đã chọn.</li>
+        <li><b>Xem lại:</b> đọc nội dung, ảnh và danh sách nhóm. Bật Tự bấm Đăng nếu muốn ứng dụng tự gửi và chuyển nhóm.
+        Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu danh sách, chưa gửi Facebook.</li>
+        <li><b>Đăng và xem kết quả:</b> xem nhóm đang làm và tiến độ. Có thể Tạm dừng; thao tác đang chạy sẽ hoàn tất.
+        Tùy chọn khác chứa công cụ xử lý bằng tay. Đợt đã lưu có thể tiếp tục từ nút ở đầu cửa sổ.</li></ol>
+        <p>Khi chỉ chuẩn bị bài, bạn tự bấm Đăng trên Facebook, rồi chọn Tôi đã đăng · sang nhóm sau.
+        Facebook có thể đổi kiểu chữ khi dán; không hỗ trợ đầy đủ font, màu và bố cục như Word.</p>
+        <h3>Bản nháp tự lưu</h3>
+        <p>Bản đang soạn được tự lưu riêng sau khi ngừng nhập khoảng một giây và trước khi đóng ứng dụng.
+        Bấm Lưu bài để đưa nội dung vào danh sách bài có thể đăng. Nháp tự lưu chưa được đưa vào danh sách đó.
+        Khi mở lại, bấm Khôi phục bản nháp trong Soạn bài để tiếp tục. Nếu có nhiều nháp, chọn nháp theo tên và thời gian.
+        Bấm Bỏ các bản nháp cũ để xóa các nháp chưa khôi phục; bài đã lưu vẫn được giữ.</p>
+        <h3>Bài đã đăng</h3>
+        <p>Tích ô trước bài cần kiểm tra, không cần giữ Ctrl/Shift. Các nút Hôm nay, 7 ngày qua, Chờ duyệt và Cần xử lý giúp tìm nhanh.
+        Lọc thêm và cài đặt kiểm tra chứa lọc nhóm, nhãn, bài, khoảng ngày và kiểm tra định kỳ.
+        Bấm vào một dòng rồi Xem chi tiết để đọc link, ghi chú, thời gian kiểm tra và lịch sử cập nhật.
+        Có thể xuất Excel cho bài đã tích hoặc toàn bộ kết quả đang lọc.</p>
+        <p>Đã gửi khác với đã duyệt. Thiếu bằng chứng sẽ ghi Chưa xác minh được và giữ trạng thái đã biết.
+        Bài cũ chưa biết ngày gửi sẽ để trống. Kiểm tra định kỳ chỉ chạy khi ứng dụng mở và không đăng bài.</p>
+        <h3>Khi gặp lỗi</h3>
+        <p>Đọc hướng dẫn trên màn hình: đăng nhập lại, kiểm tra kết nối hoặc mở nhóm kiểm tra bài.
+        Chi tiết lỗi có thể mở khi cần hỗ trợ. Lượt chưa rõ kết quả không tự gửi lại để tránh trùng.
+        Ảnh minh chứng chỉ ghi vùng Facebook đang hiển thị; mở đúng bài và kiểm tra trước khi chụp.</p>
+        <h3>Dữ liệu và cập nhật</h3>
+        <p>Bài, nhóm, ảnh, nháp và lịch sử nằm trên máy. Sao lưu ZIP thường xuyên. ZIP không chứa phiên đăng nhập Facebook.
+        Đóng ứng dụng trước khi khôi phục bản sao lưu. Không chia sẻ thư mục browser chứa phiên đăng nhập.
+        Cập nhật bằng cách giải nén bản mới vào thư mục khác; dữ liệu cũ được giữ.</p>
+        <p>Facebook có thể thay đổi giao diện, kiểm duyệt hoặc hạn chế tài khoản. Ứng dụng không vượt xác thực hay kiểm duyệt.</p>
         """)
         layout.addWidget(guide)
         location = QLineEdit(str(self.store.root))
@@ -1009,7 +1072,17 @@ class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
             else:
                 event.accept()
             return
-        if not self.confirm_discard() or not self.confirm_group_switch():
+        if self.dirty and not self.autosave_draft():
+            self.configure_tracking()
+            QMessageBox.warning(
+                self,
+                "Chưa lưu được bản nháp",
+                "Ứng dụng chưa đóng để tránh mất nội dung. Hãy Lưu bài hoặc kiểm tra ổ đĩa.",
+            )
+            event.ignore()
+            return
+        self.draft_timer.stop()
+        if not self.confirm_group_switch():
             self.configure_tracking()
             event.ignore()
             return

@@ -1,15 +1,14 @@
-**Facebook Helper 0.6.0 — Windows 10/11 64-bit**
+**Facebook Helper 0.7.0 — Windows 10/11 64-bit**
 
-Đóng bản cũ, sao lưu dữ liệu, giải nén toàn bộ ZIP vào thư mục mới rồi chạy `FacebookHelper/FacebookHelper.exe`. Giữ `_internal` đi kèm. Dữ liệu cũ được giữ và nâng cấp tự động.
+Đóng bản cũ, sao lưu dữ liệu, giải nén toàn bộ ZIP vào thư mục mới rồi chạy `FacebookHelper/FacebookHelper.exe`. Giữ `_internal` đi kèm. Dữ liệu cũ được giữ.
 
-- **Kiểm tra trạng thái sau đăng:** chọn một/nhiều bài hoặc toàn bộ kết quả đang lọc. Bật kiểm tra định kỳ khi ứng dụng mở nếu muốn (mặc định tắt, 30 phút/lần, tối đa 20 bài/đợt). Nhường trình duyệt khi đang đăng. Có nút Dừng kiểm tra.
-- **Kết quả rõ ràng:** ngày gửi thực tế, lần kiểm tra gần nhất, lần đầu thấy bài hiển thị, lịch sử thay đổi và nguồn. Khi chưa đủ bằng chứng, giữ trạng thái đã biết và ghi Chưa xác minh được cho lần kiểm tra.
-- **Chống trùng nội dung và ảnh:** cảnh báo cả khi lưu dưới tên bài khác; kiểm tra trước khi gửi qua nhiều task. Muốn đăng lại có chủ đích cần tạo lượt mới và xác nhận cảnh báo.
-- **Tiếp tục sau gián đoạn:** khôi phục tiến độ và danh sách; lượt đang gửi chuyển sang chưa rõ kết quả, không tự gửi lại. Nút Tiếp tục danh sách còn lại đưa về phần chưa xử lý.
-- **Quản lý dễ hơn:** tổng quan hôm nay, lọc bài/nhóm/nhãn/trạng thái, ngày gửi/ngày tạo/ngày kiểm tra; chọn nhiều bài, xuất Excel theo lựa chọn hoặc bộ lọc.
+- **Đăng bài qua bốn bước:** Chọn bài → Chọn nơi đăng → Xem lại nội dung, ảnh và nhóm → Bắt đầu. Nếu dữ liệu thay đổi sau khi xem lại, ứng dụng yêu cầu xem lại. Nút tiếp tục/bắt đầu nằm cố định dưới vùng cuộn.
+- **Đăng bài này:** từ trình soạn, lưu và chuyển thẳng vào luồng đăng. Có thể lưu đợt đăng để chạy sau, chuẩn bị nhiều bài trước.
+- **Bảng kết quả dễ đọc:** năm cột, có ô tích và chọn tất cả; không cần Ctrl/Shift. Lọc nhanh Hôm nay, 7 ngày qua, Chờ duyệt, Cần xử lý. Bộ lọc khác thu gọn. Link, ghi chú và lịch sử nằm ở Xem chi tiết.
+- **Hướng dẫn lần đầu:** các nút đăng nhập, thêm nhóm và soạn bài; có thể ẩn và mở lại từ đầu cửa sổ.
+- **Tự lưu nháp:** lưu riêng sau khoảng 1,2 giây ngừng nhập và trước khi đóng. Khôi phục chữ, định dạng, hashtag và ảnh khi mở lại. Không tự ghi đè bài đã lưu hoặc tự đăng nháp. Bấm Lưu bài để đưa vào danh sách bài có thể đăng.
+- **Xử lý lỗi rõ hơn:** hướng dẫn đăng nhập lại, kiểm tra mạng hoặc mở nhóm; chi tiết kỹ thuật mở khi cần. Công cụ xử lý bằng tay thu gọn và tự hiện khi chọn chế độ chỉ chuẩn bị.
 
-Luồng tự đăng liên tiếp, Summernote và lựa chọn nhóm theo nhãn được giữ. Không có chặn so khớp số ký tự sau dán.
+Tự đăng lần lượt, chống trùng, tiếp tục sau gián đoạn và kiểm tra trạng thái của bản 0.6 được giữ. Đã gửi chưa có nghĩa đã duyệt; chưa xác minh không tự coi là bị xóa. Kiểm tra định kỳ chỉ chạy khi ứng dụng mở và không đăng bài. Chưa có hẹn giờ đăng.
 
-Theo dõi dùng Playwright với phiên Facebook của bạn, không dùng Groups API đã ngừng hỗ trợ. Link mở được không tự coi là đã duyệt; không tìm thấy bài không tự coi bị xóa. Kiểm tra là best effort trên các phần trang đã tải. Chưa có link cần khớp nội dung và thời gian gửi; dữ liệu cũ thiếu ngày gửi không được suy ngược từ ngày tạo. Bài đã hiển thị có thể kiểm tra lại bằng tay.
-
-Bộ kiểm thử tự động và kiểm tra gói Windows được chạy trước phát hành. Luồng Facebook được kiểm tra bằng trang mô phỏng, chưa xác minh trên tài khoản Facebook thật; giao diện thay đổi có thể làm kết quả chưa xác minh được. Không vượt hạn chế hay xác thực của Facebook. Bản chưa ký mã số; SHA256 đi kèm.
+Bộ kiểm thử tự động và kiểm tra bản `.exe` trên Windows được chạy trước phát hành. Luồng Facebook được kiểm thử bằng mô phỏng, chưa xác minh trên tài khoản thật; Facebook thay đổi có thể làm thao tác chưa xác minh được. Bản chưa ký mã số; SHA256 đi kèm.

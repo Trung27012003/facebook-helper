@@ -243,7 +243,7 @@ def test_manager_filters_actual_send_date_group_tag_and_exports_filtered(window,
     view.use_dates.setChecked(False)
     assert view.table.rowCount() == 1
     view.group.setCurrentIndex(0)
-    view.table.selectAll()
+    view.set_all_checked(True)
     assert len(view.selected_ids()) == 3
     view.refresh()
     assert len(view.selected_ids()) == 3

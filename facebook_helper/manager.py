@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from PySide6.QtCore import QDate, QItemSelectionModel, QUrl, Signal
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import QDate, Qt, QUrl, Signal
+from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -70,9 +70,30 @@ class PostManager(QWidget):
         for field in (self.start, self.end):
             field.setCalendarPopup(True)
             field.setDisplayFormat("dd/MM/yyyy")
-        layout.addLayout(row(self.keyword, self.status))
-        layout.addLayout(row(self.post, self.group, self.tag))
+        self.status.addItem("Cần xử lý", "attention")
+        filters_toggle = button("Lọc thêm và cài đặt kiểm tra", lambda: None)
+        filters_toggle.setCheckable(True)
+        layout.addLayout(row(self.keyword, filters_toggle))
         layout.addLayout(
+            row(
+                *[
+                    button(label, lambda checked=False, key=key: self.quick_filter(key))
+                    for label, key in [
+                        ("Tất cả", "all"),
+                        ("Hôm nay", "today"),
+                        ("7 ngày qua", "week"),
+                        ("Chờ duyệt", "pending"),
+                        ("Cần xử lý", "attention"),
+                    ]
+                ]
+            )
+        )
+        self.filters_panel = QWidget()
+        filters = QVBoxLayout(self.filters_panel)
+        filters_toggle.toggled.connect(self.filters_panel.setVisible)
+        layout.addWidget(self.filters_panel)
+        filters.addLayout(row(self.post, self.group, self.tag, self.status))
+        filters.addLayout(
             row(
                 self.use_dates,
                 self.date_field,
@@ -89,53 +110,60 @@ class PostManager(QWidget):
         self.interval.setRange(5, 1440)
         self.interval.setSuffix(" phút/lần")
         self.interval.setValue(int(store.preference("monitor_minutes", "30")))
-        layout.addLayout(row(self.periodic, self.interval))
-        self.monitor_message = hint(
-            "Định kỳ kiểm tra bài đã gửi, chờ duyệt hoặc chưa rõ kết quả: tối đa 20 lượt/đợt, ưu tiên bài lâu chưa kiểm tra."
-        )
+        filters.addLayout(row(self.periodic, self.interval))
+        self.filters_panel.hide()
+        self.monitor_message = hint("Tích ô trước các bài cần kiểm tra, rồi bấm Kiểm tra bài đã chọn.")
         layout.addWidget(self.monitor_message)
-        layout.addLayout(
-            row(
-                button("Kiểm tra bài đã chọn", lambda: self.check_requested.emit(self.selected_ids()), True),
-                button(
-                    "Kiểm tra các bài đang lọc",
-                    lambda: self.check_requested.emit([j["id"] for j in self.filtered_jobs]),
-                ),
-                button("Dừng kiểm tra", self.stop_requested.emit),
+        self.check_selected_button = button(
+            "Kiểm tra bài đã chọn", lambda: self.check_requested.emit(self.selected_ids()), True
+        )
+        layout.addLayout(row(self.check_selected_button, button("Dừng kiểm tra", self.stop_requested.emit)))
+        filters.addWidget(
+            button(
+                "Kiểm tra toàn bộ kết quả đang lọc",
+                lambda: self.check_requested.emit([j["id"] for j in self.filtered_jobs]),
             )
         )
+        self.select_all = QCheckBox("Chọn tất cả kết quả đang hiện")
+        self.select_all.toggled.connect(self.set_all_checked)
         self.summary = hint("")
-        layout.addWidget(self.summary)
-        self.table = QTableWidget(0, 9)
-        self.table.setHorizontalHeaderLabels(
-            [
-                "Mã",
-                "Bài tuyển dụng",
-                "Nhóm",
-                "Trạng thái",
-                "Gửi lúc",
-                "Kiểm tra gần nhất",
-                "Kết quả kiểm tra",
-                "Link bài",
-                "Ghi chú",
-            ]
-        )
+        layout.addLayout(row(self.select_all, self.summary))
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Chọn", "Bài tuyển dụng", "Nhóm", "Kết quả", "Gửi lúc"])
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        for column, width in enumerate((45, 160, 180, 140, 135, 135, 155, 180, 260)):
-            self.table.setColumnWidth(column, width)
+        self.table.verticalHeader().hide()
+        self.table.setTextElideMode(Qt.TextElideMode.ElideNone)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        for column in (0, 4):
+            self.table.horizontalHeader().setSectionResizeMode(
+                column, QHeaderView.ResizeMode.ResizeToContents
+            )
+        self.table.itemChanged.connect(self.update_selection_summary)
+        self.table.itemSelectionChanged.connect(self.update_details)
+        self.table.itemDoubleClicked.connect(lambda *_: self.details_panel.show())
         layout.addWidget(self.table)
         layout.addLayout(
             row(
                 button("Mở bài Facebook", self.open_link),
-                button("Copy link", self.copy_link),
-                button("Lịch sử trạng thái", self.show_history),
+                button("Sao chép link", self.copy_link),
+                button(
+                    "Xem chi tiết", lambda: self.details_panel.setVisible(not self.details_panel.isVisible())
+                ),
                 button("Xuất Excel đã chọn", lambda: self.export_filtered(selected_only=True)),
                 button("Xuất Excel đang lọc", self.export_filtered),
             )
         )
+        self.details_panel = QWidget()
+        detail_layout = QVBoxLayout(self.details_panel)
+        self.detail_text = QTextEdit()
+        self.detail_text.setReadOnly(True)
+        self.detail_text.setMaximumHeight(150)
+        detail_layout.addWidget(self.detail_text)
+        detail_layout.addWidget(button("Xem lịch sử cập nhật", self.show_history))
+        layout.addWidget(self.details_panel)
+        self.details_panel.hide()
         for field in (
             self.keyword,
             self.status,
@@ -200,6 +228,11 @@ class PostManager(QWidget):
         self.filtered_jobs = []
         if self.use_dates.isChecked() and self.start.date() > self.end.date():
             self.table.setRowCount(0)
+            self.select_all.blockSignals(True)
+            self.select_all.setChecked(False)
+            self.select_all.blockSignals(False)
+            self.check_selected_button.setEnabled(False)
+            self.update_details()
             self.summary.setText("Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.")
             return
         query = self.keyword.text().strip().casefold()
@@ -216,7 +249,11 @@ class PostManager(QWidget):
                     or not self.start.date() <= QDate(value.year, value.month, value.day) <= self.end.date()
                 ):
                     continue
-            if self.status.currentData() and job["status"] != self.status.currentData():
+            status = self.status.currentData()
+            if status == "attention":
+                if job["status"] not in {"error", "uncertain", "sending"}:
+                    continue
+            elif status and job["status"] != status:
                 continue
             if self.group.currentData() and job["group_url"] != self.group.currentData():
                 continue
@@ -233,55 +270,125 @@ class PostManager(QWidget):
             ):
                 continue
             self.filtered_jobs.append(job)
+        current = self.current_job_record()
+        self.table.blockSignals(True)
         self.table.setRowCount(len(self.filtered_jobs))
         self.table.clearSelection()
         for index, job in enumerate(self.filtered_jobs):
-            outcome = (
-                "Chưa xác minh được"
-                if job["check_outcome"] == "unknown"
-                else STATUSES.get(job["check_outcome"], "Chưa kiểm tra")
+            check = QTableWidgetItem()
+            check.setData(Qt.ItemDataRole.UserRole, job["id"])
+            check.setFlags(
+                Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsUserCheckable
             )
+            check.setCheckState(Qt.CheckState.Checked if job["id"] in selected else Qt.CheckState.Unchecked)
+            self.table.setItem(index, 0, check)
+            label = (
+                "Đã gửi · chưa xác minh hiển thị" if job["status"] == "submitted" else STATUSES[job["status"]]
+            )
+            if job["check_outcome"] == "unknown" and job["status"] != "submitted":
+                label += "\nChưa xác minh lại"
             for column, value in enumerate(
-                (
-                    job["id"],
-                    job["title"],
-                    job["group_name"],
-                    "Đã gửi" if job["status"] == "submitted" else STATUSES[job["status"]],
-                    show_time(job["sent_at"]),
-                    show_time(job["checked_at"]),
-                    outcome,
-                    job["url"],
-                    job["note"],
-                )
+                (job["title"], job["group_name"], label, show_time(job["sent_at"])), start=1
             ):
                 item = QTableWidgetItem(str(value))
-                item.setToolTip(
-                    job["check_note"]
-                    if column in {5, 6}
-                    else STATUSES[job["status"]]
-                    if column == 3
-                    else str(value)
-                )
+                item.setToolTip(str(value) + ("\n" + job["check_note"] if column == 3 else ""))
+                if column == 3:
+                    color = (
+                        "#166534"
+                        if job["status"] == "published"
+                        else "#92400e"
+                        if job["status"] == "pending"
+                        else "#b91c1c"
+                        if job["status"] in {"error", "uncertain", "rejected", "removed"}
+                        else "#334155"
+                    )
+                    if job["check_outcome"] == "unknown":
+                        color = "#92400e"
+                    item.setForeground(QColor(color))
                 self.table.setItem(index, column, item)
-            if job["id"] in selected:
-                self.table.selectionModel().select(
-                    self.table.model().index(index, 0),
-                    QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows,
-                )
+        self.table.blockSignals(False)
+        row_index = next(
+            (i for i, j in enumerate(self.filtered_jobs) if current and j["id"] == current["id"]), 0
+        )
+        if self.filtered_jobs:
+            self.table.setCurrentCell(row_index, 1)
+        self.table.resizeRowsToContents()
+        self.update_selection_summary()
+        self.update_details()
+
+    def update_selection_summary(self, *args):
+        ids = self.selected_ids()
+        self.check_selected_button.setEnabled(bool(ids))
+        self.select_all.blockSignals(True)
+        self.select_all.setChecked(bool(self.filtered_jobs) and len(ids) == len(self.filtered_jobs))
+        self.select_all.blockSignals(False)
+        active = " · ".join(
+            x.currentText()
+            for x in (self.status, self.group, self.tag, self.post)
+            if x.currentData() is not None
+        )
+        if self.use_dates.isChecked():
+            active += f" · {self.date_field.currentText()}: {self.start.text()}–{self.end.text()}"
         self.summary.setText(
-            f"Tìm thấy {len(self.filtered_jobs)} lượt · ngày theo giờ máy · giữ Ctrl/Shift để chọn nhiều bài"
+            f"{len(self.filtered_jobs)} kết quả · Đã chọn {len(ids)}" + (" · " + active if active else "")
         )
 
     def selected_ids(self):
         return [
-            int(self.table.item(index.row(), 0).text())
-            for index in self.table.selectionModel().selectedRows()
-            if self.table.item(index.row(), 0)
+            self.table.item(i, 0).data(Qt.ItemDataRole.UserRole)
+            for i in range(self.table.rowCount())
+            if self.table.item(i, 0) and self.table.item(i, 0).checkState() == Qt.CheckState.Checked
         ]
 
-    def selected_link(self):
+    def set_all_checked(self, checked):
+        self.table.blockSignals(True)
+        for i in range(self.table.rowCount()):
+            self.table.item(i, 0).setCheckState(Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
+        self.table.blockSignals(False)
+        self.update_selection_summary()
+
+    def current_job_record(self):
         index = self.table.currentRow()
-        return self.table.item(index, 7).text() if index >= 0 else ""
+        item = self.table.item(index, 0) if index >= 0 else None
+        return self.store.job(item.data(Qt.ItemDataRole.UserRole)) if item else None
+
+    def selected_link(self):
+        job = self.current_job_record()
+        return job["url"] if job else ""
+
+    def update_details(self):
+        if not hasattr(self, "detail_text"):
+            return
+        job = self.current_job_record()
+        self.detail_text.setPlainText(
+            f"{job['title']}\nNhóm: {job['group_name']}\nTrạng thái đã biết: {STATUSES[job['status']]}\n"
+            f"Gửi: {show_time(job['sent_at'])} · Kiểm tra: {show_time(job['checked_at'])} · Lần đầu thấy hiển thị: {show_time(job['first_visible_at'])}\n"
+            f"Link: {job['url'] or 'Chưa lấy được link'}\nKiểm tra: {job['check_note'] or 'Chưa kiểm tra'}\nGhi chú: {job['note']}"
+            if job
+            else "Bấm vào một bài để xem thông tin chi tiết."
+        )
+
+    def quick_filter(self, key):
+        for field in (self.status, self.group, self.tag, self.post):
+            field.blockSignals(True)
+            field.setCurrentIndex(0)
+            field.blockSignals(False)
+        self.use_dates.blockSignals(True)
+        self.use_dates.setChecked(key in {"today", "week"})
+        self.use_dates.blockSignals(False)
+        if key in {"today", "week"}:
+            for field in (self.date_field, self.start, self.end):
+                field.blockSignals(True)
+            self.date_field.setCurrentIndex(self.date_field.findData("sent_at"))
+            self.start.setDate(QDate.currentDate().addDays(-6 if key == "week" else 0))
+            self.end.setDate(QDate.currentDate())
+            for field in (self.date_field, self.start, self.end):
+                field.blockSignals(False)
+        elif key in {"pending", "attention"}:
+            self.status.setCurrentIndex(self.status.findData(key))
+        if key == "all":
+            self.keyword.clear()
+        self.refresh()
 
     def open_link(self):
         if self.selected_link():
@@ -292,7 +399,8 @@ class PostManager(QWidget):
             QApplication.clipboard().setText(self.selected_link())
 
     def show_history(self):
-        ids = self.selected_ids()
+        current = self.current_job_record()
+        ids = [current["id"]] if current else []
         if len(ids) != 1:
             QMessageBox.information(self, "Lịch sử", "Chọn một bài để xem lịch sử trạng thái.")
             return

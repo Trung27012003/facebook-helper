@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.6.0 · Summernote
+## Cách dùng bản 0.7.0 · Summernote
 
 ### 1. Soạn bài
 
@@ -34,22 +34,32 @@ Ví dụ:
 
 Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiều nhóm dùng chung nhãn. Chọn nhãn **Kỹ thuật** sẽ chọn hai nhóm đầu; nhãn **Hà Nội** sẽ chọn cả ba. Nhãn khớp chính xác và không phân biệt hoa/thường, không tìm theo một phần tên. Có ô tìm nhóm theo tên/nhãn.
 
-### 3. Đăng bài lần lượt
+### 3. Đăng bài qua bốn bước
 
-1. Bấm **Đăng nhập Facebook** ở đầu màn hình, đăng nhập trực tiếp trong trình duyệt riêng của ứng dụng. Phiên không dùng chung với Chrome cá nhân.
-2. Chọn một bài đã lưu, rồi chọn **Một nhóm**, **Nhiều nhóm** hoặc **Theo nhãn nhóm**.
-3. Kiểm tra danh sách đã tích; có thể bỏ bớt nhóm. Thứ tự thực hiện là từ trên xuống.
-4. Đặt tên danh sách nếu muốn → **Tạo danh sách đăng**. Mỗi nhóm có một lượt riêng, giữ bản nội dung/ảnh tại thời điểm tạo. Có thể tạo nhiều danh sách cho nhiều bài khác nhau trước khi bắt đầu.
-5. **Tự đăng bài** được bật sẵn. Bấm **Bắt đầu tự đăng**, xác nhận bài và nhóm: ứng dụng mở nhóm → dán HTML → đính kèm ảnh → chờ ảnh tải xong/nút Đăng sẵn sàng → tự bấm Đăng. Không so khớp nội dung hay số ký tự đọc lại; không có chặn “374/788”.
-6. Nếu chỉ muốn chuẩn bị, bỏ chọn **Tự đăng bài**; nút bắt đầu đổi thành **Chỉ chuẩn bị bài**. Nếu Facebook đã có bản soạn đủ chữ/ảnh, dùng **Đăng bản đang mở** sau khi kiểm tra: gửi bản đó mà không dán/đính kèm lại. **Sau mỗi bài tự cập nhật trạng thái và chuyển nhóm tiếp theo** sau thời gian chờ đã chọn, không yêu cầu xác nhận từng bài.
-7. **Không cần xác nhận giữa các nhóm.** Bài được ghi đã gửi, chờ duyệt khi Facebook có thông báo, hoặc đã hiển thị khi nhận diện được bài mới cùng link. Bài chờ duyệt không làm dừng danh sách. Lỗi hoặc chưa rõ kết quả sẽ dừng để tránh gửi trùng.
-8. Xem thanh tiến độ để biết số nhóm đã xử lý. Có thể Tạm dừng/Tiếp tục/Bỏ qua. Tốc độ giữa nhóm được chỉnh ở ô thời gian chờ.
+Mở **Hướng dẫn nhanh** nếu cần: đăng nhập Facebook trong cửa sổ riêng của ứng dụng, thêm nhóm rồi soạn bài.
+
+1. **Chọn bài:** trong Soạn bài bấm **Đăng bài này** để lưu và mở luồng đăng. Hoặc vào Đăng bài, chọn một bài đã lưu và xem nội dung.
+2. **Chọn nơi đăng:** chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn. Có thể bỏ tích những nhóm không cần. Số nhóm và thứ tự hiển thị là thứ tự sẽ thực hiện.
+3. **Xem lại:** đọc nội dung, xem ảnh và danh sách nhóm. Chọn tự bấm Đăng hoặc chỉ chuẩn bị; có thể chỉnh thời gian giữa nhóm. Bấm **Bắt đầu đăng** là xác nhận gửi cho danh sách vừa xem. Nếu bài/nhóm thay đổi sau khi xem lại, phải quay lại xem trước khi bắt đầu. Facebook có thể đổi định dạng so với bản xem trước.
+4. **Đăng và xem kết quả:** theo dõi nhóm đang làm, thao tác và tiến độ. Có thể **Tạm dừng**; thao tác đang chạy sẽ hoàn tất. Nút Quay lại/Tiếp tục được đặt dưới vùng cuộn. **Tùy chọn khác: xử lý bằng tay** chứa điền bài, đăng bản đang mở, báo đã gửi và bỏ qua nhóm.
+
+**Lưu đợt đăng để chạy sau** chỉ lưu danh sách, không gửi Facebook. Có thể chuẩn bị nhiều đợt cho nhiều bài, rồi mở đợt đã lưu để Bắt đầu / tiếp tục. Mỗi lượt giữ nội dung và ảnh tại thời điểm tạo. Việc tiếp tục đợt đã lưu có xác nhận riêng trước khi gửi.
+
+Sau mỗi bài, hệ thống tự cập nhật kết quả gửi và chuyển nhóm sau thời gian chờ. Không cần xác nhận giữa các nhóm; chờ duyệt không làm dừng danh sách. Lỗi hoặc chưa rõ kết quả sẽ dừng để tránh trùng. **Chỉ chuẩn bị bài** sẽ điền bài nhưng không bấm Đăng; công cụ xử lý bằng tay tự hiện để bạn báo kết quả rồi sang nhóm sau.
+
+### Bản nháp tự lưu
+
+Nội dung đang soạn được tự lưu riêng sau khi ngừng nhập khoảng 1,2 giây và trước khi đóng ứng dụng. Nháp giữ tên, HTML, hashtag và thứ tự ảnh; **không tự đưa vào danh sách bài có thể đăng**, không cập nhật bài đã lưu hay lượt đã tạo.
+
+Mở lại ứng dụng → Soạn bài → **Khôi phục bản nháp**. Có nhiều nháp thì chọn theo tên và thời gian. Nếu bài gốc đã bị xóa, nháp được mở như bài mới. Không tự bỏ các nháp cũ khi bạn bắt đầu một bài mới; nút Bỏ các bản nháp cũ có xác nhận riêng. Khi bấm Lưu bài thành công, nháp tương ứng được xóa. Khi cố ý bỏ chỉnh sửa để chuyển bài, nháp của phần chỉnh sửa đó cũng được bỏ.
+
+Nếu không tự lưu được khi đóng, ứng dụng giữ cửa sổ mở và báo để bạn lưu hoặc kiểm tra ổ đĩa. Thay đổi trong khoảng ngay trước sự cố mất điện có thể chưa kịp được lưu. Nháp nằm trong SQLite và được đưa vào bản sao lưu dữ liệu; ảnh dùng các tệp đã nhập vào ứng dụng.
 
 ### Quản lý bài đăng
 
-Tab **4. Quản lý bài đăng** có tổng quan hôm nay, số lượt còn lại/chờ duyệt/cần xử lý. Tìm từ khóa trong tiêu đề, nội dung, nhóm, ghi chú hoặc link; lọc theo bài, nhóm, nhãn nhóm, trạng thái. Chọn ngày tạo lượt, **ngày gửi thực tế** hoặc ngày kiểm tra để lọc khoảng ngày (giờ trên máy, gồm cả hai đầu). Ngày gửi được ghi khi ứng dụng gửi thành công hoặc bạn bấm xác nhận vừa gửi; chỉ sửa trạng thái không tự tạo ngày gửi. Lượt cũ chưa ghi ngày gửi sẽ không xuất hiện khi lọc ngày gửi; không lấy ngày tạo thay thế.
+Tab **Bài đã đăng** có tổng quan hôm nay, số lượt còn lại/chờ duyệt/cần xử lý. Tìm từ khóa trong tiêu đề, nội dung, nhóm, ghi chú hoặc link; lọc theo bài, nhóm, nhãn nhóm, trạng thái. Chọn ngày tạo lượt, **ngày gửi thực tế** hoặc ngày kiểm tra để lọc khoảng ngày (giờ trên máy, gồm cả hai đầu). Ngày gửi được ghi khi ứng dụng gửi thành công hoặc bạn bấm xác nhận vừa gửi; chỉ sửa trạng thái không tự tạo ngày gửi. Lượt cũ chưa ghi ngày gửi sẽ không xuất hiện khi lọc ngày gửi; không lấy ngày tạo thay thế.
 
-Giữ Ctrl/Shift để chọn nhiều dòng → **Kiểm tra bài đã chọn**, hoặc kiểm tra toàn bộ kết quả đang lọc. Có nút dừng kiểm tra, mở bài, copy link, xem lịch sử và xuất Excel cho bài đã chọn/kết quả đang lọc. Lịch sử ghi nguồn thay đổi, thời điểm, trạng thái cũ/mới và bằng chứng đọc được.
+Tích ô trước một/nhiều dòng hoặc **Chọn tất cả kết quả đang hiện** → **Kiểm tra bài đã chọn**, hoặc kiểm tra toàn bộ kết quả đang lọc. Bảng chính chỉ có năm cột: ô chọn, bài, nhóm, kết quả và thời gian gửi; không phải kéo ngang để tìm link. Bấm vào dòng rồi **Xem chi tiết** để đọc link, ghi chú, thời gian kiểm tra và lịch sử. Các nút **Hôm nay / 7 ngày qua / Chờ duyệt / Cần xử lý** giúp lọc nhanh; bộ lọc đầy đủ và kiểm tra định kỳ nằm trong **Lọc thêm và cài đặt kiểm tra**. Có thể dừng kiểm tra, mở bài, sao chép link và xuất Excel theo ô đã tích hoặc bộ lọc. Lịch sử ghi nguồn thay đổi, thời điểm, trạng thái cũ/mới và bằng chứng đọc được.
 
 **Tự kiểm tra** mặc định tắt. Bật để kiểm tra định kỳ khi ứng dụng đang mở và không có danh sách đăng chạy; mặc định 30 phút, tối thiểu 5 phút. Mỗi đợt tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả, ưu tiên bài lâu chưa kiểm tra. Đã hiển thị/bị từ chối/bị gỡ có thể kiểm tra bằng tay. Lỗi truy cập hoặc đăng nhập dừng đợt kiểm tra và giữ nguyên trạng thái đã biết; kết quả lần kiểm tra là **Chưa xác minh được**.
 
@@ -79,7 +89,9 @@ Mở **Link bài, trạng thái & ảnh minh chứng** bên dưới bảng. Dán
 
 ![Soạn bài theo bố cục tuyển dụng](docs/images/editor-v0.4.png)
 
-![Quản lý bài đăng, tìm từ khóa và lọc ngày](docs/images/manager-v0.6.png)
+![Xem lại bài và nhóm trước khi bắt đầu](docs/images/review-v0.7.png)
+
+![Bảng kết quả gọn, tích chọn nhiều bài](docs/images/manager-v0.7.png)
 
 ## Cập nhật, dữ liệu và sao lưu
 
@@ -124,7 +136,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Thư viện và giấy phép](docs/THIRD-PARTY.md). Thư viện được đóng kèm, không cần CDN khi chạy.
 
-Xem [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

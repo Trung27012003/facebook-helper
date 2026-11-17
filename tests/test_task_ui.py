@@ -14,23 +14,30 @@ def select(window, job_id):
     assert window.current_job()["id"] == job_id
 
 
-def test_create_six_tasks_using_ui(window, store, task_data):
+def test_create_six_tasks_using_ui(window, store, task_data, monkeypatch):
+    commands = []
+    monkeypatch.setattr(window.browser, "submit", lambda *args: commands.append(args))
     window.refresh_posts()
     window.refresh_groups()
     window.tabs.setCurrentIndex(2)
     create = next(
-        widget for widget in window.findChildren(QPushButton) if widget.text() == "Tạo danh sách đăng"
+        widget for widget in window.findChildren(QPushButton) if widget.text() == "Lưu đợt đăng để chạy sau"
     )
     posts, groups = task_data
     for post_id in posts:
         for group_id in groups:
             window.job_posts.setCurrentIndex(window.job_posts.findData(post_id))
             window.job_groups.setCurrentIndex(window.job_groups.findData(group_id))
+            window.set_posting_step(0)
+            window.posting_next_step()
+            window.posting_next_step()
             create.click()
             assert window.current_job()["post_id"] == post_id
             assert window.current_job()["group_id"] == group_id
     assert window.history.rowCount() == 6
     assert len(store.jobs()) == 6
+    assert not commands and not window.queue_active
+    monkeypatch.undo()
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,6 @@
 """Audience selection and sequential posting, with one browser operation at a time."""
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -12,6 +12,9 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QSpinBox,
+    QTextBrowser,
+    QVBoxLayout,
+    QWidget,
 )
 
 from .widgets import button, hint, row
@@ -30,83 +33,143 @@ class PostingMixin:
         self.queue_timer = QTimer(self)
         self.queue_timer.setSingleShot(True)
         self.queue_timer.timeout.connect(lambda: self.guard(self.queue_continue))
-        layout.addLayout(
+        choose, audience, review, run = self.init_posting_steps(layout)
+        choose.addLayout(
             row(
-                hint("Chọn bài → Chọn nhóm hoặc nhãn → Tạo danh sách → Bắt đầu"),
+                hint("Chọn bài bạn đã lưu, rồi bấm Tiếp tục."),
                 self.browser_button("Đăng nhập Facebook", "login"),
+                button("Mở danh sách đã tạo", lambda: self.set_posting_step(3)),
             )
         )
         self.job_posts = QComboBox()
-        self.job_posts.setMinimumWidth(260)
+        self.job_posts.currentIndexChanged.connect(self.update_post_choice_preview)
+        choose.addLayout(
+            row(
+                QLabel("Bài muốn đăng"),
+                self.job_posts,
+                button("Soạn / sửa bài đang chọn", lambda: self.guard(self.edit_chosen_article)),
+            )
+        )
+        self.post_choice_preview = QTextBrowser()
+        self.post_choice_preview.setOpenExternalLinks(False)
+        choose.addWidget(self.post_choice_preview, 1)
         self.batch_name = QLineEdit()
-        self.batch_name.setPlaceholderText("Tên danh sách (không bắt buộc), ví dụ: Tuyển kỹ sư tháng 11")
-        layout.addLayout(row(QLabel("Bài tuyển dụng"), self.job_posts, self.batch_name))
+        self.batch_name.setPlaceholderText("Tên đợt đăng (không bắt buộc), ví dụ: Tuyển kỹ sư tháng 11")
         self.audience_mode = QComboBox()
         self.audience_mode.addItems(["Một nhóm", "Nhiều nhóm", "Theo nhãn nhóm"])
         self.job_groups = QComboBox()
         self.audience_tag = QComboBox()
-        self.audience_tag.setMinimumWidth(170)
         self.audience_mode.currentIndexChanged.connect(self.refresh_audience)
         self.audience_tag.currentIndexChanged.connect(self.refresh_audience)
-        layout.addLayout(row(QLabel("Đăng ở đâu?"), self.audience_mode, self.job_groups, self.audience_tag))
-        self.audience_list = QListWidget()
-        self.audience_list.setMaximumHeight(105)
-        self.audience_list.itemChanged.connect(self.update_audience_count)
-        layout.addWidget(self.audience_list)
-        layout.addWidget(
-            hint(
-                "Các nhóm được thực hiện theo thứ tự hiển thị, từ trên xuống. Bạn có thể bỏ chọn nhóm không cần."
-            )
-        )
-        self.select_all_groups = button("Chọn tất cả nhóm đang hiện", lambda: self.check_audience(True))
-        self.clear_groups = button("Bỏ chọn", lambda: self.check_audience(False))
-        self.audience_count = hint("")
-        layout.addLayout(
+        audience.addLayout(
             row(
-                self.audience_count,
-                self.select_all_groups,
-                self.clear_groups,
-                button("Tạo danh sách đăng", lambda: self.guard(self.create_posting_batch), True),
+                QLabel("Đăng ở đâu?"),
+                self.audience_mode,
+                self.job_groups,
+                self.audience_tag,
+                button("Thêm nhóm", lambda: self.tabs.setCurrentIndex(1)),
             )
         )
-        self.batch_filter = QComboBox()
-        self.batch_filter.addItem("Tất cả lượt đăng", None)
-        self.batch_filter.currentIndexChanged.connect(self.batch_changed)
-        self.auto_send = QCheckBox("Tự đăng bài (ứng dụng bấm Đăng)")
-        self.auto_send.setChecked(True)
-        self.auto_send.setToolTip(
-            "Đang bật: ứng dụng sẽ bấm Đăng sau khi bạn xác nhận. Bỏ chọn nếu chỉ muốn điền bài và tự bấm Đăng."
+        self.audience_list = QListWidget()
+        self.audience_list.itemChanged.connect(self.update_audience_count)
+        audience.addWidget(self.audience_list, 1)
+        audience.addWidget(
+            hint(
+                "Tích các nhóm muốn đăng. Chọn theo nhãn để chọn nhanh nhiều nhóm; có thể bỏ tích nhóm không cần."
+            )
         )
+        self.select_all_groups = button("Chọn tất cả", lambda: self.check_audience(True))
+        self.clear_groups = button("Bỏ chọn tất cả", lambda: self.check_audience(False))
+        self.audience_count = hint("")
+        audience.addLayout(row(self.audience_count, self.select_all_groups, self.clear_groups))
+        self.review_summary = hint("")
+        review.addWidget(self.review_summary)
+        self.review_preview = QTextBrowser()
+        self.review_preview.setOpenExternalLinks(False)
+        review.addWidget(self.review_preview, 1)
+        self.review_groups = QListWidget()
+        self.review_groups.setMaximumHeight(90)
+        review.addWidget(self.review_groups)
+        self.review_images = QListWidget()
+        self.review_images.setIconSize(QSize(55, 55))
+        self.review_images.setMaximumHeight(85)
+        review.addWidget(self.review_images)
+        review.addWidget(
+            hint(
+                "Kiểm tra nội dung, ảnh và các nhóm ở trên. Facebook có thể hiển thị định dạng khác bản xem trước."
+            )
+        )
+        self.auto_send = QCheckBox("Tự bấm Đăng và chuyển sang nhóm tiếp theo")
+        self.auto_send.setChecked(True)
         self.group_delay = QSpinBox()
         self.group_delay.setRange(5, 300)
         self.group_delay.setValue(15)
         self.group_delay.setSuffix(" giây giữa các nhóm")
-        self.group_delay.show()
-        layout.addLayout(
-            row(QLabel("Danh sách đang làm"), self.batch_filter, self.auto_send, self.group_delay)
-        )
-        self.queue_progress = hint("Tạo danh sách đăng để theo dõi từng nhóm và tiếp tục khi cần.")
-        layout.addWidget(self.queue_progress)
+        review.addLayout(row(self.auto_send, self.group_delay))
+        review.addWidget(self.batch_name)
+        review.addWidget(button("Lưu đợt đăng để chạy sau", lambda: self.guard(self.save_reviewed_batch)))
+        self.batch_filter = QComboBox()
+        self.batch_filter.addItem("Tất cả lượt đăng", None)
+        self.batch_filter.currentIndexChanged.connect(self.batch_changed)
+        run.addLayout(row(QLabel("Đợt đăng đang xem"), self.batch_filter))
+        self.queue_progress = hint("Chọn một đợt đã tạo, hoặc Quay lại để tạo đợt đăng mới.")
+        run.addWidget(self.queue_progress)
         self.queue_progress_bar = QProgressBar()
         self.queue_progress_bar.setRange(0, 1)
-        layout.addWidget(self.queue_progress_bar)
-        begin = button("Bắt đầu / tiếp tục", lambda: self.guard(self.start_posting_queue), True)
-        following = button("Đã gửi · sang nhóm sau", lambda: self.guard(self.complete_queue_job))
-        skip = button("Bỏ qua nhóm này", lambda: self.guard(self.skip_queue_job))
-        self.begin_posting_button = begin
+        run.addWidget(self.queue_progress_bar)
+        self.current_action = hint("Sẵn sàng. Ứng dụng chỉ đăng sau khi bạn bấm Bắt đầu.")
+        run.addWidget(self.current_action)
+        self.problem_panel = QWidget()
+        problems = QVBoxLayout(self.problem_panel)
+        self.problem_help = hint("")
+        problems.addWidget(self.problem_help)
+        problems.addLayout(
+            row(
+                self.browser_button("Mở Facebook để kiểm tra", "login"),
+                self.browser_button("Mở nhóm đang chọn", "open_group"),
+            )
+        )
+        self.problem_details = QTextBrowser()
+        self.problem_details.setMaximumHeight(110)
+        self.problem_details.hide()
+        details = button(
+            "Xem chi tiết lỗi", lambda: self.problem_details.setVisible(not self.problem_details.isVisible())
+        )
+        problems.addWidget(details)
+        problems.addWidget(self.problem_details)
+        run.addWidget(self.problem_panel)
+        self.problem_panel.hide()
+        self.begin_posting_button = button(
+            "Bắt đầu tự đăng", lambda: self.guard(self.start_posting_queue), True
+        )
         self.posting_mode_hint = hint("")
+        run.addWidget(self.posting_mode_hint)
         self.auto_send.toggled.connect(self.update_posting_mode)
         self.update_posting_mode()
-        layout.addWidget(self.posting_mode_hint)
-        self.browser_buttons.extend([begin, following, skip])
-        layout.addLayout(row(begin, button("Tạm dừng", self.pause_posting_queue), following, skip))
-        layout.addLayout(
+        self.browser_buttons.append(self.begin_posting_button)
+        run.addLayout(row(self.begin_posting_button, button("Tạm dừng", self.pause_posting_queue)))
+        self.manual_posting_tools = QWidget()
+        manual = QVBoxLayout(self.manual_posting_tools)
+        toggle = button("Tùy chọn khác: xử lý bằng tay", lambda: None)
+        self.manual_tools_toggle = toggle
+        toggle.setCheckable(True)
+        toggle.toggled.connect(self.manual_posting_tools.setVisible)
+        run.addWidget(toggle)
+        run.addWidget(self.manual_posting_tools)
+        following = button("Tôi đã đăng · sang nhóm sau", lambda: self.guard(self.complete_queue_job))
+        skip = button("Bỏ qua nhóm này", lambda: self.guard(self.skip_queue_job))
+        self.browser_buttons.extend([following, skip])
+        manual.addLayout(
             row(
-                self.browser_button("Điền bài (nếu cần)", "fill"),
+                following,
+                skip,
+                self.browser_button("Điền bài đang mở", "fill"),
                 button("Đăng bản đang mở", lambda: self.guard(self.publish_open_draft)),
             )
         )
+        self.manual_posting_tools.hide()
         self.refresh_audience()
+        self.set_posting_step(0)
 
     def publish_open_draft(self):
         if self.busy:
@@ -128,6 +191,10 @@ class PostingMixin:
 
     def update_posting_mode(self, *args):
         automatic = self.auto_send.isChecked()
+        if hasattr(self, "manual_tools_toggle"):
+            self.manual_tools_toggle.setChecked(not automatic)
+        if hasattr(self, "posting_steps") and self.posting_steps.currentIndex() == 2:
+            self.posting_next.setText("Bắt đầu đăng" if automatic else "Chuẩn bị bài")
         self.begin_posting_button.setText("Bắt đầu tự đăng" if automatic else "Chỉ chuẩn bị bài")
         self.posting_mode_hint.setText(
             "TỰ ĐĂNG: mở nhóm → dán bài → tải ảnh → bấm Đăng. Tự cập nhật kết quả và chuyển nhóm tiếp theo."
@@ -300,7 +367,7 @@ class PostingMixin:
                 return job
         return None
 
-    def start_posting_queue(self):
+    def start_posting_queue(self, confirmed=False):
         if self.monitor_running:
             raise ValueError("Bấm Dừng kiểm tra và chờ thao tác hoàn tất trước khi đăng bài.")
         if self.busy or self.queue_active:
@@ -314,7 +381,7 @@ class PostingMixin:
             self.statusBar().showMessage("Danh sách này đã được xử lý hết.", 10000)
             return
         automatic = self.auto_send.isChecked()
-        if automatic:
+        if automatic and not confirmed:
             jobs = [entry for entry in self.store.batch_jobs(batch_id) if entry["status"] in READY]
             names = "\n".join(f"• {entry['group_name']}" for entry in jobs)
             if (
@@ -330,7 +397,9 @@ class PostingMixin:
                 != QMessageBox.StandardButton.Yes
             ):
                 return
+        if automatic:
             self.authorized_auto_batch = batch_id
+        self.set_posting_step(3)
         self.store.set_preference("last_batch", batch_id)
         self.queue_auto = automatic
         self.queue_batch_id = batch_id
@@ -338,9 +407,15 @@ class PostingMixin:
         self.dispatch_queue_job(job)
 
     def dispatch_queue_job(self, job):
+        self.queue_current_job = job
+        self.queue_current_total = len(self.store.batch_jobs(job["batch_id"]))
         self.refresh_batches(job["batch_id"])
         self.history_search.clear()
         self.refresh_jobs(job["id"])
+        self.problem_panel.hide()
+        self.current_action.setText(
+            f"Nhóm {job['position'] + 1}/{len(self.store.batch_jobs(job['batch_id']))}: {job['group_name']} · Đang chuẩn bị"
+        )
         self.queue_dispatching = True
         try:
             self.run_browser("publish" if self.queue_auto else "prepare")
@@ -362,6 +437,9 @@ class PostingMixin:
         if job is None:
             self.pause_posting_queue(announce=False)
             self.update_queue_progress()
+            self.current_action.setText(
+                "Đã hoàn tất đợt đăng. Xem kết quả từng nhóm bên dưới hoặc vào Bài đã đăng để kiểm tra duyệt."
+            )
             self.statusBar().showMessage(
                 "Đã xử lý hết danh sách. Hãy kiểm tra bài, lấy link và lưu minh chứng.", 20000
             )
