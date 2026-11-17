@@ -222,7 +222,7 @@ class BrowserWorker(QThread):
                     "message": "Chưa rõ kết quả gửi. Hãy xem lại Facebook trước khi gửi lại. "
                     + str(exc)[:600],
                 }
-            link = captured.link()
+            link = captured.wait_for_link()
         result = {
             **payload,
             "filled": True,

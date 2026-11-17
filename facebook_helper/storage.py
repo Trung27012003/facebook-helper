@@ -70,6 +70,8 @@ class Store:
             for field in ("sent_at", "checked_at", "first_visible_at", "check_outcome", "check_note"):
                 if field not in columns:
                     self.db.execute(f"ALTER TABLE jobs ADD COLUMN {field} TEXT NOT NULL DEFAULT ''")
+            if "hidden_at" not in columns:
+                self.db.execute("ALTER TABLE jobs ADD COLUMN hidden_at TEXT NOT NULL DEFAULT ''")
             if "allow_duplicate" not in columns:
                 self.db.execute("ALTER TABLE jobs ADD COLUMN allow_duplicate INTEGER NOT NULL DEFAULT 0")
             self.db.executescript("""
@@ -81,7 +83,7 @@ class Store:
                 CREATE INDEX IF NOT EXISTS events_job ON job_events(job_id, id);
                 CREATE TABLE IF NOT EXISTS preferences (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             """)
-            self.db.execute("PRAGMA user_version=5")
+            self.db.execute("PRAGMA user_version=6")
         self.recovered = []
 
     def recover_interrupted(self):
@@ -263,9 +265,22 @@ class Store:
                              WHERE e.job_id=j.id AND e.new_status='sending'
                              ORDER BY e.id DESC LIMIT 1), j.created_at) AS activity_at
             FROM jobs j LEFT JOIN batches b ON b.id=j.batch_id
+            WHERE j.hidden_at=''
             ORDER BY activity_at DESC, j.id DESC
         """)
         ]
+
+    def remove_posted_records(self, job_ids):
+        """Remove sent entries from the register, retaining receipts against reposts."""
+        ids = list(dict.fromkeys(job_ids))
+        with self.db:
+            jobs = [self.job(job_id) for job_id in ids]
+            if any(
+                j["status"] not in {"submitted", "pending", "published", "rejected", "removed"} for j in jobs
+            ):
+                raise ValueError("Chỉ xóa bản ghi của bài đã gửi. Lượt chưa gửi hoặc đang chạy được giữ lại.")
+            self.db.executemany("UPDATE jobs SET hidden_at=? WHERE id=?", [(now(), j) for j in ids])
+        return len(ids)
 
     def job(self, job_id):
         row = self.db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()

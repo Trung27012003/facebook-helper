@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.8.0 · Summernote
+## Cách dùng bản 0.8.1 · Summernote
 
 ### 1. Soạn bài
 
@@ -66,6 +66,10 @@ Bảng gồm đợt đăng, bài viết, nhóm, thời gian, kết quả gửi v
 Khoảng ngày tính theo giờ trên máy và gồm cả hai đầu. Cột **Thời gian** ưu tiên ngày gửi, rồi ngày thử gửi, cuối cùng là ngày tạo với lượt chưa gửi hoặc dữ liệu cũ thiếu ngày gửi. Không ghi ngày thay thế vào `sent_at`.
 
 Sau khi gửi, ứng dụng lấy permalink từ phản hồi gửi bài nếu nhận diện đúng thao tác/nội dung/nhóm, hoặc từ bài mới đúng nội dung trên trang. Việc lấy link chạy cả với bài chờ duyệt, không gọi kiểm tra duyệt. Facebook chưa cung cấp link thì lưu kết quả gửi và để trống link, vẫn tiếp tục nhóm sau. Không suy đoán link từ ID không rõ loại. Hỗ trợ link số và dạng `pfbid…`.
+
+**Xóa** → chọn xóa dòng đang chọn hoặc các bài đã gửi trong kết quả đang lọc. Có xác nhận số lượng; không xóa bài Facebook, bài soạn hoặc nhóm. Lượt chưa gửi/đang chạy được giữ. Biên nhận nội bộ của lượt gửi được giữ để bảo vệ tiến độ và cảnh báo đăng trùng; chỉ gỡ bản ghi khỏi trang Bài đã đăng.
+
+Phản hồi chỉ có `post_id`/`legacy_story_hideable_id` hợp lệ cũng được dùng để lưu link, kể cả chờ duyệt. Chỉ nhận các trường mã bài từ phản hồi của đúng thao tác gửi; không dùng ID người dùng hay ID GraphQL không rõ loại. Chờ thêm tối đa 3 giây nếu phản hồi gửi vẫn đang tải. Link bài chờ duyệt có thể chưa mở được trước khi quản trị viên duyệt. Không có URL hoặc mã bài hợp lệ thì vẫn ghi “Chưa có link”; không thể bảo đảm lấy link cho mọi bài Facebook.
 
 Kiểm tra duyệt định kỳ đã tắt, kể cả khi bản cũ từng bật. Dữ liệu cũ được giữ; không còn phần lịch sử trên giao diện quản lý.
 
@@ -148,7 +152,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Checklist kiểm thử toàn bộ](docs/TEST-CHECKLIST.md) và [bản Excel để đánh dấu](docs/TEST-CHECKLIST.xlsx) gồm đầu mục, ưu tiên, kết quả mong đợi và mẫu ghi lỗi.
 
-Xem [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

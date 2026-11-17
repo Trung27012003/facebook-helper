@@ -1,11 +1,9 @@
-**Facebook Helper 0.8.0 — đơn giản trang Bài đã đăng**
+**Facebook Helper 0.8.1 — xóa bản ghi và lấy link bài chờ duyệt**
 
-- Chọn đợt đăng, từ ngày–đến ngày, nhập từ khóa và bấm Tìm kiếm.
-- Bảng hiển thị trực tiếp link. Chọn dòng để Mở bài, Sao chép link hoặc Xuất Excel kết quả.
-- Bỏ nút lọc nhanh, lịch sử và kiểm tra duyệt. Tắt kiểm tra định kỳ của bản cũ.
-- Lưu link sau gửi độc lập với duyệt bài; nhận link từ phản hồi gửi phù hợp hoặc bài mới đúng nội dung. Hỗ trợ permalink pfbid. Nếu Facebook chưa trả link, vẫn lưu Đã gửi và chuyển nhóm.
-- Thu gọn phần đầu cửa sổ và hướng dẫn.
+- Nút Xóa trên Bài đã đăng: xóa dòng đang chọn hoặc các bài đã gửi trong kết quả lọc, có xác nhận số lượng. Không xóa bài Facebook, bài soạn hoặc nhóm. Giữ biên nhận nội bộ chống gửi trùng.
+- Nhận link cả khi phản hồi gửi chỉ có mã bài hợp lệ, không có URL; hỗ trợ nhóm có tên khi xác minh được mã nhóm qua canonical. Không cần chờ duyệt.
+- Chờ thêm tối đa 3 giây cho phản hồi gửi đang tải, không bấm Đăng lại. Mã người dùng, ID không rõ loại và phản hồi sai nhóm bị bỏ qua.
 
-Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy `FacebookHelper/FacebookHelper.exe`. Dữ liệu và phiên đăng nhập cũ được giữ. Không cần cài Python.
+Link chờ duyệt có thể chưa mở được. Nếu Facebook không cung cấp mã/link hợp lệ, vẫn lưu Đã gửi và chuyển nhóm; không bảo đảm lấy link cho mọi bài. Kiểm thử dùng mô phỏng, chưa kiểm chứng tài khoản Facebook thật.
 
-Kiểm thử trình duyệt dùng mô phỏng; chưa kiểm chứng phiên Facebook thật. Bản Windows được kiểm tra khởi động, trình soạn thảo, Chromium và đóng ứng dụng trước khi phát hành.
+Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy FacebookHelper/FacebookHelper.exe. Không cần cài Python. Dữ liệu cũ được giữ, schema nâng lên 6.

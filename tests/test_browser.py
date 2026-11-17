@@ -657,10 +657,12 @@ def test_pending_submission_saves_rendered_link_without_approval(page, store):
     assert result["url"].endswith("/posts/777/")
 
 
-def test_pending_submission_captures_own_response_and_removes_listener(page, store):
+@pytest.mark.parametrize("field", ["url", "post_id", "legacy_story_hideable_id"])
+@pytest.mark.parametrize("named", [False, True])
+def test_pending_submission_captures_own_response_and_removes_listener(page, store, field, named):
     import json
 
-    group = "https://www.facebook.com/groups/123/"
+    group = "https://www.facebook.com/groups/jobs/" if named else "https://www.facebook.com/groups/123/"
     html = PUBLISH_COMPOSER.replace(
         "window.submitted=true;",
         """window.submitted=true;
@@ -676,11 +678,25 @@ def test_pending_submission_captures_own_response_and_removes_listener(page, sto
         if "/api/graphql" in r.request.url:
             r.fulfill(
                 content_type="application/json",
-                body=json.dumps({"data": {"story_create": {"story": {"url": group + "posts/777/"}}}}),
+                body=json.dumps(
+                    {
+                        "data": {
+                            "story_create": {
+                                "story": {
+                                    field: "https://www.facebook.com/groups/123/posts/777/"
+                                    if field == "url"
+                                    else "777"
+                                }
+                            }
+                        }
+                    }
+                ),
             )
         else:
             r.fulfill(content_type="text/html; charset=utf-8", body=html)
 
+    if named:
+        html = '<link rel="canonical" href="https://www.facebook.com/groups/123/">' + html
     page.route("https://www.facebook.com/**", route)
     worker = BrowserWorker(store.root)
     worker.page = page
@@ -689,4 +705,5 @@ def test_pending_submission_captures_own_response_and_removes_listener(page, sto
     )
     assert result["sent"] and result["status"] == "pending" and result["link_captured"]
     assert result["url"] == group + "posts/777/"
-    assert not page._impl_obj.listeners("requestfinished")
+    for event in ("request", "requestfinished", "requestfailed"):
+        assert not page._impl_obj.listeners(event)

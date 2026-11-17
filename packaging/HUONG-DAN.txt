@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.8.0 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.8.1 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -30,6 +30,10 @@ Chọn đợt đăng, từ ngày–đến ngày và nhập từ khóa nếu cầ
 Chọn một dòng để Mở bài hoặc Sao chép link. Xuất Excel lấy kết quả đang tìm.
 Ứng dụng lưu link ngay khi nhận diện được từ lần gửi, kể cả bài chờ duyệt.
 Nếu Facebook chưa trả link, vẫn lưu Đã gửi và chuyển nhóm sau.
+Nút Xóa cho phép gỡ dòng đang chọn hoặc bài đã gửi trong kết quả lọc.
+Chỉ xóa khỏi danh sách phần mềm; bài Facebook, bài soạn và nhóm được giữ.
+Nếu Facebook trả mã bài chờ duyệt, ứng dụng cũng lưu link từ mã đó.
+Link có thể chưa mở được khi đang chờ duyệt. Không có mã/link hợp lệ thì chưa lấy được link.
 Không cần kiểm tra duyệt. Không còn lịch sử và các nút lọc nhanh trên trang này.
 
 Dùng Tiếp tục đợt đăng để mở công việc chưa xong.

@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMenu,
     QMessageBox,
     QTableWidget,
     QTableWidgetItem,
@@ -91,7 +92,14 @@ class PostManager(QWidget):
         self.copy_button = button("Sao chép link", self.copy_link)
         self.export_button = button("Xuất Excel", self.export_filtered)
         self.summary = QLabel()
-        actions = row(self.open_button, self.copy_button, self.export_button)
+        self.delete_button = button("Xóa", lambda: None)
+        menu = QMenu(self.delete_button)
+        self.delete_current_action = menu.addAction("Xóa bài đã chọn", lambda: self.delete_records(False))
+        self.delete_filtered_action = menu.addAction(
+            "Xóa kết quả đang lọc", lambda: self.delete_records(True)
+        )
+        self.delete_button.setMenu(menu)
+        actions = row(self.open_button, self.copy_button, self.export_button, self.delete_button)
         actions.addStretch()
         actions.addWidget(self.summary)
         layout.addLayout(actions)
@@ -189,6 +197,40 @@ class PostManager(QWidget):
         self.open_button.setEnabled(available)
         self.copy_button.setEnabled(available)
         self.export_button.setEnabled(bool(self.filtered_jobs))
+        current = self.current_job_record()
+        self.delete_current_action.setEnabled(bool(current and self.can_remove(current)))
+        count = sum(self.can_remove(j) for j in self.filtered_jobs)
+        self.delete_filtered_action.setEnabled(bool(count))
+        self.delete_filtered_action.setText(f"Xóa kết quả đang lọc ({count} bài đã gửi)")
+        self.delete_button.setEnabled(bool(count))
+
+    @staticmethod
+    def can_remove(job):
+        return job["status"] in {"submitted", "pending", "published", "rejected", "removed"}
+
+    def delete_records(self, filtered=False):
+        current = self.current_job_record()
+        jobs = self.filtered_jobs[:] if filtered else ([current] if current else [])
+        ids = [j["id"] for j in jobs if self.can_remove(j)]
+        if not ids:
+            return
+        if (
+            QMessageBox.question(
+                self,
+                "Xóa khỏi danh sách",
+                f"Xóa {len(ids)} bản ghi đã gửi khỏi danh sách?\nBài trên Facebook vẫn được giữ.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
+            return
+        try:
+            count = self.store.remove_posted_records(ids)
+            self.refresh()
+            self.summary.setText(f"Đã xóa {count} bản ghi · Còn {len(self.filtered_jobs)} bài")
+        except Exception as exc:
+            QMessageBox.warning(self, "Chưa xóa được", str(exc))
 
     def open_link(self):
         if self.selected_link():
