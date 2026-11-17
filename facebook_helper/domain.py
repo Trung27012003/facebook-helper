@@ -10,6 +10,7 @@ STATUSES = {
     "pending": "Chờ duyệt",
     "published": "Đã hiển thị",
     "rejected": "Bị từ chối",
+    "removed": "Bị gỡ",
     "error": "Có lỗi",
     "sending": "Đang gửi · chưa có kết quả",
     "submitted": "Đã gửi · chưa xác minh hiển thị",

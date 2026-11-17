@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.5.0 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.6.0 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, giải nén toàn bộ ZIP rồi mở FacebookHelper.exe.
 Giữ _internal đi kèm. Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
@@ -24,3 +24,19 @@ Summernote và dữ liệu cũ được giữ. Không còn kiểm tra số ký t
 
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
+
+MỚI TRONG 0.6
+Tab Quản lý bài đăng: lọc ngày gửi thực tế, nhóm, nhãn, bài và trạng thái.
+Giữ Ctrl/Shift để chọn nhiều bài; Kiểm tra bài đã chọn hoặc Kiểm tra các bài đang lọc.
+Tự kiểm tra mặc định tắt. Khi bật, chỉ chạy nếu ứng dụng mở và không đăng bài.
+Mặc định 30 phút/lần, tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả mỗi đợt.
+Xem Kết quả kiểm tra, thời gian kiểm tra và Lịch sử trạng thái để biết bằng chứng.
+Chưa xác minh được không đồng nghĩa bị xóa; chỉ mở được link không có nghĩa đã duyệt.
+Bài đã hiển thị có thể kiểm tra lại bằng tay. Dừng kiểm tra hủy các bài còn lại;
+bài đang đọc sẽ hoàn tất. Xuất Excel được theo bài đã chọn hoặc bộ lọc.
+
+Cảnh báo trùng dựa trên nội dung và ảnh, kể cả đổi tên bài.
+Muốn đăng lại có chủ đích hãy tạo lượt mới và xác nhận cảnh báo.
+Nếu ứng dụng tắt khi đang gửi, lượt đó thành Chưa rõ kết quả khi mở lại.
+Dùng Tiếp tục danh sách còn lại; kiểm tra các lượt chưa rõ trước khi gửi tiếp.
+Không tự đăng lại khi khởi động. Ngày gửi cũ chưa biết sẽ để trống.

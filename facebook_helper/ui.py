@@ -36,6 +36,7 @@ from .editor import SummernoteEditor
 from .manager import PostManager
 from .posting import SENT, PostingMixin
 from .templates import RecruitmentDialog
+from .tracking import TrackingMixin
 from .widgets import button, hint, row
 
 STYLE = """
@@ -62,10 +63,11 @@ def local_time(value):
     return datetime.fromisoformat(value).astimezone().strftime("%d/%m/%Y %H:%M")
 
 
-class MainWindow(PostingMixin, QMainWindow):
+class MainWindow(TrackingMixin, PostingMixin, QMainWindow):
     def __init__(self, store):
         super().__init__()
         self.store = store
+        store.recover_interrupted()
         self.post_id = None
         self.group_id = None
         self.dirty = False
@@ -89,7 +91,12 @@ class MainWindow(PostingMixin, QMainWindow):
         heading = QLabel("Facebook Helper")
         heading.setStyleSheet("font-size: 25px; font-weight: 700;")
         layout.addWidget(heading)
-        layout.addWidget(hint("Không gian làm việc cá nhân · Soạn tin, chuẩn bị đăng và lưu minh chứng"))
+        layout.addLayout(
+            row(
+                hint("Soạn bài → Chọn nhóm → Xem lại → Chạy · Tiến độ luôn được lưu trên máy"),
+                button("Tiếp tục danh sách còn lại", lambda: self.guard(self.resume_saved_queue)),
+            )
+        )
         self.tabs = QTabWidget()
         self.tabs.addTab(self.build_editor(), "1. Soạn bài")
         self.tabs.addTab(self.build_groups(), "2. Nhóm & nhãn")
@@ -103,7 +110,16 @@ class MainWindow(PostingMixin, QMainWindow):
         self.refresh_groups()
         self.refresh_jobs()
         self.tabs.currentChanged.connect(lambda *_: self.post_manager.refresh())
-        self.statusBar().showMessage("Sẵn sàng · Dữ liệu được lưu trên máy này")
+        self.setup_tracking()
+        saved_batch = self.store.preference("last_batch")
+        if saved_batch.isdigit():
+            self.refresh_batches(int(saved_batch))
+            self.refresh_jobs()
+        self.statusBar().showMessage(
+            f"Đã khôi phục {len(store.recovered)} lượt bị gián đoạn. Kiểm tra trước khi gửi lại."
+            if store.recovered
+            else "Sẵn sàng · Tiến độ được lưu. Có thể tiếp tục danh sách còn lại."
+        )
 
     def guard(self, callback):
         try:
@@ -597,24 +613,20 @@ class MainWindow(PostingMixin, QMainWindow):
             raise ValueError("Cần lưu ít nhất một bài viết và một nhóm trước.")
         if self.dirty and self.post_id == post_id:
             raise ValueError("Bài đang có thay đổi chưa lưu. Hãy lưu trước khi tạo lượt đăng.")
-        previous = next(
-            (job for job in self.store.jobs() if job["post_id"] == post_id and job["group_id"] == group_id),
-            None,
-        )
+        previous = self.store.post_duplicates(post_id, [group_id])
         if (
             previous
             and QMessageBox.question(
                 self,
-                "Bài đã có lịch sử",
-                f"Bài này đã có lượt đăng trong nhóm lúc {local_time(previous['created_at'])}. "
-                "Vẫn tạo lượt mới?",
+                "Cảnh báo trùng nội dung",
+                "Nội dung và ảnh này đã có lượt trong nhóm. Vẫn tạo lượt mới để đăng lại?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
             != QMessageBox.StandardButton.Yes
         ):
             return
-        job_id = self.store.create_job(post_id, group_id)
+        job_id = self.store.create_job(post_id, group_id, allow_duplicate=bool(previous))
         self.refresh_jobs(job_id)
 
     def current_job(self):
@@ -721,6 +733,8 @@ class MainWindow(PostingMixin, QMainWindow):
         self.guard(action)
 
     def save_status(self):
+        if self.busy or self.monitor_running:
+            raise ValueError("Chờ thao tác trình duyệt hoàn tất trước khi sửa trạng thái.")
         if self.queue_active and self.queue_auto:
             self.pause_posting_queue(announce=False)
         job = self.current_job()
@@ -782,6 +796,8 @@ class MainWindow(PostingMixin, QMainWindow):
         return widget
 
     def run_browser(self, action):
+        if self.monitor_running:
+            raise ValueError("Bấm Dừng kiểm tra và chờ bài đang đọc hoàn tất trước khi thao tác trình duyệt.")
         if action == "login" and self.queue_active:
             self.pause_posting_queue(announce=False)
         if self.queue_active and self.queue_auto and not self.queue_dispatching and action != "login":
@@ -801,7 +817,25 @@ class MainWindow(PostingMixin, QMainWindow):
             if action in {"capture", "screenshot"} and not job["url"]:
                 raise ValueError("Hãy lưu link bài cụ thể trước.")
         if action in {"publish", "publish_current"}:
-            self.store.update_job(payload["job_id"], status="sending")
+            if job["status"] in SENT:
+                raise ValueError(
+                    "Lượt này đã được xử lý. Nếu muốn đăng lại, hãy tạo lượt mới và xác nhận cảnh báo trùng."
+                )
+            if job["status"] in {"sending", "uncertain"}:
+                raise ValueError(
+                    "Lượt này chưa rõ kết quả. Kiểm tra Facebook trước khi gửi lại để tránh trùng."
+                )
+            if not job["allow_duplicate"] and self.store.duplicates(
+                job["body"],
+                json.loads(job["images"]),
+                [job["group_url"]],
+                exclude_id=job["id"],
+                sent_only=True,
+            ):
+                raise ValueError(
+                    "Đã có lượt cùng nội dung và ảnh được gửi hoặc chưa rõ kết quả trong nhóm. Kiểm tra lịch sử; nếu muốn đăng lại hãy tạo danh sách mới và xác nhận cảnh báo trùng."
+                )
+            self.store.update_job(payload["job_id"], source="browser", status="sending")
         self.busy = True
         for widget in self.browser_buttons:
             widget.setEnabled(False)
@@ -818,6 +852,10 @@ class MainWindow(PostingMixin, QMainWindow):
 
     def browser_done(self, action, result):
         self.finish_browser()
+        if action == "check_status":
+            if not self.guard(lambda: (self.complete_check(result), True)[1]):
+                self.stop_checks()
+            return
 
         def save():
             if action == "fill" or (
@@ -833,6 +871,7 @@ class MainWindow(PostingMixin, QMainWindow):
                 if self.store.job(result["job_id"])["status"] not in SENT:
                     self.store.update_job(
                         result["job_id"],
+                        source="browser",
                         status=result["status"]
                         if result.get("sent")
                         and not result.get("uncertain")
@@ -863,6 +902,10 @@ class MainWindow(PostingMixin, QMainWindow):
 
     def browser_failed(self, action, message, payload):
         self.finish_browser()
+        if action == "check_status":
+            self.stop_checks()
+            self.guard(lambda: self.complete_check({**payload, "outcome": "unknown", "message": message}))
+            return
         self.pause_posting_queue(announce=False)
         if action in {"publish", "publish_current", "prepare", "fill"}:
             self.pause_posting_queue(announce=False)
@@ -906,6 +949,13 @@ class MainWindow(PostingMixin, QMainWindow):
         Bạn có thể Tạm dừng hoặc Bỏ qua nhóm. Chưa rõ kết quả sẽ dừng để bạn kiểm tra, tránh gửi trùng.</p>
         <p>Nếu không mở được ô soạn, danh sách dừng: trên Facebook bấm Viết gì đó/Tạo bài viết, rồi
         quay lại bấm Điền bài. Có thể dùng Sao chép bài và Mở thư mục ảnh để đăng bằng tay.</p>
+        <h3>Theo dõi sau đăng và tiếp tục công việc</h3>
+        <p>Tab Quản lý bài đăng cho phép lọc theo ngày gửi thực tế, ngày tạo, ngày kiểm tra, bài, nhóm, nhãn và trạng thái.
+        Giữ Ctrl/Shift để chọn nhiều bài rồi Kiểm tra bài đã chọn. Có thể bật kiểm tra định kỳ khi ứng dụng đang mở và không đăng bài.
+        Mỗi đợt tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả. Xem lần kiểm tra và lịch sử để biết bằng chứng.</p>
+        <p>Chưa xác minh được không đồng nghĩa bị xóa. Link mở được không tự chứng minh đã duyệt. Lượt cũ chưa biết ngày gửi sẽ để trống.
+        Sau gián đoạn, dùng Tiếp tục danh sách còn lại. Lượt đang gửi chuyển thành Chưa rõ kết quả và không tự gửi lại.
+        Nếu muốn đăng lại cùng nội dung/ảnh, tạo lượt mới và xác nhận cảnh báo trùng.</p>
         <h3>Link bài và minh chứng</h3>
         <p>Đã bấm Đăng không có nghĩa bài đã được duyệt. Mở phần Link bài, trạng thái &amp; ảnh minh chứng. Mở bài thật để kiểm tra, lấy link đang mở
         hoặc dán link bài, rồi lưu đúng trạng thái. Mở link bài, kiểm tra vị trí cuộn, Chụp màn hình
@@ -950,6 +1000,8 @@ class MainWindow(PostingMixin, QMainWindow):
             self.close()
 
     def closeEvent(self, event):
+        self.monitor_timer.stop()
+        self.stop_checks()
         self.pause_posting_queue(announce=False)
         if self.closing:
             if self.browser.isRunning():
@@ -958,6 +1010,7 @@ class MainWindow(PostingMixin, QMainWindow):
                 event.accept()
             return
         if not self.confirm_discard() or not self.confirm_group_switch():
+            self.configure_tracking()
             event.ignore()
             return
         self.dirty = False

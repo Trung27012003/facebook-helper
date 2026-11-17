@@ -79,6 +79,14 @@ class BrowserWorker(QThread):
                     pass
 
     def execute(self, action, payload):
+        if action == "check_status":
+            from .monitoring import check_post
+
+            inspection = self.context.new_page()
+            try:
+                return {**payload, **check_post(inspection, payload)}
+            finally:
+                inspection.close()
         if action in {"fill", "prepare", "publish"} and payload.get("body_html") == "":
             raise ValueError(
                 "Lượt đăng cũ chỉ có chữ thuần. Hãy lưu lại bài bằng Summernote rồi tạo danh sách đăng mới để dùng định dạng; không tự đăng bản chữ thường."
@@ -355,13 +363,13 @@ def open_composer(page):
     return True
 
 
-def check_platform_notice(page):
+def check_platform_notice(page, checking=False):
     if re.search(r"/(?:checkpoint|challenge|login)(?:/|\?|$)", page.url):
         raise ValueError("Facebook yêu cầu đăng nhập/xác thực. Đã dừng; hãy xử lý trực tiếp trên Facebook.")
-    pattern = re.compile(
-        r"temporarily blocked|we limit how often|automated behavio|couldn.t post|post.{0,60}(?:removed|deleted)|tạm thời bị chặn|hạn chế.{0,40}đăng|không thể đăng|bài viết.{0,60}(?:bị xóa|đã bị gỡ|đã bị xóa)",
-        re.I,
-    )
+    expression = r"temporarily blocked|we limit how often|automated behavio|couldn.t post|tạm thời bị chặn|hạn chế.{0,40}đăng|không thể đăng"
+    if not checking:
+        expression += r"|post.{0,60}(?:removed|deleted)|bài viết.{0,60}(?:bị xóa|đã bị gỡ|đã bị xóa)"
+    pattern = re.compile(expression, re.I)
     for notice in page.locator('[role="alert"], [role="alertdialog"], [role="status"]').all():
         if notice.is_visible():
             text = notice.inner_text()

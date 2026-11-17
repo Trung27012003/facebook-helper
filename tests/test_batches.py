@@ -79,7 +79,7 @@ def test_migrating_existing_v1_database_preserves_history(tmp_path):
             assert upgraded.job(1)["note"] == "Ghi chú cũ"
             assert upgraded.job(1)["status"] == "pending"
             assert upgraded.job(1)["batch_id"] is None
-            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 3
+            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 4
         finally:
             upgraded.close()
 

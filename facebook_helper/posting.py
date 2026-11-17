@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 
 from .widgets import button, hint, row
 
-SENT = {"submitted", "pending", "published", "rejected", "skipped"}
+SENT = {"submitted", "pending", "published", "rejected", "removed", "skipped"}
 READY = {"draft", "prepared", "error"}
 
 
@@ -208,17 +208,15 @@ class PostingMixin:
             raise ValueError("Chọn một bài đã lưu và ít nhất một nhóm trước nhé.")
         if self.dirty and self.post_id == post_id:
             raise ValueError("Bài đang có thay đổi chưa lưu. Hãy lưu bài trước nhé.")
-        duplicates = {
-            job["group_name"]
-            for job in self.store.jobs()
-            if job["post_id"] == post_id and job["group_id"] in group_ids
-        }
+        duplicates = {job["group_name"] for job in self.store.post_duplicates(post_id, group_ids)}
         if (
             duplicates
             and QMessageBox.question(
                 self,
                 "Bài đã có lịch sử ở một số nhóm",
-                "Bài này đã có lượt đăng ở: " + ", ".join(sorted(duplicates)) + ".\nVẫn tạo danh sách mới?",
+                "Cùng nội dung và ảnh đã có lượt ở: "
+                + ", ".join(sorted(duplicates))
+                + ".\nVẫn tạo danh sách mới?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -228,7 +226,9 @@ class PostingMixin:
         audience = (
             self.audience_tag.currentText() if self.audience_mode.currentIndex() == 2 else "Tự chọn nhóm"
         )
-        batch_id = self.store.create_batch(post_id, group_ids, self.batch_name.text(), audience)
+        batch_id = self.store.create_batch(
+            post_id, group_ids, self.batch_name.text(), audience, allow_duplicate=bool(duplicates)
+        )
         self.refresh_batches(batch_id)
         first = self.store.batch_jobs(batch_id)[0]
         self.refresh_jobs(first["id"])
@@ -252,6 +252,8 @@ class PostingMixin:
         self.update_queue_progress()
 
     def batch_changed(self, *args):
+        if self.batch_filter.currentData() is not None:
+            self.store.set_preference("last_batch", self.batch_filter.currentData())
         self.pause_posting_queue(announce=False)
         self.refresh_jobs()
         self.update_queue_progress()
@@ -267,7 +269,8 @@ class PostingMixin:
             )
             return
         done = sum(
-            job["status"] in {"submitted", "pending", "published", "rejected", "skipped"} for job in jobs
+            job["status"] in {"submitted", "pending", "published", "rejected", "removed", "skipped"}
+            for job in jobs
         )
         self.queue_progress_bar.setRange(0, len(jobs))
         self.queue_progress_bar.setValue(done)
@@ -298,6 +301,8 @@ class PostingMixin:
         return None
 
     def start_posting_queue(self):
+        if self.monitor_running:
+            raise ValueError("Bấm Dừng kiểm tra và chờ thao tác hoàn tất trước khi đăng bài.")
         if self.busy or self.queue_active:
             raise ValueError("Danh sách đang được thực hiện. Bấm Tạm dừng trước khi bắt đầu lại.")
         batch_id = self.batch_filter.currentData()
@@ -326,6 +331,7 @@ class PostingMixin:
             ):
                 return
             self.authorized_auto_batch = batch_id
+        self.store.set_preference("last_batch", batch_id)
         self.queue_auto = automatic
         self.queue_batch_id = batch_id
         self.queue_active = True
@@ -419,6 +425,7 @@ class PostingMixin:
             if status == "submitted":
                 self.store.update_job(
                     job["id"],
+                    source="manual_sent",
                     status="submitted",
                     note="Người dùng báo đã bấm Đăng; cần kiểm tra trước khi tiếp tục.",
                 )
@@ -430,7 +437,9 @@ class PostingMixin:
                 url, ok = QInputDialog.getText(self, "Link bài đã hiển thị", "Dán link của bài vừa đăng:")
                 if not ok:
                     return
-            self.store.update_job(job["id"], status=status, url=url, note=self.job_note.text())
+            self.store.update_job(
+                job["id"], source="manual_sent", status=status, url=url, note=self.job_note.text()
+            )
         self.continue_after_result(job["batch_id"])
 
     def continue_after_result(self, batch_id):
