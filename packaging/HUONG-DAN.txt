@@ -1,4 +1,4 @@
-FACEBOOK HELPER 0.7.0 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.7.1 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -41,3 +41,9 @@ Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cả
 
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
+
+SỬA LỖI 0.7.1
+Nháp của bản cũ được khôi phục thành bài mới để tránh ghi đè bài đã lưu.
+Tìm bài đọc toàn bộ nội dung/hashtag. Hoàn tác giữ đúng lịch sử của bài đang mở.
+Nhận diện link sau gửi không chỉ dựa vào tiêu đề. Thiếu bằng chứng giữ Đã gửi.
+Không có thêm chặn số ký tự trước khi gửi.

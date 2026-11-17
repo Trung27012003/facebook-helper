@@ -75,7 +75,7 @@ $('#editor').summernote({lang:'vi-VN',height:400,minHeight:180,dialogsInBody:tru
  toolbar:[['style',['style']],['font',['bold','italic','underline','clear']],['fontname',['fontname']],['fontsize',['fontsize']],['color',['color']],['para',['ul','ol','paragraph']],['table',['table']],['insert',['link','hr']],['view',['fullscreen','codeview','help']]],
  callbacks:{onChange:notify,onKeydown(e){plainPaste=(e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key.toLowerCase()==='v';},onPaste(event){event.preventDefault();const data=(event.originalEvent||event).clipboardData;if(data)paste(data.getData('text/html'),data.getData('text/plain'),plainPaste);plainPaste=false;},onImageUpload(){if(bridge)bridge.notice('Dùng nút Thêm ảnh để đính kèm ảnh tuyển dụng.');}}});
 window.editorApi={snapshot,cleanHTML,plainHTML,paste,
- setContent(html,version){if(typeof version==='number')generation=version;programmatic++;try{$('#editor').summernote('code',cleanHTML(html,/qrichtext|-qt-/i.test(html)));}finally{programmatic--;}return snapshot();},
+ setContent(html,version){if(typeof version==='number')generation=version;programmatic++;try{$('#editor').summernote('code',cleanHTML(html,/qrichtext|-qt-/i.test(html)));$('#editor').summernote('commit');}finally{programmatic--;}return snapshot();},
  command(name,value){$('#editor').summernote(name,value);return snapshot();},
  placeholder(value){$('.note-placeholder').text(value);},
  focus(){$('#editor').summernote('focus');},

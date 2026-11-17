@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.7.0 · Summernote
+## Cách dùng bản 0.7.1 · Summernote
 
 ### 1. Soạn bài
 
@@ -46,6 +46,8 @@ Mở **Hướng dẫn nhanh** nếu cần: đăng nhập Facebook trong cửa s�
 **Lưu đợt đăng để chạy sau** chỉ lưu danh sách, không gửi Facebook. Có thể chuẩn bị nhiều đợt cho nhiều bài, rồi mở đợt đã lưu để Bắt đầu / tiếp tục. Mỗi lượt giữ nội dung và ảnh tại thời điểm tạo. Việc tiếp tục đợt đã lưu có xác nhận riêng trước khi gửi.
 
 Sau mỗi bài, hệ thống tự cập nhật kết quả gửi và chuyển nhóm sau thời gian chờ. Không cần xác nhận giữa các nhóm; chờ duyệt không làm dừng danh sách. Lỗi hoặc chưa rõ kết quả sẽ dừng để tránh trùng. **Chỉ chuẩn bị bài** sẽ điền bài nhưng không bấm Đăng; công cụ xử lý bằng tay tự hiện để bạn báo kết quả rồi sang nhóm sau.
+
+Bản 0.7.1 sửa lỗi khôi phục nháp khi mã bài bị dùng lại, tìm kiếm quá 250 ký tự, Hoàn tác khi nạp bài và nhận diện link chỉ trùng tiêu đề. Nháp cũ thiếu định danh được khôi phục thành bài mới để giữ bài đã lưu.
 
 ### Bản nháp tự lưu
 

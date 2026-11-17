@@ -303,6 +303,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         for post in self.store.posts():
             item = QListWidgetItem(post["title"])
             item.setData(Qt.ItemDataRole.UserRole, post["id"])
+            item.setData(Qt.ItemDataRole.UserRole + 1, post["plain"] + "\n" + post["tags"])
             item.setToolTip(post["plain"][:250])
             self.post_list.addItem(item)
         self.filter_posts()
@@ -312,7 +313,9 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         query = self.search.text().casefold()
         for index in range(self.post_list.count()):
             item = self.post_list.item(index)
-            item.setHidden(query not in (item.text() + " " + item.toolTip()).casefold())
+            item.setHidden(
+                query not in (item.text() + " " + (item.data(Qt.ItemDataRole.UserRole + 1) or "")).casefold()
+            )
 
     def load_post(self, item):
         if not self.confirm_discard():

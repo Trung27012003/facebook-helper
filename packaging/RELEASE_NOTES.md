@@ -1,14 +1,16 @@
-**Facebook Helper 0.7.0 — Windows 10/11 64-bit**
+**Facebook Helper 0.7.1 — sửa lỗi phát hiện khi kiểm thử checklist**
 
-Đóng bản cũ, sao lưu dữ liệu, giải nén toàn bộ ZIP vào thư mục mới rồi chạy `FacebookHelper/FacebookHelper.exe`. Giữ `_internal` đi kèm. Dữ liệu cũ được giữ.
+Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới và chạy `FacebookHelper/FacebookHelper.exe`.
 
-- **Đăng bài qua bốn bước:** Chọn bài → Chọn nơi đăng → Xem lại nội dung, ảnh và nhóm → Bắt đầu. Nếu dữ liệu thay đổi sau khi xem lại, ứng dụng yêu cầu xem lại. Nút tiếp tục/bắt đầu nằm cố định dưới vùng cuộn.
-- **Đăng bài này:** từ trình soạn, lưu và chuyển thẳng vào luồng đăng. Có thể lưu đợt đăng để chạy sau, chuẩn bị nhiều bài trước.
-- **Bảng kết quả dễ đọc:** năm cột, có ô tích và chọn tất cả; không cần Ctrl/Shift. Lọc nhanh Hôm nay, 7 ngày qua, Chờ duyệt, Cần xử lý. Bộ lọc khác thu gọn. Link, ghi chú và lịch sử nằm ở Xem chi tiết.
-- **Hướng dẫn lần đầu:** các nút đăng nhập, thêm nhóm và soạn bài; có thể ẩn và mở lại từ đầu cửa sổ.
-- **Tự lưu nháp:** lưu riêng sau khoảng 1,2 giây ngừng nhập và trước khi đóng. Khôi phục chữ, định dạng, hashtag và ảnh khi mở lại. Không tự ghi đè bài đã lưu hoặc tự đăng nháp. Bấm Lưu bài để đưa vào danh sách bài có thể đăng.
-- **Xử lý lỗi rõ hơn:** hướng dẫn đăng nhập lại, kiểm tra mạng hoặc mở nhóm; chi tiết kỹ thuật mở khi cần. Công cụ xử lý bằng tay thu gọn và tự hiện khi chọn chế độ chỉ chuẩn bị.
+Đã sửa bốn lỗi được tái hiện bằng kiểm thử:
 
-Tự đăng lần lượt, chống trùng, tiếp tục sau gián đoạn và kiểm tra trạng thái của bản 0.6 được giữ. Đã gửi chưa có nghĩa đã duyệt; chưa xác minh không tự coi là bị xóa. Kiểm tra định kỳ chỉ chạy khi ứng dụng mở và không đăng bài. Chưa có hẹn giờ đăng.
+- Khôi phục nháp có thể nhận nhầm một bài mới dùng lại mã số bài đã xóa. Bài được bổ sung định danh ổn định; chỉ nối lại nháp khi đúng bài gốc. Nháp từ bản cũ thiếu định danh sẽ mở thành bài mới để giữ nguyên các bài đã lưu.
+- Tìm kiếm thư viện bài chỉ đọc 250 ký tự đầu. Nay tìm toàn bộ nội dung và hashtag.
+- Hoàn tác sau khi nạp bài có thể quay về rỗng hoặc nội dung bài trước. Nay lịch sử Summernote bắt đầu lại ở nội dung vừa nạp.
+- Sau gửi, bài mới khác nội dung nhưng trùng tiêu đề có thể bị nhận nhầm link. Nay chỉ bổ sung kết quả hiển thị khi nội dung phù hợp; thiếu bằng chứng giữ đã gửi. Không thêm chặn so khớp ký tự vào bước đăng.
 
-Bộ kiểm thử tự động và kiểm tra bản `.exe` trên Windows được chạy trước phát hành. Luồng Facebook được kiểm thử bằng mô phỏng, chưa xác minh trên tài khoản thật; Facebook thay đổi có thể làm thao tác chưa xác minh được. Bản chưa ký mã số; SHA256 đi kèm.
+Giữ giao diện bốn bước, ô tích, tự lưu nháp, tự chuyển nhóm và theo dõi trạng thái của 0.7.0. Dữ liệu được nâng schema từ 4 lên 5 để lưu định danh bài; bài, ảnh và lịch sử được giữ.
+
+Bộ kiểm thử đã được mở rộng theo checklist, có JUnit và kết quả từng ca riêng. Kiểm tra Windows thêm đường dẫn chương trình có dấu/khoảng trắng và rà tệp dữ liệu trong ZIP. Các ca Facebook thật, Microsoft Word, DPI và nghiệm thu người dùng chưa đủ điều kiện được ghi rõ trong báo cáo; không suy diễn mô phỏng thành đã nghiệm thu Facebook thật.
+
+Bản chưa ký mã số; checksum đi kèm.

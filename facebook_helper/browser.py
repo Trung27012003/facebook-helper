@@ -244,9 +244,15 @@ class BrowserWorker(QThread):
                 (line.strip() for line in payload.get("body", "").splitlines() if line.strip()), ""
             )[:70]
             if needle and result["status"] != "pending":
+                from .monitoring import normalized
+
                 articles = self.page.get_by_role("article").filter(has_text=needle)
                 candidates = set()
                 for article in articles.all():
+                    if not article.is_visible() or normalized(payload["body"]) not in normalized(
+                        article.inner_text()
+                    ):
+                        continue
                     for href in article.locator('a[href*="/posts/"],a[href*="/permalink/"]').evaluate_all(
                         "nodes=>nodes.map(n=>n.href)"
                     ):

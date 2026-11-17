@@ -32,7 +32,9 @@ jobs:
         shell: pwsh
         run: |
           $smokeDir = Join-Path $env:RUNNER_TEMP 'facebook-helper-smoke'
-          $process = Start-Process -FilePath 'dist/FacebookHelper/FacebookHelper.exe' -ArgumentList @('--smoke-test', '--data-dir', "`"$smokeDir`"") -PassThru
+          $smokeApp = Join-Path $env:RUNNER_TEMP 'Kiểm thử Facebook Helper'
+          Copy-Item -Path 'dist/FacebookHelper' -Destination $smokeApp -Recurse
+          $process = Start-Process -FilePath (Join-Path $smokeApp 'FacebookHelper.exe') -ArgumentList @('--smoke-test', '--data-dir', "`"$smokeDir`"") -PassThru
           if (-not $process.WaitForExit(120000)) {
             $process.Kill()
             throw 'Packaged application did not exit within 120 seconds'

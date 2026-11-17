@@ -615,3 +615,25 @@ def test_pending_status_requires_new_facebook_notice(page, store, existing):
         "publish", {"group_url": "https://www.facebook.com/groups/hr/", "body": "Nội dung", "images": []}
     )
     assert result["status"] == ("submitted" if existing else "pending")
+
+
+def test_new_article_with_same_heading_but_other_body_is_not_our_post(page, store):
+    html = PUBLISH_COMPOSER.replace(
+        "window.submitted=true;",
+        "window.submitted=true;const a=document.createElement('article');a.setAttribute('role','article');a.innerHTML='<p>Tuyển kỹ sư mới</p><p>Lương 99 triệu - bài của người khác</p><a href=https://www.facebook.com/groups/hr/posts/888/>Vừa xong</a>';document.body.appendChild(a);",
+    )
+    page.route(
+        "https://www.facebook.com/**",
+        lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html),
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish",
+        {
+            "group_url": "https://www.facebook.com/groups/hr/",
+            "body": "Tuyển kỹ sư mới\nLương 15 triệu",
+            "images": [],
+        },
+    )
+    assert result["sent"] and result["status"] == "submitted" and not result.get("url")

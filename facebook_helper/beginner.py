@@ -77,6 +77,7 @@ class BeginnerMixin:
             draft_id = self.active_draft_id or uuid.uuid4().hex
             drafts[draft_id] = {
                 "post_id": self.post_id,
+                "post_uid": self.store.post(self.post_id)["uid"] if self.post_id is not None else None,
                 "title": self.title.text(),
                 "html": self.content.toHtml(),
                 "plain": self.content.toPlainText(),
@@ -138,8 +139,15 @@ class BeginnerMixin:
         if not self.confirm_discard():
             return
         self.loading = True
-        self.post_id = (
-            draft["post_id"] if any(p["id"] == draft["post_id"] for p in self.store.posts()) else None
+        # SQLite can reuse a deleted numeric ID. Only a persistent identity can prove
+        # this is still the same post; older drafts without it recover as copies.
+        self.post_id = next(
+            (
+                p["id"]
+                for p in self.store.posts()
+                if p["id"] == draft["post_id"] and draft.get("post_uid") and p["uid"] == draft["post_uid"]
+            ),
+            None,
         )
         self.title.setText(draft["title"])
         self.content.setHtml(draft["html"])

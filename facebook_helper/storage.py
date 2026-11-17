@@ -55,6 +55,12 @@ class Store:
         """)
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(jobs)")}
         with self.db:
+            post_columns = {row[1] for row in self.db.execute("PRAGMA table_info(posts)")}
+            if "uid" not in post_columns:
+                self.db.execute("ALTER TABLE posts ADD COLUMN uid TEXT NOT NULL DEFAULT ''")
+            for row in self.db.execute("SELECT id FROM posts WHERE uid='' ").fetchall():
+                self.db.execute("UPDATE posts SET uid=? WHERE id=?", (uuid.uuid4().hex, row[0]))
+            self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS posts_uid ON posts(uid) WHERE uid!=''")
             if "batch_id" not in columns:
                 self.db.execute("ALTER TABLE jobs ADD COLUMN batch_id INTEGER REFERENCES batches(id)")
             if "position" not in columns:
@@ -75,7 +81,7 @@ class Store:
                 CREATE INDEX IF NOT EXISTS events_job ON job_events(job_id, id);
                 CREATE TABLE IF NOT EXISTS preferences (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             """)
-            self.db.execute("PRAGMA user_version=4")
+            self.db.execute("PRAGMA user_version=5")
         self.recovered = []
 
     def recover_interrupted(self):
@@ -122,7 +128,8 @@ class Store:
         with self.db:
             if post_id is None:
                 return self.db.execute(
-                    "INSERT INTO posts(title,html,plain,tags,images,updated_at) VALUES(?,?,?,?,?,?)", values
+                    "INSERT INTO posts(title,html,plain,tags,images,updated_at,uid) VALUES(?,?,?,?,?,?,?)",
+                    (*values, uuid.uuid4().hex),
                 ).lastrowid
             self.db.execute(
                 "UPDATE posts SET title=?,html=?,plain=?,tags=?,images=?,updated_at=? WHERE id=?",
