@@ -11,3 +11,5 @@ work/
 *.db-shm
 *.db-wal
 .env
+
+/release/

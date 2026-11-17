@@ -105,3 +105,22 @@ def test_template_creation_has_one_primary_action_and_requires_main_fields(windo
     assert dialog.generate_button.isEnabled()
     dialog.generate_button.click()
     assert dialog.article and "KỸ SƯ" in dialog.article["title"]
+
+
+def test_browser_worker_is_lazy_until_first_command(window, monkeypatch):
+    assert not window.browser.isRunning()
+    calls = []
+    running = [False]
+
+    def start():
+        calls.append("start")
+        running[0] = True
+
+    monkeypatch.setattr(window.browser, "start", start)
+    monkeypatch.setattr(window.browser, "isRunning", lambda: running[0])
+    window.browser.submit("login")
+    window.browser.submit("read_link", {"job_id": 1})
+    assert calls == ["start"]
+    assert window.browser.commands.get_nowait()[0] == "login"
+    assert window.browser.commands.get_nowait()[0] == "read_link"
+    running[0] = False

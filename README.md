@@ -4,11 +4,19 @@
 
 ## Tải về và mở ứng dụng
 
-**[Tải bản Windows 10/11 64-bit](https://github.com/Trung27012003/facebook-helper/releases/latest/download/FacebookHelper-Windows-x64.zip)** · [Các bản phát hành](https://github.com/Trung27012003/facebook-helper/releases)
+**[Tải bộ cài Windows 10/11 64-bit](https://github.com/Trung27012003/facebook-helper/releases/latest/download/FacebookHelper-Setup-x64.exe)** · **[Bản ZIP portable](https://github.com/Trung27012003/facebook-helper/releases/latest/download/FacebookHelper-Windows-x64.zip)** · [Các bản phát hành](https://github.com/Trung27012003/facebook-helper/releases)
 
-Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
+Tải **Setup.exe** → chạy → Cài đặt → mở Facebook Helper từ Start menu. Không cần Python, không cần quyền quản trị. Cập nhật bằng Setup giữ dữ liệu/phiên Facebook. Đóng bản đang chạy trước khi cài. ZIP portable vẫn có: giải nén toàn bộ rồi chạy `FacebookHelper.exe`, giữ `_internal` đi kèm. Bản chưa ký mã số; checksum ở trang phát hành.
 
-## Cách dùng bản 0.9.0 · Summernote
+## Cách dùng bản 0.10.0 · Summernote
+
+Mỗi lượt đăng thử tối đa 3 lần khi gặp lỗi tạm thời trước gửi. Nếu bản đang mở đã chuẩn bị đủ, lần sau dùng chính bản đó, không dán chữ/tải ảnh lại. Sau bấm Đăng, chỉ cho phép thử lại nếu phản hồi của đúng thao tác xác nhận chưa tạo bài và báo lỗi tạm thời; cần bản soạn vẫn mở, nút Đăng còn dùng được. Đăng nhập/xác thực, hạn chế, kết quả chưa rõ hoặc đã gửi không tự thử lại. Tối đa 3 lần tổng cộng, không phải 3 lần bổ sung.
+
+Ô ngày dùng lịch tiếng Việt của Qt: bấm cả ô để mở, chọn ngày hoặc Hôm nay. Không cần nhập từng phần ngày/tháng/năm.
+
+Cập nhật: sau khi cài bản 0.10.0 trở lên, ứng dụng kiểm tra GitHub Releases công khai khi mở (tối đa một lần/ngày), kiểm tra định kỳ lúc ứng dụng còn mở, có nút kiểm tra thủ công trong Cài đặt. Có bản ổn định mới kèm Setup thì hỏi Tải bộ cài/Để sau. Không tự cài. Thông báo được hoãn khi đang đăng bài. Máy còn dùng bản cũ chưa có bộ kiểm tra cần cài bản này một lần.
+
+Tối ưu: phần tự động hóa Playwright chỉ khởi động khi dùng; gói bỏ Chromium headless dư, source map/type declarations và locale không dùng, giữ tiếng Việt/Anh. Qt WebEngine và Chromium đầy đủ vẫn cần cho Summernote và Facebook. Setup nén LZMA2; ZIP dùng Deflate. Không dọn cookie, ảnh, SQLite hoặc phiên người dùng.
 
 Giao diện dùng nút xanh cho bước chính hiện tại. Khi soạn có thay đổi, **Lưu bài** nổi bật; khi đã lưu, **Chọn nhóm đăng** nổi bật. Thao tác phụ/ảnh nằm trong menu riêng, nút xóa tách khỏi nút lưu. Nút chính vẫn nằm ở cuối khung khi nội dung cuộn.
 
@@ -160,7 +168,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Checklist kiểm thử toàn bộ](docs/TEST-CHECKLIST.md) và [bản Excel để đánh dấu](docs/TEST-CHECKLIST.xlsx) gồm đầu mục, ưu tiên, kết quả mong đợi và mẫu ghi lỗi.
 
-Xem [kiểm thử bản 0.9.0](docs/TESTING-v0.9.0.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.10.0](docs/TESTING-v0.10.0.md), [kiểm thử bản 0.9.0](docs/TESTING-v0.9.0.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

@@ -116,7 +116,7 @@ def test_restart_offers_draft_recovery_without_sending_or_saving_post(window, st
     window.title.setText("Nháp cần khôi phục")
     window.content.setHtml("<p><b>Tiếng Việt có định dạng</b></p>")
     assert window.autosave_draft()
-    other = MainWindow(store)
+    other = MainWindow(store, background=False)
     other.show()
     app.processEvents()
     try:

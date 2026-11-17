@@ -718,3 +718,83 @@ def test_pending_submission_captures_own_response_and_removes_listener(page, sto
     assert result["url"] == group + "posts/777/"
     for event in ("request", "requestfinished", "requestfailed"):
         assert not page._impl_obj.listeners(event)
+
+
+def test_recovery_reuses_ready_draft_without_navigating_pasting_or_uploading(page, store, monkeypatch):
+    page.route(
+        "https://www.facebook.com/**",
+        lambda r: r.fulfill(content_type="text/html; charset=utf-8", body=PUBLISH_COMPOSER),
+    )
+    page.goto("https://www.facebook.com/groups/123/")
+    page.get_by_role("textbox").fill("Bản đang mở đã đủ chữ")
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    original = worker.execute
+    actions = []
+
+    def execute(action, payload):
+        actions.append(action)
+        if len(actions) == 1:
+            payload["draft_ready"] = True
+            raise TimeoutError("nút đăng timed out")
+        return original(action, payload)
+
+    monkeypatch.setattr(worker, "execute", execute)
+    result = worker.execute_recovering(
+        "publish",
+        {"group_url": "https://www.facebook.com/groups/123/", "body": "Không dán lại", "images": []},
+    )
+    assert result["sent"] and result["attempts"] == 2
+    assert actions == ["publish", "publish_current"]
+    assert page.evaluate("window.savedText") == "Bản đang mở đã đủ chữ"
+
+
+@pytest.mark.parametrize("success_on", [2, None])
+def test_explicit_transient_rejection_retries_same_post_only_twice(page, store, monkeypatch, success_on):
+    import json
+
+    from playwright.sync_api import Locator
+
+    group = "https://www.facebook.com/groups/123/"
+    html = """<div role=dialog><div role=textbox contenteditable=true>Bài đã sẵn sàng</div>
+      <button onclick="window.clicks++;fetch('/api/graphql/',{method:'POST',body:new URLSearchParams({
+      fb_api_req_friendly_name:'ComposerStoryCreateMutation',variables:JSON.stringify({input:{message:{text:'Bài đã sẵn sàng'},audience:{to_id:'123'}}})})});
+      if(window.clicks===2)this.closest('[role=dialog]').remove()">Đăng</button></div><script>window.clicks=0</script>"""
+    if success_on is None:
+        html = html.replace("window.clicks===2", "window.clicks===999")
+    replies = []
+
+    def route(r):
+        if "/api/graphql" in r.request.url:
+            replies.append(1)
+            result = (
+                {"data": {"story_create": None}, "errors": [{"is_transient": True}]}
+                if success_on is None or len(replies) < success_on
+                else {"data": {"story_create": {"story": {"post_id": "777"}}}}
+            )
+            r.fulfill(content_type="application/json", body=json.dumps(result))
+        else:
+            r.fulfill(content_type="text/html; charset=utf-8", body=html)
+
+    page.route("https://www.facebook.com/**", route)
+    page.goto(group)
+    original = Locator.wait_for
+
+    def wait(locator, *args, **kwargs):
+        if kwargs.get("state") == "hidden" and locator.is_visible():
+            page.wait_for_timeout(200)
+            raise TimeoutError("still open after explicit failure")
+        return original(locator, *args, **kwargs)
+
+    monkeypatch.setattr(Locator, "wait_for", wait)
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute_recovering(
+        "publish_current", {"group_url": group, "body": "Bài đã sẵn sàng", "images": []}
+    )
+    expected = success_on or 3
+    assert result["attempts"] == expected and page.evaluate("window.clicks") == expected
+    if success_on:
+        assert result["sent"] and result["url"] == group + "posts/777/"
+    else:
+        assert not result["sent"] and result["submission_rejected"]

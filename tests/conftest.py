@@ -42,7 +42,7 @@ def window(app, store):
 
     from facebook_helper.ui import MainWindow
 
-    value = MainWindow(store)
+    value = MainWindow(store, background=False)
     value.show()
     app.processEvents()
     try:

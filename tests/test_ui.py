@@ -6,7 +6,7 @@ from facebook_helper.ui import MainWindow
 
 
 def test_editor_groups_history_and_shutdown(app, store):
-    window = MainWindow(store)
+    window = MainWindow(store, background=False)
     try:
         window.show()
         app.processEvents()

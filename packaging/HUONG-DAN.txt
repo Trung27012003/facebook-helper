@@ -1,4 +1,20 @@
-FACEBOOK HELPER 0.9.0 — WINDOWS 10/11 64-BIT
+CÀI ĐẶT VÀ CẬP NHẬT
+Tải FacebookHelper-Setup-x64.exe, đóng bản cũ rồi chạy bộ cài.
+Không cần cài Python hoặc quyền quản trị. Mở Facebook Helper từ Start menu.
+Dữ liệu và phiên Facebook được giữ ngoài thư mục chương trình.
+Các bản từ 0.10.0 có kiểm tra cập nhật: chọn Tải bộ cài hoặc Để sau khi được hỏi.
+Cài đặt cũng có nút Kiểm tra cập nhật. Không tự cài khi chưa đồng ý.
+Máy dùng bản cũ cần cài 0.10.0 một lần trước khi nhận thông báo cập nhật về sau.
+
+THỬ LẠI KHI ĐĂNG
+Tối đa 3 lần với lỗi tạm thời, dùng lại bản đang mở nếu đã chuẩn bị đủ.
+Không dán chồng chữ hoặc tải ảnh lại. Kết quả gửi chưa rõ thì dừng để tránh trùng.
+Không tự thử lại khi Facebook yêu cầu đăng nhập/xác thực hoặc báo hạn chế.
+
+CHỌN NGÀY
+Bấm cả ô ngày để mở lịch tiếng Việt, chọn ngày hoặc Hôm nay rồi bấm Tìm kiếm.
+
+FACEBOOK HELPER 0.10.0 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -46,7 +62,7 @@ Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cả
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
 
-GIAO DIỆN 0.9.0
+GIAO DIỆN 0.10.0
 Nút xanh là bước chính: Lưu bài khi đang sửa → Chọn nhóm đăng sau khi lưu.
 Bài mới và Từ mẫu ở bên trái. Nhân bản, sao chép, xóa ở Thao tác bài.
 Chọn ảnh rồi mở Thao tác ảnh để xem, sắp xếp hoặc bỏ ảnh.

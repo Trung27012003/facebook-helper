@@ -4,7 +4,9 @@ import json
 import traceback
 
 from PySide6.QtCore import QCoreApplication, QDate, QEvent, QMimeData, QTimer
+from PySide6.QtNetwork import QSslSocket
 
+from .dates import DatePicker
 from .ui import MainWindow
 
 
@@ -13,16 +15,21 @@ def run_smoke(app, store):
 
     result = {"ok": False}
     try:
+        assert QSslSocket.supportsSsl()
+        result["update_tls"] = True
         with sync_playwright() as playwright:
-            with playwright.chromium.launch(headless=True) as browser:
+            with playwright.chromium.launch(headless=True, channel="chromium") as browser:
                 page = browser.new_page()
                 page.set_content('<meta charset="utf-8"><h1>Facebook Helper · Kiểm tra đóng gói</h1>')
                 assert page.locator("h1").inner_text() == "Facebook Helper · Kiểm tra đóng gói"
                 page.screenshot(path=str(store.root / "packaged-browser.png"))
                 result["chromium"] = browser.version
-        window = MainWindow(store)
+        window = MainWindow(store, background=False)
         window.show()
         app.processEvents()
+        assert not window.browser.isRunning()
+        result["lazy_browser"] = True
+        window.browser.start()
         mime = QMimeData()
         mime.setHtml(
             '<p><b style="color:#2456ab">Kiểm tra dán định dạng</b></p><ol><li>PLC</li><li>Robot</li></ol>'
@@ -40,6 +47,13 @@ def run_smoke(app, store):
         assert window.posting_steps.count() == 4
         assert window.post_manager.table.columnCount() == 6
         assert window.post_manager.start.date() == window.post_manager.end.date() == QDate.currentDate()
+        assert isinstance(window.post_manager.start, DatePicker)
+        picker = window.post_manager.start
+        picker.setDate(QDate.currentDate().addDays(-1))
+        assert picker.date() == QDate.currentDate().addDays(-1)
+        picker.setDate(QDate.currentDate())
+        assert picker.fontMetrics().horizontalAdvance(picker.text()) + 24 <= picker.width()
+        result["calendar_picker"] = True
         assert not window.history.isColumnHidden(5)
         assert window.result_group_button.text() == window.post_manager.group_button.text() == "Mở nhóm"
         assert window.editor_post_button.text() == "Chọn nhóm đăng"

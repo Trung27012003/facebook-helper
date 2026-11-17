@@ -10,6 +10,7 @@ from PySide6.QtCore import QThread, Signal
 from .composer import has_text, wait_for_editor_content, wait_for_uploads
 from .domain import normalize_group, post_url
 from .formatting import facebook_html
+from .retry import MAX_ATTEMPTS, transient_error
 
 
 class BrowserWorker(QThread):
@@ -25,6 +26,8 @@ class BrowserWorker(QThread):
         self.page = None
 
     def submit(self, action, payload=None):
+        if action != "stop" and not self.isRunning():
+            self.start()
         self.commands.put((action, payload or {}))
 
     def run(self):
@@ -63,7 +66,7 @@ class BrowserWorker(QThread):
                         self.page = self.context.pages[0]
                     if self.page.is_closed():
                         self.page = self.context.new_page()
-                    result = self.execute(action, payload)
+                    result = self.execute_recovering(action, payload)
                     self.done.emit(action, result)
                 except Exception as exc:
                     message = str(exc)
@@ -77,6 +80,56 @@ class BrowserWorker(QThread):
                     self.context.close()
                 except Exception:
                     pass
+
+    def execute_recovering(self, action, payload):
+        if action not in {"publish", "prepare", "publish_current"}:
+            return self.execute(action, payload)
+        current = action
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            try:
+                result = self.execute(current, payload)
+                rejected = result.get("submission_rejected", False)
+                if not (result.get("needs_composer") or rejected) or attempt == MAX_ATTEMPTS:
+                    result["attempts"] = attempt
+                    if rejected and attempt == MAX_ATTEMPTS:
+                        result["message"] = (
+                            "Đã thử 3 lần nhưng Facebook vẫn chưa nhận bài. Bản đang mở được giữ lại."
+                        )
+                    return result
+                if rejected:
+                    payload.pop("submission_started", None)
+                    # Close only a transient error popup confirmed by our own response.
+                    for alert in self.page.get_by_role("alertdialog").all():
+                        text = alert.inner_text()
+                        if re.search(
+                            r"blocked|hạn chế|bị chặn|xác thực|đăng nhập|removed|bị xóa", text, re.I
+                        ):
+                            continue
+                        if re.search(r"couldn.t post|không thể đăng|thử lại|try again", text, re.I):
+                            close = alert.get_by_role("button", name=re.compile(r"^(Đóng|Close|OK)$", re.I))
+                            if close.count() == 1:
+                                close.click(timeout=3000)
+            except Exception as exc:
+                if payload.get("submission_started") or not transient_error(exc) or attempt == MAX_ATTEMPTS:
+                    raise
+            self.progress.emit(f"Đang thử lại {attempt + 1}/{MAX_ATTEMPTS}…")
+            self.page.wait_for_timeout(1000 * attempt)
+            dialogs = self.page.get_by_role("dialog").filter(
+                has=self.page.locator('[role="textbox"][contenteditable="true"]')
+            )
+            if dialogs.count() == 1:
+                from .composer import EDITOR_TEXT
+
+                editors = dialogs.locator('[role="textbox"][contenteditable="true"]')
+                if editors.count() == 1 and has_text(editors.first.evaluate(EDITOR_TEXT)):
+                    if not payload.get("draft_ready") and action != "publish_current":
+                        raise ValueError("Bản đang mở chưa hoàn tất chuẩn bị. Đã giữ lại để bạn kiểm tra.")
+                    current = "publish_current" if action != "prepare" else "prepare_ready"
+                    continue
+            if action == "publish_current":
+                raise ValueError("Bản đang mở không còn sẵn sàng. Đã giữ nguyên, chưa gửi lại.")
+            current = action
+        raise RuntimeError("Đã hết số lần thử")
 
     def execute(self, action, payload):
         if action == "check_status":
@@ -131,6 +184,7 @@ class BrowserWorker(QThread):
             fill_composer(
                 self.page, payload["body"], payload["images"], payload.get("body_html"), self.progress.emit
             )
+            payload["draft_ready"] = True
             if action == "prepare":
                 return {
                     **payload,
@@ -138,6 +192,11 @@ class BrowserWorker(QThread):
                     "message": "Đã chuẩn bị bài. Kiểm tra trên Facebook, bấm Đăng rồi chọn Đã gửi · sang nhóm sau.",
                 }
             return self.publish_dialog(payload)
+        if action == "prepare_ready":
+            check_platform_notice(self.page)
+            if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
+                raise ValueError("Trình duyệt chưa ở đúng nhóm.")
+            return {**payload, "filled": True, "message": "Đã chuẩn bị bài; bạn có thể đăng."}
         if action == "publish_current":
             check_platform_notice(self.page)
             if normalize_group(self.page.url) != normalize_group(payload["group_url"]):
@@ -212,6 +271,20 @@ class BrowserWorker(QThread):
                 self.page.wait_for_timeout(1500)
                 check_platform_notice(self.page)
             except Exception as exc:
+                if (
+                    captured.transient_rejection()
+                    and dialog.count() == 1
+                    and dialog.is_visible()
+                    and submit.is_enabled()
+                ):
+                    payload.pop("submission_started", None)
+                    return {
+                        **payload,
+                        "filled": True,
+                        "sent": False,
+                        "submission_rejected": True,
+                        "message": "Facebook báo chưa gửi thành công; đã giữ bản đang mở.",
+                    }
                 link = captured.link()
                 return {
                     **payload,

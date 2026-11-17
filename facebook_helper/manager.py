@@ -7,7 +7,6 @@ from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
-    QDateEdit,
     QFileDialog,
     QHeaderView,
     QLabel,
@@ -20,6 +19,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .dates import DatePicker
 from .domain import normalize_group
 from .widgets import button, row
 
@@ -56,11 +56,8 @@ class PostManager(QWidget):
         self.batch.setMinimumWidth(220)
         self.batch.setMinimumContentsLength(20)
         self.batch.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
-        self.start = QDateEdit(QDate.currentDate())
-        self.end = QDateEdit(QDate.currentDate())
-        for field in (self.start, self.end):
-            field.setCalendarPopup(True)
-            field.setDisplayFormat("dd/MM/yyyy")
+        self.start = DatePicker(QDate.currentDate())
+        self.end = DatePicker(QDate.currentDate())
         filters = row(
             QLabel("Đợt đăng"), self.batch, QLabel("Từ ngày"), self.start, QLabel("Đến ngày"), self.end
         )

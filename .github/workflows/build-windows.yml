@@ -24,8 +24,9 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -e '.[build]'
-      - run: python -m playwright install chromium
+      - run: python -m playwright install chromium --no-shell
       - run: python -m PyInstaller --noconfirm --windowed --onedir --name FacebookHelper --collect-all playwright --collect-all facebook_helper launcher.py
+      - run: python packaging/prune_bundle.py
       - name: Test packaged executable and bundled Chromium
         env:
           QT_QPA_PLATFORM: windows
@@ -44,6 +45,41 @@ jobs:
           $result = Get-Content "$smokeDir/smoke-result.json" -Raw | ConvertFrom-Json
           if (-not $result.ok) { throw 'Packaged smoke check failed' }
       - run: python packaging/build_zip.py
+      - name: Build setup installer
+        shell: pwsh
+        run: |
+          $isccPath = "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+          if (-not (Test-Path $isccPath)) {
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed' }
+          }
+          $appReleaseVersion = python -c "from facebook_helper import __version__; print(__version__)"
+          & $isccPath "/DAppVersion=$appReleaseVersion" packaging/setup.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+      - name: Test installed application and uninstall
+        env:
+          QT_QPA_PLATFORM: windows
+        shell: pwsh
+        run: |
+          $installApp = Join-Path $env:RUNNER_TEMP 'Cài đặt Facebook Helper'
+          $installData = Join-Path $env:RUNNER_TEMP 'facebook-helper-installed-data'
+          New-Item -ItemType Directory -Force -Path $installData | Out-Null
+          Set-Content -Path "$installData/keep-user-data.txt" -Value 'preserve'
+          $setup = Start-Process -FilePath (Resolve-Path 'release/FacebookHelper-Setup-x64.exe') -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', "/DIR=`"$installApp`"") -PassThru
+          if (-not $setup.WaitForExit(180000)) { $setup.Kill(); throw 'Setup timed out' }
+          if ($setup.ExitCode -ne 0) { throw "Setup failed: $($setup.ExitCode)" }
+          $app = Start-Process -FilePath "$installApp/FacebookHelper.exe" -ArgumentList @('--smoke-test', '--data-dir', "`"$installData`"") -PassThru
+          if (-not $app.WaitForExit(120000)) { $app.Kill(); throw 'Installed app timed out' }
+          if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
+          $result = Get-Content "$installData/smoke-result.json" -Raw | ConvertFrom-Json
+          if (-not $result.ok) { throw 'Installed smoke check failed' }
+          Get-Content "$installData/smoke-result.json"
+          $uninstaller = Start-Process -FilePath "$installApp/unins000.exe" -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -PassThru
+          if (-not $uninstaller.WaitForExit(120000)) { $uninstaller.Kill(); throw 'Uninstall timed out' }
+          if ($uninstaller.ExitCode -ne 0) { throw 'Uninstall failed' }
+          if (-not (Test-Path "$installData/helper.db") -or -not (Test-Path "$installData/keep-user-data.txt")) { throw 'Uninstall removed user data' }
+          Write-Output 'Installed smoke and uninstall preserve-data check: PASS'
+      - run: python packaging/checksums.py
       - uses: actions/upload-artifact@v4
         with:
           name: FacebookHelper-Windows-x64
@@ -66,7 +102,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         shell: pwsh
         run: |
-          gh release create "$env:RELEASE_TAG" release/FacebookHelper-Windows-x64.zip release/SHA256SUMS.txt --title "Facebook Helper $env:RELEASE_TAG - Windows" --notes-file packaging/RELEASE_NOTES.md --target "$env:GITHUB_SHA"
+          gh release create "$env:RELEASE_TAG" release/FacebookHelper-Windows-x64.zip release/FacebookHelper-Setup-x64.exe release/SHA256SUMS.txt --title "Facebook Helper $env:RELEASE_TAG - Windows" --notes-file packaging/RELEASE_NOTES.md --target "$env:GITHUB_SHA"
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
       - uses: actions/upload-artifact@v4
         if: always()

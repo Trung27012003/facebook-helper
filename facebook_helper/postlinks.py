@@ -210,6 +210,26 @@ class SubmissionLinks:
                 pass
         return candidates.pop() if len(candidates) == 1 else ""
 
+    def transient_rejection(self):
+        """Only a matched, completed mutation explicitly rejecting creation may be retried."""
+        if self.pending or len(self.responses) != 1:
+            return False
+        try:
+            raw = self.responses[0].text().removeprefix("for (;;);").strip()
+            result = json.loads(raw)
+            data = result.get("data")
+            errors = result.get("errors")
+            return (
+                isinstance(data, dict)
+                and "story_create" in data
+                and data["story_create"] is None
+                and isinstance(errors, list)
+                and bool(errors)
+                and all(isinstance(e, dict) and e.get("is_transient") is True for e in errors)
+            )
+        except Exception:
+            return False
+
     def save_diagnostic(self, root, result):
         """Keep bounded local metadata only: no body, URL, token, or raw response."""
         try:

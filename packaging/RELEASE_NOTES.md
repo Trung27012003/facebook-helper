@@ -1,13 +1,11 @@
-**Facebook Helper 0.9.0 — giao diện gọn trên toàn ứng dụng**
+**Facebook Helper 0.10.0 — Setup, lịch dễ chọn và thử lại có kiểm soát**
 
-- Soạn bài: thư viện bên trái, nội dung bên phải; nút Lưu nổi bật khi sửa, Chọn nhóm đăng nổi bật sau khi lưu. Đi thẳng đến chọn nhóm từ bài đang soạn.
-- Thao tác bài và ảnh được gom vào menu; nút chính luôn ở cuối khung khi cuộn.
-- Nhóm: kiểm tra link ngay khi nhập, chỉ bật Lưu khi hợp lệ và có thay đổi; giữ rõ nhóm đang chọn.
-- Đăng bài: Bắt đầu / Tạm dừng / Xem kết quả theo trạng thái, hiện link trong bảng, bỏ hướng dẫn thừa. Hoàn tất thì không còn Bắt đầu.
-- Bài đã đăng mặc định hôm nay; có Mở bài / Sao chép link / Mở nhóm. Xóa được tách khỏi thao tác chính.
-- Cài đặt chia ba phần: Tài khoản, Dữ liệu, Hỗ trợ. Có Xuất chẩn đoán cục bộ, không xuất nội dung/cookie/token hoặc phản hồi thô.
-- Sửa bộ lấy link để không đòi nội dung gửi đi giống hệt bản lưu; nhận request muộn và phản hồi GraphQL bổ sung, bỏ phản hồi từ request cũ.
+- Có bộ cài Setup cho Windows 10/11 x64, cài theo người dùng, tạo lối tắt và gỡ cài đặt; dữ liệu/phiên Facebook ở riêng và được giữ.
+- Lỗi tạm thời trước gửi được thử tối đa 3 lần. Nếu bản soạn đã sẵn sàng, dùng chính bản đang mở. Sau bấm Đăng, chỉ thử lại khi phản hồi đúng thao tác xác nhận lỗi tạm thời/chưa tạo bài. Không thử lại mù khi chưa rõ kết quả, gặp xác thực hoặc hạn chế.
+- Ô ngày chuyển sang lịch tiếng Việt của Qt, bấm cả ô để chọn; hiển thị đủ ngày và có Hôm nay.
+- Playwright khởi động khi cần. Gói bỏ Chromium headless dư và các tài nguyên phát triển/locale không dùng; Setup nén LZMA2. Giữ Qt WebEngine, Chromium đầy đủ và tài nguyên tiếng Việt/Anh.
+- Có kiểm tra cập nhật công khai, hỏi Tải bộ cài/Để sau và kiểm tra thủ công. Thông báo hoãn khi đang đăng. Không tự cài.
 
-Chưa có phiên Facebook thật để xác minh trên tài khoản người dùng. Nếu không có URL/mã bài được nhận diện thì chưa lấy được link; link chờ duyệt có thể chưa mở được.
+Máy dùng bản cũ cần cài bản này một lần; các bản sau mới nhận thông báo trong ứng dụng. Đóng bản đang chạy trước khi cài. Không cần Python hoặc quyền quản trị.
 
-Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy FacebookHelper/FacebookHelper.exe. Không cần cài Python; dữ liệu cũ được giữ, schema 6.
+Kiểm thử Facebook dùng mô phỏng; chưa chứng minh lỗi trên tài khoản người dùng đã hết. Bài chờ duyệt có thể chưa có link dùng được. Checksum cho Setup và ZIP đi kèm.

@@ -1,5 +1,4 @@
 from PySide6.QtCore import QDate
-from PySide6.QtWidgets import QPushButton
 
 
 def test_explicit_keyword_search_and_refresh_preserve_applied_filters(window, store, task_data):
@@ -51,14 +50,17 @@ def test_invalid_date_range_preserves_previous_results(window, store, job):
 
 def test_minimal_manager_actions(window):
     view = window.post_manager
-    assert {b.text() for b in view.findChildren(QPushButton)} == {
-        "Tìm kiếm",
-        "Mở bài",
-        "Sao chép link",
-        "Mở nhóm",
-        "Xuất Excel",
-        "Xóa",
-    }
+    assert {
+        b.text()
+        for b in (
+            view.search_button,
+            view.open_button,
+            view.copy_button,
+            view.group_button,
+            view.export_button,
+            view.delete_button,
+        )
+    } == {"Tìm kiếm", "Mở bài", "Sao chép link", "Mở nhóm", "Xuất Excel", "Xóa"}
     assert not hasattr(view, "details_panel") and not hasattr(view, "monitor_message")
 
 

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, QUrl
+from PySide6.QtCore import QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -38,6 +38,7 @@ from .manager import PostManager, send_label
 from .posting import SENT, PostingMixin
 from .templates import RecruitmentDialog
 from .tracking import TrackingMixin
+from .updates import UpdateChecker
 from .widgets import button, hint, menu_button, primary, row, toolbar
 
 STYLE = """
@@ -84,7 +85,7 @@ def local_time(value):
 
 
 class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
-    def __init__(self, store):
+    def __init__(self, store, background=True):
         super().__init__()
         self.store = store
         store.recover_interrupted()
@@ -103,7 +104,6 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.browser.failed.connect(self.browser_failed)
         self.browser.progress.connect(self.browser_progress)
         self.browser.finished.connect(self.browser_stopped)
-        self.browser.start()
         self.browser_buttons = []
         container = QWidget()
         container.setObjectName("appRoot")
@@ -133,6 +133,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.tabs.currentChanged.connect(lambda *_: self.post_manager.refresh())
         self.setup_tracking()
         self.setup_drafts()
+        self.setup_updates(background)
         saved_batch = self.store.preference("last_batch")
         if saved_batch.isdigit():
             self.refresh_batches(int(saved_batch))
@@ -1224,12 +1225,52 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         )
         layout.addWidget(support)
         layout.addStretch()
-        version = QLabel(
-            f'Facebook Helper {__version__} · <a href="https://github.com/Trung27012003/facebook-helper/releases/latest">Bản cập nhật</a>'
-        )
-        version.setOpenExternalLinks(True)
-        layout.addWidget(version)
+        self.update_label = hint("")
+        layout.addWidget(self.update_label)
+        self.update_button = button("Kiểm tra cập nhật", lambda: self.updates.check(True))
+        layout.addLayout(toolbar(QLabel(f"Facebook Helper {__version__}"), self.update_button))
         return page
+
+    def setup_updates(self, background):
+        self.pending_update = None
+        self.seen_updates = set()
+        self.updates = UpdateChecker(self.store, self)
+        self.updates.status.connect(self.update_label.setText)
+        self.updates.available.connect(self.update_available)
+        self.update_notice_timer = QTimer(self)
+        self.update_notice_timer.setInterval(15000)
+        self.update_notice_timer.timeout.connect(self.offer_update)
+        if background:
+            self.updates.start()
+
+    def update_available(self, release):
+        if release["version"] in self.seen_updates and not release.get("manual"):
+            return
+        self.pending_update = release
+        self.offer_update()
+
+    def ask_update(self, release):
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Có bản cập nhật")
+        dialog.setText(f"Đã có Facebook Helper {release['version']}. Tải bộ cài để cập nhật?")
+        download = dialog.addButton("Tải bộ cài", QMessageBox.ButtonRole.AcceptRole)
+        dialog.addButton("Để sau", QMessageBox.ButtonRole.RejectRole)
+        dialog.exec()
+        return dialog.clickedButton() is download
+
+    def offer_update(self):
+        if not self.pending_update or self.closing:
+            return
+        if self.busy or self.queue_active or self.monitor_running:
+            self.update_notice_timer.start()
+            return
+        self.update_notice_timer.stop()
+        release = self.pending_update
+        self.pending_update = None
+        self.seen_updates.add(release["version"])
+        if self.ask_update(release):
+            QDesktopServices.openUrl(QUrl(release["url"]))
+            self.update_label.setText("Đang tải bộ cài trong trình duyệt. Đóng ứng dụng trước khi cài.")
 
     def export_diagnostics(self):
         source = self.store.root / "link-diagnostics.json"
@@ -1288,6 +1329,8 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.dirty = False
         self.group_original = self.group_values()
         self.update_group_actions()
+        self.updates.stop()
+        self.update_notice_timer.stop()
         if self.browser.isRunning():
             # Do not destroy a running QThread; shutdown is asynchronous even during navigation.
             self.closing = True
