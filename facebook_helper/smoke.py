@@ -38,11 +38,11 @@ def run_smoke(app, store):
         assert app.clipboard().mimeData().hasHtml()
         result["rich_paste_and_copy"] = True
         assert window.posting_steps.count() == 4
-        assert window.post_manager.table.columnCount() == 5
+        assert window.post_manager.table.columnCount() == 6
         window.mark_dirty()
         assert window.autosave_draft()
         assert window.stored_drafts() and not store.posts()
-        result.update(guided_steps=4, result_columns=5, draft_saved=True)
+        result.update(guided_steps=4, result_columns=6, draft_saved=True)
         if app.platformName() == "offscreen":
             app.clipboard().clear()
         window.content.clear()

@@ -555,7 +555,7 @@ def test_completed_progress_indicator_does_not_block_posting(page, store):
     assert result["sent"] and page.evaluate("window.submitted")
 
 
-def test_new_visible_post_gets_published_status_and_permalink(page, store):
+def test_new_visible_post_saves_permalink_without_waiting_for_approval(page, store):
     html = PUBLISH_COMPOSER.replace(
         "window.submitted=true;",
         "window.submitted=true;const a=document.createElement('article');a.setAttribute('role','article');a.innerHTML='<p>Tuyển kỹ sư mới</p><a href=https://www.facebook.com/groups/hr/posts/777/>Vừa xong</a>';document.body.appendChild(a);",
@@ -570,7 +570,7 @@ def test_new_visible_post_gets_published_status_and_permalink(page, store):
         "publish",
         {"group_url": "https://www.facebook.com/groups/hr/", "body": "Tuyển kỹ sư mới", "images": []},
     )
-    assert result["status"] == "published"
+    assert result["status"] == "submitted"
     assert result["url"].endswith("/posts/777/")
 
 
@@ -637,3 +637,56 @@ def test_new_article_with_same_heading_but_other_body_is_not_our_post(page, stor
         },
     )
     assert result["sent"] and result["status"] == "submitted" and not result.get("url")
+
+
+def test_pending_submission_saves_rendered_link_without_approval(page, store):
+    html = PUBLISH_COMPOSER.replace(
+        "window.submitted=true;",
+        "window.submitted=true;document.body.insertAdjacentHTML('beforeend', '<div role=status>Submitted for approval</div><article role=article><p>Tuyển kỹ sư mới</p><a href=https://www.facebook.com/groups/hr/posts/777/>Vừa xong</a></article>');",
+    )
+    page.route(
+        "https://www.facebook.com/**", lambda r: r.fulfill(content_type="text/html; charset=utf-8", body=html)
+    )
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish",
+        {"group_url": "https://www.facebook.com/groups/hr/", "body": "Tuyển kỹ sư mới", "images": []},
+    )
+    assert result["sent"] and result["status"] == "pending"
+    assert result["url"].endswith("/posts/777/")
+
+
+def test_pending_submission_captures_own_response_and_removes_listener(page, store):
+    import json
+
+    group = "https://www.facebook.com/groups/123/"
+    html = PUBLISH_COMPOSER.replace(
+        "window.submitted=true;",
+        """window.submitted=true;
+        fetch('/api/graphql/', {method:'POST', body:new URLSearchParams({
+            fb_api_req_friendly_name:'ComposerStoryCreateMutation',
+            variables:JSON.stringify({input:{message:{text:'Tuyển mới'},audience:{to_id:'123'}}})
+        })});
+        document.body.insertAdjacentHTML('beforeend','<div role=status>Submitted for approval</div>');
+    """,
+    )
+
+    def route(r):
+        if "/api/graphql" in r.request.url:
+            r.fulfill(
+                content_type="application/json",
+                body=json.dumps({"data": {"story_create": {"story": {"url": group + "posts/777/"}}}}),
+            )
+        else:
+            r.fulfill(content_type="text/html; charset=utf-8", body=html)
+
+    page.route("https://www.facebook.com/**", route)
+    worker = BrowserWorker(store.root)
+    worker.page = page
+    result = worker.execute(
+        "publish", {"group_url": group, "body": "Tuyển mới", "images": [], "url": group + "posts/111/"}
+    )
+    assert result["sent"] and result["status"] == "pending" and result["link_captured"]
+    assert result["url"] == group + "posts/777/"
+    assert not page._impl_obj.listeners("requestfinished")

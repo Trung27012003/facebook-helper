@@ -270,7 +270,7 @@ def test_summernote_undo_redo_restores_unicode_content(window):
     assert window.content.toPlainText() == after
 
 
-@pytest.mark.parametrize("field", ["created_at", "sent_at", "checked_at"])
+@pytest.mark.parametrize("field", ["created_at", "sent_at"])
 def test_date_filters_include_both_boundaries_and_exclude_adjacent_days(window, store, task_data, field):
     from datetime import datetime
 
@@ -288,15 +288,16 @@ def test_date_filters_include_both_boundaries_and_exclude_adjacent_days(window, 
         for job_id, value in zip(ids, values):
             store.db.execute(f"UPDATE jobs SET {field}=? WHERE id=?", (value.isoformat(), job_id))
     view = window.post_manager
-    view.date_field.setCurrentIndex(view.date_field.findData(field))
     view.start.setDate(QDate(2026, 11, 17))
     view.end.setDate(QDate(2026, 11, 17))
-    view.use_dates.setChecked(True)
+    view.search()
     assert {j["id"] for j in view.filtered_jobs} == {ids[1], ids[2]}
 
 
 def test_seven_day_filter_includes_today_minus_six_not_minus_seven(window, store, task_data):
     from datetime import datetime, timedelta
+
+    from PySide6.QtCore import QDate
 
     now = datetime.now().astimezone()
     ids = [store.create_job(task_data[0][0], g) for g in task_data[1]]
@@ -306,7 +307,9 @@ def test_seven_day_filter_includes_today_minus_six_not_minus_seven(window, store
                 "UPDATE jobs SET sent_at=? WHERE id=?", ((now - timedelta(days=days)).isoformat(), job_id)
             )
     view = window.post_manager
-    view.quick_filter("week")
+    view.start.setDate(QDate.currentDate().addDays(-6))
+    view.end.setDate(QDate.currentDate())
+    view.search()
     assert {j["id"] for j in view.filtered_jobs} == set(ids[:2])
 
 
@@ -382,7 +385,7 @@ def test_quick_start_button_reopens_guide_without_losing_editor(window):
     window.content.setHtml("<p><b>Giữ nội dung</b></p>")
     before = window.content.toHtml()
     window.hide_quick_start()
-    next(b for b in window.findChildren(QPushButton) if b.text() == "Hướng dẫn nhanh").click()
+    next(b for b in window.findChildren(QPushButton) if b.text() == "Trợ giúp").click()
     assert not window.quick_start.isHidden() and window.content.toHtml() == before
 
 
@@ -542,41 +545,41 @@ def test_distinct_image_bytes_or_group_do_not_false_match(store, task_data):
     assert not store.post_duplicates(post["id"], [other_group])
 
 
-def test_export_checked_rows_not_current_highlighted_row(window, store, task_data, tmp_path, monkeypatch):
+def test_export_uses_search_results_independent_of_current_row(
+    window, store, task_data, tmp_path, monkeypatch
+):
     from openpyxl import load_workbook
     from PySide6.QtWidgets import QFileDialog
 
     ids = [store.create_job(task_data[0][0], g) for g in task_data[1]]
+    store.create_job(task_data[0][1], task_data[1][0])
     view = window.post_manager
-    view.refresh()
-    checked_id = view.table.item(0, 0).data(Qt.ItemDataRole.UserRole)
-    view.table.item(0, 0).setCheckState(Qt.CheckState.Checked)
+    view.keyword.setText("Kế toán")
+    view.search()
     view.table.setCurrentCell(1, 1)
-    path = tmp_path / "selected.xlsx"
+    path = tmp_path / "filtered.xlsx"
     monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
-    view.export_filtered(selected_only=True)
+    view.export_filtered()
     book = load_workbook(path)
     try:
         rows = list(book.active.iter_rows(min_row=2, values_only=True))
-        assert len(rows) == 1 and rows[0][0] == checked_id and rows[0][0] in ids
+        assert {row[0] for row in rows} == set(ids)
     finally:
         book.close()
 
 
 def test_empty_and_cancelled_exports_create_no_file(window, store, job, tmp_path, monkeypatch):
-    from PySide6.QtWidgets import QFileDialog, QMessageBox
+    from PySide6.QtWidgets import QFileDialog
 
     view = window.post_manager
-    view.refresh()
     view.keyword.setText("không khớp")
-    notes = []
-    monkeypatch.setattr(QMessageBox, "information", lambda *args: notes.append(args[2]))
+    view.search()
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", lambda *args: pytest.fail("Empty results must not open a save dialog")
     )
     view.export_filtered()
-    assert notes
-    view.quick_filter("all")
+    view.keyword.clear()
+    view.search()
     before = store.jobs()
     monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: ("", ""))
     view.export_filtered()
@@ -602,30 +605,20 @@ def test_unwritable_export_or_backup_destination_keeps_data(
     assert warnings and store.jobs() == before
 
 
-def test_long_names_multiline_notes_and_status_are_available_in_details(window, store):
-    title = "Tên bài dài " * 30
-    group_name = "Tên nhóm dài " * 30
-    note = "Ghi chú nhiều dòng\n" * 30
+def test_long_names_available_as_tooltips_without_details_panel(window, store):
+    title, group_name = "Tên bài dài " * 30, "Tên nhóm dài " * 30
     post = store.save_post(None, title, "<p>Nội dung</p>", "Nội dung", "", [])
     group = store.save_group(None, group_name, "https://facebook.com/groups/long/", "", "")
     job_id = store.create_job(post, group)
-    store.update_job(job_id, status="pending", note=note)
+    store.update_job(job_id, status="pending")
     view = window.post_manager
     view.refresh()
-    view.table.setCurrentCell(0, 1)
-    view.update_details()
-    assert (
-        title.strip() in view.detail_text.toPlainText()
-        and group_name.strip() in view.detail_text.toPlainText()
-    )
-    assert note.rstrip() in view.detail_text.toPlainText() and "Chờ duyệt" in view.table.item(0, 3).text()
-    assert view.table.item(0, 3).foreground().color().isValid()
-    store.update_job(job_id, status="published", url="https://facebook.com/groups/long/posts/123/")
-    store.record_check(job_id, "unknown", "Không xác minh được lần này")
+    assert view.table.item(0, 1).toolTip() == title.strip()
+    assert view.table.item(0, 2).toolTip() == group_name.strip()
+    assert view.table.item(0, 4).text() == "Đã gửi"
+    store.record_check(job_id, "unknown", "Không xác minh được")
     view.refresh()
-    assert (
-        "Đã hiển thị" in view.table.item(0, 3).text() and "Chưa xác minh lại" in view.table.item(0, 3).text()
-    )
+    assert view.table.item(0, 4).text() == "Đã gửi"
 
 
 def test_long_editor_with_ten_images_survives_repeated_tab_changes(window, store, tmp_path):
@@ -666,22 +659,15 @@ def test_repeated_application_start_shutdown_releases_worker_and_data_lock(tmp_p
         assert data["worker_stopped"] and data["draft_saved"] and data["ok"]
 
 
-def test_detail_and_copy_actions_use_current_row_independent_of_checkboxes(window, store, task_data, app):
-    from PySide6.QtWidgets import QPushButton
-
+def test_copy_action_uses_current_row(window, store, task_data, app):
     for i, group in enumerate(task_data[1][:2]):
         job_id = store.create_job(task_data[0][0], group)
-        record = store.job(job_id)
-        store.update_job(job_id, url=record["group_url"] + f"posts/{i + 1}/", note=f"Ghi chú {i}")
+        store.update_job(job_id, url=store.job(job_id)["group_url"] + f"posts/{i + 1}/")
     view = window.post_manager
     view.refresh()
-    window.tabs.setCurrentIndex(3)
-    view.table.item(0, 0).setCheckState(Qt.CheckState.Checked)
     view.table.setCurrentCell(1, 1)
     current = view.current_job_record()
-    next(b for b in view.findChildren(QPushButton) if b.text() == "Xem chi tiết").click()
-    assert not view.details_panel.isHidden() and current["note"] in view.detail_text.toPlainText()
-    next(b for b in view.findChildren(QPushButton) if b.text() == "Sao chép link").click()
+    view.copy_button.click()
     assert app.clipboard().text() == current["url"]
 
 
@@ -693,7 +679,6 @@ def test_detail_and_copy_actions_use_current_row_independent_of_checkboxes(windo
         "Nhóm riêng biệt",
         "Ghi chú riêng",
         "/posts/123/",
-        "Kết quả kiểm tra riêng",
     ],
 )
 def test_manager_keyword_search_covers_title_body_group_note_link_and_check_note(window, store, keyword):
@@ -706,4 +691,5 @@ def test_manager_keyword_search_covers_title_body_group_note_link_and_check_note
     store.create_job(other, store.save_group(None, "Nhóm khác", "https://facebook.com/groups/other/", "", ""))
     view = window.post_manager
     view.keyword.setText(keyword.swapcase())
+    view.search()
     assert [j["id"] for j in view.filtered_jobs] == [target]

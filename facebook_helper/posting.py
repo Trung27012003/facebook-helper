@@ -261,7 +261,7 @@ class PostingMixin:
 
     def update_audience_count(self, *args):
         if self.audience_mode.currentIndex() == 2 and not self.audience_tag.currentText():
-            self.audience_count.setText("Chưa có nhãn. Vào Nhóm & nhãn để thêm nhãn cho các nhóm trước nhé.")
+            self.audience_count.setText("Chưa có nhãn. Vào Nhóm để thêm nhãn cho các nhóm trước nhé.")
             return
         self.audience_count.setText(
             f"Đã chọn {len(self.selected_group_ids())} nhóm · mỗi nhóm có kết quả riêng"

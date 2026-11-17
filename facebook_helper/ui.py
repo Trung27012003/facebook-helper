@@ -91,22 +91,19 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         layout.setContentsMargins(22, 18, 22, 18)
         heading = QLabel("Facebook Helper")
         heading.setStyleSheet("font-size: 25px; font-weight: 700;")
-        layout.addWidget(heading)
-        layout.addLayout(
-            row(
-                hint("Soạn bài → Chọn nhóm → Xem lại → Chạy · Tiến độ luôn được lưu trên máy"),
-                button("Tiếp tục danh sách còn lại", lambda: self.guard(self.resume_saved_queue)),
-                button("Hướng dẫn nhanh", lambda: self.quick_start.show()),
-            )
-        )
+        heading_row = row(heading)
+        heading_row.addStretch()
+        heading_row.addWidget(button("Tiếp tục đợt đăng", lambda: self.guard(self.resume_saved_queue)))
+        heading_row.addWidget(button("Trợ giúp", lambda: self.quick_start.show()))
+        layout.addLayout(heading_row)
         layout.addWidget(self.build_quick_start())
         self.tabs = QTabWidget()
         self.tabs.addTab(self.build_editor(), "Soạn bài")
-        self.tabs.addTab(self.build_groups(), "Nhóm & nhãn")
+        self.tabs.addTab(self.build_groups(), "Nhóm")
         self.tabs.addTab(self.build_jobs(), "Đăng bài")
         self.post_manager = PostManager(store, self)
         self.tabs.addTab(self.post_manager, "Bài đã đăng")
-        self.tabs.addTab(self.build_settings(), "Cài đặt & trợ giúp")
+        self.tabs.addTab(self.build_settings(), "Cài đặt")
         layout.addWidget(self.tabs)
         self.setCentralWidget(container)
         self.refresh_posts()
@@ -122,7 +119,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.statusBar().showMessage(
             f"Đã khôi phục {len(store.recovered)} lượt bị gián đoạn. Kiểm tra trước khi gửi lại."
             if store.recovered
-            else "Sẵn sàng · Tiến độ được lưu. Có thể tiếp tục danh sách còn lại."
+            else "Sẵn sàng"
         )
 
     def guard(self, callback):
@@ -873,7 +870,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                 sent_only=True,
             ):
                 raise ValueError(
-                    "Đã có lượt cùng nội dung và ảnh được gửi hoặc chưa rõ kết quả trong nhóm. Kiểm tra lịch sử; nếu muốn đăng lại hãy tạo danh sách mới và xác nhận cảnh báo trùng."
+                    "Đã có lượt cùng nội dung và ảnh được gửi hoặc chưa rõ kết quả trong nhóm. Xem lại bài đã gửi; nếu muốn đăng lại hãy tạo danh sách mới và xác nhận cảnh báo trùng."
                 )
             self.store.update_job(payload["job_id"], source="browser", status="sending")
         self.busy = True
@@ -925,10 +922,12 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
                         and result.get("status") in {"submitted", "pending", "published"}
                         else status,
                         note=result.get("message", ""),
-                        **({"url": result["url"]} if result.get("sent") and result.get("url") else {}),
+                        **(
+                            {"url": result["url"]}
+                            if (result.get("sent") or result.get("link_captured")) and result.get("url")
+                            else {}
+                        ),
                     )
-            if action in {"publish", "publish_current"} and result.get("url") and result.get("sent"):
-                self.store.update_job(result["job_id"], url=result["url"])
             if action == "read_link":
                 self.store.update_job(result["job_id"], url=result["url"])
             if action == "screenshot":
@@ -1000,40 +999,20 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         guide = QTextEdit()
         guide.setReadOnly(True)
         guide.setHtml("""
-        <h2>Bắt đầu sử dụng</h2>
-        <p>Bấm Hướng dẫn nhanh ở đầu cửa sổ để mở lại hướng dẫn. Đăng nhập trực tiếp trong cửa sổ Facebook của ứng dụng,
-        thêm nhóm ở Nhóm &amp; nhãn, rồi soạn bài. Phiên đăng nhập được giữ trên máy; không cần nhập mật khẩu vào ứng dụng.</p>
-        <h3>Đăng bài qua bốn bước</h3>
-        <ol><li><b>Chọn bài:</b> trong Soạn bài, bấm Đăng bài này để lưu bài và mở phần chọn bài.
-        Hoặc vào Đăng bài rồi chọn một bài đã lưu.</li>
-        <li><b>Chọn nơi đăng:</b> chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn. Kiểm tra số nhóm đã chọn.</li>
-        <li><b>Xem lại:</b> đọc nội dung, ảnh và danh sách nhóm. Bật Tự bấm Đăng nếu muốn ứng dụng tự gửi và chuyển nhóm.
-        Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu danh sách, chưa gửi Facebook.</li>
-        <li><b>Đăng và xem kết quả:</b> xem nhóm đang làm và tiến độ. Có thể Tạm dừng; thao tác đang chạy sẽ hoàn tất.
-        Tùy chọn khác chứa công cụ xử lý bằng tay. Đợt đã lưu có thể tiếp tục từ nút ở đầu cửa sổ.</li></ol>
-        <p>Khi chỉ chuẩn bị bài, bạn tự bấm Đăng trên Facebook, rồi chọn Tôi đã đăng · sang nhóm sau.
-        Facebook có thể đổi kiểu chữ khi dán; không hỗ trợ đầy đủ font, màu và bố cục như Word.</p>
-        <h3>Bản nháp tự lưu</h3>
-        <p>Bản đang soạn được tự lưu riêng sau khi ngừng nhập khoảng một giây và trước khi đóng ứng dụng.
-        Bấm Lưu bài để đưa nội dung vào danh sách bài có thể đăng. Nháp tự lưu chưa được đưa vào danh sách đó.
-        Khi mở lại, bấm Khôi phục bản nháp trong Soạn bài để tiếp tục. Nếu có nhiều nháp, chọn nháp theo tên và thời gian.
-        Bấm Bỏ các bản nháp cũ để xóa các nháp chưa khôi phục; bài đã lưu vẫn được giữ.</p>
-        <h3>Bài đã đăng</h3>
-        <p>Tích ô trước bài cần kiểm tra, không cần giữ Ctrl/Shift. Các nút Hôm nay, 7 ngày qua, Chờ duyệt và Cần xử lý giúp tìm nhanh.
-        Lọc thêm và cài đặt kiểm tra chứa lọc nhóm, nhãn, bài, khoảng ngày và kiểm tra định kỳ.
-        Bấm vào một dòng rồi Xem chi tiết để đọc link, ghi chú, thời gian kiểm tra và lịch sử cập nhật.
-        Có thể xuất Excel cho bài đã tích hoặc toàn bộ kết quả đang lọc.</p>
-        <p>Đã gửi khác với đã duyệt. Thiếu bằng chứng sẽ ghi Chưa xác minh được và giữ trạng thái đã biết.
-        Bài cũ chưa biết ngày gửi sẽ để trống. Kiểm tra định kỳ chỉ chạy khi ứng dụng mở và không đăng bài.</p>
-        <h3>Khi gặp lỗi</h3>
-        <p>Đọc hướng dẫn trên màn hình: đăng nhập lại, kiểm tra kết nối hoặc mở nhóm kiểm tra bài.
-        Chi tiết lỗi có thể mở khi cần hỗ trợ. Lượt chưa rõ kết quả không tự gửi lại để tránh trùng.
-        Ảnh minh chứng chỉ ghi vùng Facebook đang hiển thị; mở đúng bài và kiểm tra trước khi chụp.</p>
-        <h3>Dữ liệu và cập nhật</h3>
-        <p>Bài, nhóm, ảnh, nháp và lịch sử nằm trên máy. Sao lưu ZIP thường xuyên. ZIP không chứa phiên đăng nhập Facebook.
-        Đóng ứng dụng trước khi khôi phục bản sao lưu. Không chia sẻ thư mục browser chứa phiên đăng nhập.
-        Cập nhật bằng cách giải nén bản mới vào thư mục khác; dữ liệu cũ được giữ.</p>
-        <p>Facebook có thể thay đổi giao diện, kiểm duyệt hoặc hạn chế tài khoản. Ứng dụng không vượt xác thực hay kiểm duyệt.</p>
+        <h3>Cách sử dụng</h3>
+        <p>1. Đăng nhập Facebook từ nút Trợ giúp ở đầu cửa sổ.</p>
+        <p>2. Thêm nhóm trong tab Nhóm, soạn và lưu bài trong Soạn bài.</p>
+        <p>3. Vào Đăng bài, chọn bài và nhóm, xem lại rồi Bắt đầu đăng.</p>
+        <p>4. Vào Bài đã đăng, chọn đợt và khoảng ngày rồi bấm Tìm kiếm.
+        Chọn một dòng để mở bài hoặc sao chép link. Xuất Excel lấy toàn bộ kết quả tìm kiếm.</p>
+        <h3>Lưu kết quả</h3>
+        <p>Sau khi gửi, ứng dụng lưu kết quả và link nếu Facebook trả về, rồi chuyển nhóm.
+        Không chờ duyệt. Nếu chưa rõ đã gửi hay chưa, ứng dụng dừng để tránh đăng trùng.</p>
+        <p>Nội dung đang soạn được tự lưu thành nháp; bấm Lưu bài để dùng đăng.
+        Dùng Tiếp tục đợt đăng để mở công việc còn lại sau khi khởi động lại.</p>
+        <h3>Dữ liệu</h3>
+        <p>Sao lưu trước khi đổi máy hoặc khôi phục dữ liệu. Bản sao lưu không chứa phiên Facebook;
+        máy mới cần đăng nhập lại. Đóng ứng dụng trước khi khôi phục.</p>
         """)
         layout.addWidget(guide)
         location = QLineEdit(str(self.store.root))

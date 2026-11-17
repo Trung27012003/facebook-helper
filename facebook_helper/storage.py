@@ -252,6 +252,21 @@ class Store:
     def jobs(self):
         return [dict(row) for row in self.db.execute("SELECT * FROM jobs ORDER BY id DESC")]
 
+    def posting_register(self):
+        """Prefer actual send time, then attempted send, then creation for unsent rows."""
+        return [
+            dict(row)
+            for row in self.db.execute("""
+            SELECT j.*, COALESCE(b.title, '') AS batch_title,
+                   COALESCE(NULLIF(j.sent_at, ''),
+                            (SELECT e.happened_at FROM job_events e
+                             WHERE e.job_id=j.id AND e.new_status='sending'
+                             ORDER BY e.id DESC LIMIT 1), j.created_at) AS activity_at
+            FROM jobs j LEFT JOIN batches b ON b.id=j.batch_id
+            ORDER BY activity_at DESC, j.id DESC
+        """)
+        ]
+
     def job(self, job_id):
         row = self.db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
         if row is None:

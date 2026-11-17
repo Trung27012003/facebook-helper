@@ -1,11 +1,11 @@
-FACEBOOK HELPER 0.7.1 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.8.0 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
 Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
 
 LẦN ĐẦU
-Bấm Hướng dẫn nhanh nếu cần: đăng nhập trực tiếp trong cửa sổ Facebook,
+Bấm Trợ giúp nếu cần: đăng nhập trực tiếp trong cửa sổ Facebook,
 thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome cá nhân.
 
 ĐĂNG BÀI QUA BỐN BƯỚC
@@ -26,24 +26,15 @@ Nháp cũ chưa khôi phục vẫn được giữ khi bạn soạn bài khác.
 Nếu không lưu được nháp khi đóng, cửa sổ sẽ giữ mở để tránh mất nội dung.
 
 BÀI ĐÃ ĐĂNG
-Tích ô trước bài, không cần Ctrl/Shift. Có nút chọn tất cả kết quả đang hiện.
-Lọc nhanh Hôm nay, 7 ngày qua, Chờ duyệt hoặc Cần xử lý.
-Lọc thêm và cài đặt kiểm tra chứa lọc nhóm, nhãn, bài, trạng thái và khoảng ngày.
-Bấm vào dòng rồi Xem chi tiết để xem link, ghi chú, thời gian kiểm tra và lịch sử.
-Kiểm tra bài đã chọn để cập nhật trạng thái; có thể bật kiểm tra định kỳ.
-Mặc định kiểm tra định kỳ tắt, khi bật là 30 phút/lần và chỉ chạy lúc không đăng.
-Thiếu bằng chứng giữ Chưa xác minh được. Link mở được chưa chứng minh đã duyệt.
-Có thể xuất Excel theo bài đã tích hoặc toàn bộ kết quả đang lọc.
+Chọn đợt đăng, từ ngày–đến ngày và nhập từ khóa nếu cần, rồi bấm Tìm kiếm.
+Chọn một dòng để Mở bài hoặc Sao chép link. Xuất Excel lấy kết quả đang tìm.
+Ứng dụng lưu link ngay khi nhận diện được từ lần gửi, kể cả bài chờ duyệt.
+Nếu Facebook chưa trả link, vẫn lưu Đã gửi và chuyển nhóm sau.
+Không cần kiểm tra duyệt. Không còn lịch sử và các nút lọc nhanh trên trang này.
 
-Dùng Tiếp tục danh sách còn lại để mở công việc chưa xong.
+Dùng Tiếp tục đợt đăng để mở công việc chưa xong.
 Bài đang gửi lúc ứng dụng tắt thành Chưa rõ kết quả; kiểm tra trước khi gửi lại.
 Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cảnh báo trước khi tạo lượt mới.
 
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
-
-SỬA LỖI 0.7.1
-Nháp của bản cũ được khôi phục thành bài mới để tránh ghi đè bài đã lưu.
-Tìm bài đọc toàn bộ nội dung/hashtag. Hoàn tác giữ đúng lịch sử của bài đang mở.
-Nhận diện link sau gửi không chỉ dựa vào tiêu đề. Thiếu bằng chứng giữ Đã gửi.
-Không có thêm chặn số ký tự trước khi gửi.

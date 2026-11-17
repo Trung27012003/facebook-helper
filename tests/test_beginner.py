@@ -2,7 +2,6 @@ import json
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QEvent, Qt
-from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QMessageBox
 
 from facebook_helper.ui import MainWindow
@@ -186,40 +185,34 @@ def test_new_unsaved_work_keeps_unrecovered_draft(window, store):
     assert list(window.stored_drafts()) == ["one"]
 
 
-def test_checkbox_selection_needs_no_ctrl_and_survives_refresh(window, store, task_data, app):
-    ids = [store.create_job(task_data[0][0], g) for g in task_data[1]]
+def test_row_selection_survives_refresh_and_no_link_disables_actions(window, store, task_data):
+    for group in task_data[1]:
+        store.create_job(task_data[0][0], group)
     view = window.post_manager
     view.refresh()
-    window.tabs.setCurrentIndex(3)
-    view.table.setCurrentCell(0, 0)
-    view.table.setFocus()
-    QTest.keyClick(view.table, Qt.Key.Key_Space)
-    assert len(view.selected_ids()) == 1
-    chosen = view.selected_ids()
+    view.table.setCurrentCell(1, 0)
+    chosen = view.current_job_record()["id"]
     view.refresh()
-    assert view.selected_ids() == chosen
-    view.set_all_checked(True)
-    assert set(view.selected_ids()) == set(ids)
+    assert view.current_job_record()["id"] == chosen
+    assert not view.open_button.isEnabled() and not view.copy_button.isEnabled()
+    assert view.table.columnCount() == 6
     view.keyword.setText("không khớp")
-    assert not view.selected_ids()
-    assert view.table.columnCount() == 5
+    view.search()
+    assert view.table.rowCount() == 0 and not view.export_button.isEnabled()
 
 
-def test_quick_filters_use_sent_date_and_attention(window, store, task_data):
+def test_sent_states_are_presented_without_approval_metadata(window, store, task_data):
     ids = [store.create_job(task_data[0][0], g) for g in task_data[1]]
-    store.update_job(ids[0], source="browser", status="submitted")
-    store.update_job(ids[1], status="uncertain")
+    for job_id, status in zip(ids, ["submitted", "pending", "published"]):
+        store.update_job(job_id, status=status, url=store.job(job_id)["group_url"] + "posts/123/")
     view = window.post_manager
-    view.quick_filter("today")
-    assert [j["id"] for j in view.filtered_jobs] == [ids[0]]
-    view.quick_filter("attention")
-    assert [j["id"] for j in view.filtered_jobs] == [ids[1]]
-    view.quick_filter("all")
-    assert len(view.filtered_jobs) == 3 and not view.use_dates.isChecked()
+    view.refresh()
+    assert view.table.rowCount() == 3
+    assert {view.table.item(i, 4).text() for i in range(3)} == {"Đã gửi"}
 
 
 def test_quick_start_can_be_hidden_persistently(window, store):
-    assert not window.quick_start.isHidden()
+    assert window.quick_start.isHidden()
     window.hide_quick_start()
     assert window.quick_start.isHidden() and store.preference("quick_start_done") == "1"
 

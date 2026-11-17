@@ -1,16 +1,11 @@
-**Facebook Helper 0.7.1 — sửa lỗi phát hiện khi kiểm thử checklist**
+**Facebook Helper 0.8.0 — đơn giản trang Bài đã đăng**
 
-Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới và chạy `FacebookHelper/FacebookHelper.exe`.
+- Chọn đợt đăng, từ ngày–đến ngày, nhập từ khóa và bấm Tìm kiếm.
+- Bảng hiển thị trực tiếp link. Chọn dòng để Mở bài, Sao chép link hoặc Xuất Excel kết quả.
+- Bỏ nút lọc nhanh, lịch sử và kiểm tra duyệt. Tắt kiểm tra định kỳ của bản cũ.
+- Lưu link sau gửi độc lập với duyệt bài; nhận link từ phản hồi gửi phù hợp hoặc bài mới đúng nội dung. Hỗ trợ permalink pfbid. Nếu Facebook chưa trả link, vẫn lưu Đã gửi và chuyển nhóm.
+- Thu gọn phần đầu cửa sổ và hướng dẫn.
 
-Đã sửa bốn lỗi được tái hiện bằng kiểm thử:
+Đóng bản cũ, giải nén toàn bộ ZIP vào thư mục mới rồi chạy `FacebookHelper/FacebookHelper.exe`. Dữ liệu và phiên đăng nhập cũ được giữ. Không cần cài Python.
 
-- Khôi phục nháp có thể nhận nhầm một bài mới dùng lại mã số bài đã xóa. Bài được bổ sung định danh ổn định; chỉ nối lại nháp khi đúng bài gốc. Nháp từ bản cũ thiếu định danh sẽ mở thành bài mới để giữ nguyên các bài đã lưu.
-- Tìm kiếm thư viện bài chỉ đọc 250 ký tự đầu. Nay tìm toàn bộ nội dung và hashtag.
-- Hoàn tác sau khi nạp bài có thể quay về rỗng hoặc nội dung bài trước. Nay lịch sử Summernote bắt đầu lại ở nội dung vừa nạp.
-- Sau gửi, bài mới khác nội dung nhưng trùng tiêu đề có thể bị nhận nhầm link. Nay chỉ bổ sung kết quả hiển thị khi nội dung phù hợp; thiếu bằng chứng giữ đã gửi. Không thêm chặn so khớp ký tự vào bước đăng.
-
-Giữ giao diện bốn bước, ô tích, tự lưu nháp, tự chuyển nhóm và theo dõi trạng thái của 0.7.0. Dữ liệu được nâng schema từ 4 lên 5 để lưu định danh bài; bài, ảnh và lịch sử được giữ.
-
-Bộ kiểm thử đã được mở rộng theo checklist, có JUnit và kết quả từng ca riêng. Kiểm tra Windows thêm đường dẫn chương trình có dấu/khoảng trắng và rà tệp dữ liệu trong ZIP. Các ca Facebook thật, Microsoft Word, DPI và nghiệm thu người dùng chưa đủ điều kiện được ghi rõ trong báo cáo; không suy diễn mô phỏng thành đã nghiệm thu Facebook thật.
-
-Bản chưa ký mã số; checksum đi kèm.
+Kiểm thử trình duyệt dùng mô phỏng; chưa kiểm chứng phiên Facebook thật. Bản Windows được kiểm tra khởi động, trình soạn thảo, Chromium và đóng ứng dụng trước khi phát hành.

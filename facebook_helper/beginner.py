@@ -38,7 +38,7 @@ class BeginnerMixin:
                 button("Ẩn hướng dẫn", self.hide_quick_start),
             )
         )
-        self.quick_start.setVisible(self.store.preference("quick_start_done") != "1")
+        self.quick_start.hide()
         return self.quick_start
 
     def finish_quick_start(self):

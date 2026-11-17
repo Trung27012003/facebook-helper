@@ -8,7 +8,7 @@
 
 Giải nén **toàn bộ** ZIP → mở thư mục `FacebookHelper` → nhấp đúp `FacebookHelper.exe`. Không cần cài Python hay Chromium. Giữ nguyên `_internal` đi kèm, không chạy bên trong ZIP. Bản portable chưa ký mã số; thông tin kiểm tra và SHA256 nằm ở trang phát hành.
 
-## Cách dùng bản 0.7.1 · Summernote
+## Cách dùng bản 0.8.0 · Summernote
 
 ### 1. Soạn bài
 
@@ -36,7 +36,7 @@ Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiề
 
 ### 3. Đăng bài qua bốn bước
 
-Mở **Hướng dẫn nhanh** nếu cần: đăng nhập Facebook trong cửa sổ riêng của ứng dụng, thêm nhóm rồi soạn bài.
+Mở **Trợ giúp** nếu cần: đăng nhập Facebook trong cửa sổ riêng của ứng dụng, thêm nhóm rồi soạn bài.
 
 1. **Chọn bài:** trong Soạn bài bấm **Đăng bài này** để lưu và mở luồng đăng. Hoặc vào Đăng bài, chọn một bài đã lưu và xem nội dung.
 2. **Chọn nơi đăng:** chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn. Có thể bỏ tích những nhóm không cần. Số nhóm và thứ tự hiển thị là thứ tự sẽ thực hiện.
@@ -59,19 +59,21 @@ Nếu không tự lưu được khi đóng, ứng dụng giữ cửa sổ mở v
 
 ### Quản lý bài đăng
 
-Tab **Bài đã đăng** có tổng quan hôm nay, số lượt còn lại/chờ duyệt/cần xử lý. Tìm từ khóa trong tiêu đề, nội dung, nhóm, ghi chú hoặc link; lọc theo bài, nhóm, nhãn nhóm, trạng thái. Chọn ngày tạo lượt, **ngày gửi thực tế** hoặc ngày kiểm tra để lọc khoảng ngày (giờ trên máy, gồm cả hai đầu). Ngày gửi được ghi khi ứng dụng gửi thành công hoặc bạn bấm xác nhận vừa gửi; chỉ sửa trạng thái không tự tạo ngày gửi. Lượt cũ chưa ghi ngày gửi sẽ không xuất hiện khi lọc ngày gửi; không lấy ngày tạo thay thế.
+Chọn **Đợt đăng**, **Từ ngày**, **Đến ngày**, nhập từ khóa nếu cần rồi bấm **Tìm kiếm** (hoặc Enter). Không có nút lọc nhanh, lịch sử, ô tích hay kiểm tra duyệt. Kết quả chỉ đổi theo bộ lọc đã bấm Tìm kiếm; việc cập nhật từ trình duyệt không áp dụng các ô bạn đang sửa dở.
 
-Tích ô trước một/nhiều dòng hoặc **Chọn tất cả kết quả đang hiện** → **Kiểm tra bài đã chọn**, hoặc kiểm tra toàn bộ kết quả đang lọc. Bảng chính chỉ có năm cột: ô chọn, bài, nhóm, kết quả và thời gian gửi; không phải kéo ngang để tìm link. Bấm vào dòng rồi **Xem chi tiết** để đọc link, ghi chú, thời gian kiểm tra và lịch sử. Các nút **Hôm nay / 7 ngày qua / Chờ duyệt / Cần xử lý** giúp lọc nhanh; bộ lọc đầy đủ và kiểm tra định kỳ nằm trong **Lọc thêm và cài đặt kiểm tra**. Có thể dừng kiểm tra, mở bài, sao chép link và xuất Excel theo ô đã tích hoặc bộ lọc. Lịch sử ghi nguồn thay đổi, thời điểm, trạng thái cũ/mới và bằng chứng đọc được.
+Bảng gồm đợt đăng, bài viết, nhóm, thời gian, kết quả gửi và link. Chọn một dòng rồi **Mở bài** hoặc **Sao chép link**; thiếu link thì hai nút này tắt. **Xuất Excel** lấy tất cả kết quả đang tìm được. “Đã gửi” áp dụng cả bài đang chờ duyệt, không khẳng định được quản trị viên duyệt.
 
-**Tự kiểm tra** mặc định tắt. Bật để kiểm tra định kỳ khi ứng dụng đang mở và không có danh sách đăng chạy; mặc định 30 phút, tối thiểu 5 phút. Mỗi đợt tối đa 20 bài đã gửi/chờ duyệt/chưa rõ kết quả, ưu tiên bài lâu chưa kiểm tra. Đã hiển thị/bị từ chối/bị gỡ có thể kiểm tra bằng tay. Lỗi truy cập hoặc đăng nhập dừng đợt kiểm tra và giữ nguyên trạng thái đã biết; kết quả lần kiểm tra là **Chưa xác minh được**.
+Khoảng ngày tính theo giờ trên máy và gồm cả hai đầu. Cột **Thời gian** ưu tiên ngày gửi, rồi ngày thử gửi, cuối cùng là ngày tạo với lượt chưa gửi hoặc dữ liệu cũ thiếu ngày gửi. Không ghi ngày thay thế vào `sent_at`.
 
-Kiểm tra chạy trong tab trình duyệt riêng, dùng phiên hiện tại, không gửi lại/xóa bài. Ưu tiên đúng link + nội dung trong luồng thảo luận; tìm phần nội dung của chính bạn khi có liên kết phù hợp. Nếu chưa có link, cần khớp nội dung và thời gian gửi trong phạm vi 5 phút để tránh nhận nhầm bài cũ. Chỉ đọc các phần trang đã tải, tối đa ba lần cuộn luồng nhóm. Link truy cập được riêng lẻ không chứng minh đã duyệt; không tìm thấy bài không chứng minh bị gỡ. **Đã hiển thị** là bằng chứng quan sát tại lần kiểm tra, không phải cam kết bài sẽ luôn còn đó.
+Sau khi gửi, ứng dụng lấy permalink từ phản hồi gửi bài nếu nhận diện đúng thao tác/nội dung/nhóm, hoặc từ bài mới đúng nội dung trên trang. Việc lấy link chạy cả với bài chờ duyệt, không gọi kiểm tra duyệt. Facebook chưa cung cấp link thì lưu kết quả gửi và để trống link, vẫn tiếp tục nhóm sau. Không suy đoán link từ ID không rõ loại. Hỗ trợ link số và dạng `pfbid…`.
+
+Kiểm tra duyệt định kỳ đã tắt, kể cả khi bản cũ từng bật. Dữ liệu cũ được giữ; không còn phần lịch sử trên giao diện quản lý.
 
 ### Chống trùng và tiếp tục sau gián đoạn
 
 Tạo danh sách/lượt mới sẽ cảnh báo nếu cùng nội dung (chuẩn hóa khoảng trắng) và cùng ảnh (so sánh bytes) đã có lượt trong cùng nhóm, kể cả lưu dưới tên bài khác. Có thể xác nhận tạo lượt để đăng lại có chủ đích. Trước khi tự gửi, ứng dụng kiểm tra lại các lượt đã gửi/chưa rõ kết quả ở danh sách khác; không gửi lại cùng lượt đã hoàn tất. Nhóm dùng ID và tên khác nhau chưa được tự ánh xạ với nhau.
 
-Tiến độ, nội dung và thứ tự được lưu sau từng nhóm. Khi mở lại, lượt đang gửi được chuyển **Chưa rõ kết quả**; không tự gửi lại. Dùng **Tiếp tục danh sách còn lại**, kiểm tra các lượt chưa rõ rồi Bắt đầu / tiếp tục. Các lượt đã gửi/chờ duyệt/hiển thị được bỏ qua. Ứng dụng không tự bấm Đăng ngay lúc khởi động.
+Tiến độ, nội dung và thứ tự được lưu sau từng nhóm. Khi mở lại, lượt đang gửi được chuyển **Chưa rõ kết quả**; không tự gửi lại. Dùng **Tiếp tục đợt đăng**, kiểm tra các lượt chưa rõ rồi Bắt đầu / tiếp tục. Các lượt đã gửi/chờ duyệt/hiển thị được bỏ qua. Ứng dụng không tự bấm Đăng ngay lúc khởi động.
 
 
 Link được lưu tự động khi nhận diện được link bài mới đúng nhóm; không lấy link bài cũ có sẵn trước lúc gửi. Nếu không nhận diện được, trạng thái giữ là đã gửi và link để trống, không tự bịa link hoặc đánh dấu đã hiển thị. Việc quản trị viên duyệt bài vẫn do nhóm quyết định.
@@ -146,7 +148,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Checklist kiểm thử toàn bộ](docs/TEST-CHECKLIST.md) và [bản Excel để đánh dấu](docs/TEST-CHECKLIST.xlsx) gồm đầu mục, ưu tiên, kết quả mong đợi và mẫu ghi lỗi.
 
-Xem [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

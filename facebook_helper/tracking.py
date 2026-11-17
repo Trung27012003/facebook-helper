@@ -13,23 +13,16 @@ class TrackingMixin:
         self.monitor_done = 0
         self.monitor_timer = QTimer(self)
         self.monitor_timer.timeout.connect(self.periodic_check)
-        self.post_manager.check_requested.connect(lambda ids: self.guard(lambda: self.start_checks(ids)))
-        self.post_manager.stop_requested.connect(self.stop_checks)
-        self.post_manager.settings_changed.connect(self.configure_tracking)
         self.configure_tracking()
 
     def configure_tracking(self):
+        # Approval checking is no longer part of the posting workflow.
         self.monitor_timer.stop()
-        if self.post_manager.periodic.isChecked():
-            self.monitor_timer.start(self.post_manager.interval.value() * 60000)
+        if self.store.preference("monitor_enabled") == "1":
+            self.store.set_preference("monitor_enabled", "0")
 
     def periodic_check(self):
-        if self.busy or self.queue_active or self.closing or self.monitor_running:
-            return
-        jobs = [j for j in self.store.jobs() if j["status"] in {"submitted", "pending", "uncertain"}]
-        jobs.sort(key=lambda j: (j["checked_at"], j["id"]))
-        if jobs:
-            self.start_checks([j["id"] for j in jobs[:20]])
+        return
 
     def start_checks(self, ids):
         if self.busy or self.queue_active or self.monitor_running:
@@ -53,7 +46,7 @@ class TrackingMixin:
         self.busy = True
         for widget in self.browser_buttons:
             widget.setEnabled(False)
-        self.post_manager.monitor_message.setText(
+        self.statusBar().showMessage(
             f"Đang kiểm tra {self.monitor_done + 1}/{self.monitor_total}: {job['group_name']}. Dừng kiểm tra để hủy các bài còn lại."
         )
         self.browser.submit("check_status", {**job, "job_id": job["id"]})
@@ -72,14 +65,14 @@ class TrackingMixin:
             QTimer.singleShot(1500, lambda: self.guard(self.dispatch_check))
         else:
             self.monitor_running = False
-            self.post_manager.monitor_message.setText(
+            self.statusBar().showMessage(
                 f"Đã kiểm tra {self.monitor_done}/{self.monitor_total} bài. Xem cột Kết quả kiểm tra và Lịch sử trạng thái."
             )
 
     def stop_checks(self):
         self.monitor_running = False
         self.monitor_ids.clear()
-        self.post_manager.monitor_message.setText("Đã dừng kiểm tra. Bài đang đọc (nếu có) sẽ hoàn tất.")
+        self.statusBar().showMessage("Đã dừng kiểm tra. Bài đang đọc (nếu có) sẽ hoàn tất.")
 
     def resume_saved_queue(self):
         if self.busy or self.monitor_running:

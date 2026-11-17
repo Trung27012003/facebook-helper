@@ -207,48 +207,35 @@ def test_tracking_queue_saves_results_continues_and_cannot_publish_at_same_time(
     monkeypatch.undo()
 
 
-def test_periodic_check_respects_posting_and_rotates_oldest_unchecked(window, store, task_data, monkeypatch):
-    batch = store.create_batch(task_data[0][0], task_data[1])
-    jobs = store.batch_jobs(batch)
-    for job in jobs:
-        store.update_job(job["id"], status="submitted")
-    store.record_check(jobs[0]["id"], "unknown", "Đã xem")
+def test_previous_monitor_preference_cannot_restart_approval_checks(window, store, task_data, monkeypatch):
+    for group in task_data[1]:
+        store.update_job(store.create_job(task_data[0][0], group), status="submitted")
     commands = []
-    monkeypatch.setattr(window.browser, "submit", lambda action, data: commands.append(data))
-    window.queue_active = True
+    monkeypatch.setattr(window.browser, "submit", lambda *args: commands.append(args))
+    store.set_preference("monitor_enabled", "1")
+    window.configure_tracking()
     window.periodic_check()
-    assert commands == []
-    window.queue_active = False
-    window.periodic_check()
-    assert commands[0]["job_id"] == jobs[1]["id"]
-    window.stop_checks()
-    window.finish_browser()
-    monkeypatch.undo()
+    assert not window.monitor_timer.isActive()
+    assert store.preference("monitor_enabled") == "0" and not commands
 
 
-def test_manager_filters_actual_send_date_group_tag_and_exports_filtered(window, store, task_data, tmp_path):
+def test_register_prefers_actual_send_date_and_exports_filtered(window, store, task_data, tmp_path):
     jobs = [store.create_job(task_data[0][0], g) for g in task_data[1]]
     store.update_job(jobs[0], status="submitted")
     with store.db:
-        store.db.execute("UPDATE jobs SET sent_at=? WHERE id=?", (SENT_AT, jobs[0]))
+        store.db.execute(
+            "UPDATE jobs SET sent_at=?,created_at=? WHERE id=?",
+            (SENT_AT, "2026-10-01T12:00:00+00:00", jobs[0]),
+        )
+        for job_id in jobs[1:]:
+            store.db.execute("UPDATE jobs SET created_at=? WHERE id=?", ("2026-10-01T12:00:00+00:00", job_id))
     view = window.post_manager
-    view.refresh()
-    view.date_field.setCurrentIndex(view.date_field.findData("sent_at"))
     view.start.setDate(QDate(2026, 11, 17))
     view.end.setDate(QDate(2026, 11, 17))
-    view.use_dates.setChecked(True)
+    view.search()
     assert [j["id"] for j in view.filtered_jobs] == [jobs[0]]
-    view.group.setCurrentIndex(view.group.findData(store.job(jobs[1])["group_url"]))
-    assert view.table.rowCount() == 0
-    view.use_dates.setChecked(False)
-    assert view.table.rowCount() == 1
-    view.group.setCurrentIndex(0)
-    view.set_all_checked(True)
-    assert len(view.selected_ids()) == 3
-    view.refresh()
-    assert len(view.selected_ids()) == 3
     output = tmp_path / "filtered.xlsx"
-    store.export_excel(output, view.filtered_jobs[:1])
+    store.export_excel(output, view.filtered_jobs)
     from openpyxl import load_workbook
 
     book = load_workbook(output)

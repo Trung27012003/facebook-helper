@@ -29,7 +29,7 @@ def group_key(url: str) -> str:
         or parsed.port not in (None, 443)
     ):
         raise ValueError("Hãy nhập link HTTPS của nhóm Facebook.")
-    match = re.fullmatch(r"/groups/([A-Za-z0-9._-]+)(?:/(?:posts|permalink)/(\d+))?/?", parsed.path)
+    match = re.fullmatch(r"/groups/([A-Za-z0-9._-]+)(?:/(?:posts|permalink)/(\d+|pfbid[A-Za-z0-9]+))?/?", parsed.path)
     if not match or match[1].lower() in {"feed", "discover", "joins", "create"}:
         raise ValueError("Link cần có dạng https://www.facebook.com/groups/ten-nhom/")
     return match[1]
@@ -45,11 +45,11 @@ def post_url(url: str, group_url: str) -> str:
         raise ValueError("Link bài đăng phải thuộc nhóm đang chọn (cùng ID hoặc tên nhóm).")
     parsed = urlparse(url.strip())
     query = parse_qs(parsed.query)
-    match = re.fullmatch(r"/groups/([^/]+)/(posts|permalink)/(\d+)/?", parsed.path)
+    match = re.fullmatch(r"/groups/([^/]+)/(posts|permalink)/(\d+|pfbid[A-Za-z0-9]+)/?", parsed.path)
     if match:
         return f"https://www.facebook.com/groups/{match[1]}/posts/{match[3]}/"
     ids = query.get("multi_permalinks", [])
-    if len(ids) == 1 and ids[0].isdigit():
+    if len(ids) == 1 and re.fullmatch(r"\d+|pfbid[A-Za-z0-9]+", ids[0]):
         return f"https://www.facebook.com/groups/{group_key(url)}/posts/{ids[0]}/"
     raise ValueError("Cần link của một bài cụ thể, không phải trang chủ nhóm.")
 

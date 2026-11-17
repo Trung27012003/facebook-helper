@@ -200,29 +200,37 @@ class BrowserWorker(QThread):
                 before_links.add(post_url(href, payload["group_url"]))
             except ValueError:
                 pass
+        from .postlinks import SubmissionLinks
+
         payload["submission_started"] = True
-        try:
-            submit.click(timeout=10000)
-            dialog.wait_for(state="hidden", timeout=20000)
-            self.page.wait_for_timeout(1500)
-            check_platform_notice(self.page)
-        except Exception as exc:
-            return {
-                **payload,
-                "filled": True,
-                "sent": False,
-                "uncertain": True,
-                "message": "Đã thử bấm Đăng nhưng chưa xác định được kết quả. Kiểm tra Facebook trước khi thử lại để tránh gửi trùng. Danh sách đã tạm dừng. "
-                + str(exc)[:600],
-            }
+        # An inherited URL belongs to a previous attempt, never this submission.
+        payload = {k: v for k, v in payload.items() if k != "url"}
+        with SubmissionLinks(self.page, payload) as captured:
+            try:
+                submit.click(timeout=10000)
+                dialog.wait_for(state="hidden", timeout=20000)
+                self.page.wait_for_timeout(1500)
+                check_platform_notice(self.page)
+            except Exception as exc:
+                link = captured.link()
+                return {
+                    **payload,
+                    "filled": True,
+                    "sent": False,
+                    "uncertain": True,
+                    **({"url": link, "link_captured": True} if link else {}),
+                    "message": "Chưa rõ kết quả gửi. Hãy xem lại Facebook trước khi gửi lại. "
+                    + str(exc)[:600],
+                }
+            link = captured.link()
         result = {
             **payload,
             "filled": True,
             "sent": True,
             "status": "submitted",
-            "message": "Đã gửi; đang tự chuyển nhóm. Chưa xác nhận hiển thị công khai.",
+            "message": "Đã gửi; tiếp tục nhóm tiếp theo.",
+            **({"url": link, "link_captured": True} if link else {}),
         }
-        result.pop("url", None)
         notices = self.page.locator('[role="status"], [role="alert"]').all_text_contents()
         if any(
             re.search(r"pending approval|submitted for approval|chờ.{0,25}(duyệt|phê duyệt)", text, re.I)
@@ -236,14 +244,17 @@ class BrowserWorker(QThread):
                 previous_post = post_url(before_url, payload["group_url"])
             except ValueError:
                 previous_post = None
-            if self.page.url != before_url:
-                current_post = post_url(self.page.url, payload["group_url"])
-                if current_post != previous_post:
+            if not result.get("url") and self.page.url != before_url:
+                try:
+                    current_post = post_url(self.page.url, payload["group_url"])
+                except ValueError:
+                    current_post = None
+                if current_post and current_post != previous_post:
                     result["url"] = current_post
             needle = next(
                 (line.strip() for line in payload.get("body", "").splitlines() if line.strip()), ""
             )[:70]
-            if needle and result["status"] != "pending":
+            if needle and not result.get("url"):
                 from .monitoring import normalized
 
                 articles = self.page.get_by_role("article").filter(has_text=needle)
@@ -264,8 +275,7 @@ class BrowserWorker(QThread):
                             pass
                 if len(candidates) == 1:
                     result["url"] = candidates.pop()
-                    result["status"] = "published"
-                    result["message"] = "Đã thấy bài mới hiển thị và lưu link; tiếp tục nhóm tiếp theo."
+                    result["message"] = "Đã gửi và lưu link; tiếp tục nhóm tiếp theo."
         except Exception:
             pass  # Optional status enrichment must never repeat or block a successful send.
         return result

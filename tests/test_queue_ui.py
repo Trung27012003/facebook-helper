@@ -251,3 +251,60 @@ def test_verified_publication_saves_status_and_url_atomically(window, store, tas
     )
     saved = store.job(jobs[0]["id"])
     assert saved["status"] == "published" and saved["url"].endswith("/posts/999/")
+
+
+@pytest.mark.parametrize("status,has_link", [("pending", True), ("pending", False), ("submitted", True)])
+def test_link_saved_before_auto_next_without_approval(
+    window, store, task_data, monkeypatch, status, has_link
+):
+    _, jobs = batch_for_window(window, store, task_data)
+    commands = []
+    monkeypatch.setattr(window.browser, "submit", lambda action, data: commands.append((action, data)))
+    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
+    window.start_posting_queue()
+    link = jobs[0]["group_url"] + "posts/777/"
+    window.browser_done(
+        "publish",
+        {
+            **commands[0][1],
+            "filled": True,
+            "sent": True,
+            "status": status,
+            "message": "Đã gửi",
+            **({"url": link} if has_link else {}),
+        },
+    )
+    first = store.job(jobs[0]["id"])
+    assert first["status"] == status and first["sent_at"]
+    assert first["url"] == (link if has_link else "")
+    assert not first["checked_at"] and not first["first_visible_at"]
+    assert window.queue_timer.isActive()
+    window.queue_timer.stop()
+    window.queue_continue()
+    assert commands[1][1]["job_id"] == jobs[1]["id"]
+    window.finish_browser()
+    window.pause_posting_queue()
+
+
+def test_verified_link_kept_even_when_send_confirmation_uncertain(window, store, task_data, monkeypatch):
+    _, jobs = batch_for_window(window, store, task_data)
+    commands = []
+    monkeypatch.setattr(window.browser, "submit", lambda action, data: commands.append(data))
+    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
+    window.start_posting_queue()
+    link = jobs[0]["group_url"] + "posts/777/"
+    window.browser_done(
+        "publish",
+        {
+            **commands[0],
+            "filled": True,
+            "uncertain": True,
+            "sent": False,
+            "link_captured": True,
+            "url": link,
+            "message": "Cần xem lại",
+        },
+    )
+    record = store.job(jobs[0]["id"])
+    assert record["status"] == "uncertain" and record["url"] == link
+    assert not record["sent_at"] and not window.queue_active and len(commands) == 1
