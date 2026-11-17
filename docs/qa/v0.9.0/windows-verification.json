@@ -1,0 +1,30 @@
+{
+  "source_sha": "7b3277d5591d7c4037572da0a57d941e9ae467fb",
+  "run_id": 44119114541,
+  "release_url": "https://github.com/Trung27012003/facebook-helper/releases/tag/v0.9.0",
+  "zip_size": 620992045,
+  "published_sha256": "f4749433edf0050cac74ccdd25da9c75480c43db21a2256f168ef3073ba07619",
+  "download_http_status": 206,
+  "zip_signature_hex": "504b0304",
+  "full_zip_hash_recomputed_locally": false,
+  "smoke": {
+    "ok": true,
+    "chromium": "159.0.8154.6",
+    "rich_paste_and_copy": true,
+    "today_filter": true,
+    "posting_link_column": true,
+    "group_actions": true,
+    "global_actions": true,
+    "guided_steps": 4,
+    "result_columns": 6,
+    "draft_saved": true,
+    "tabs": 5,
+    "qt_started": true,
+    "worker_stopped": true
+  },
+  "package_audit": {
+    "files": 4000,
+    "user_data_files": [],
+    "ok": true
+  }
+}

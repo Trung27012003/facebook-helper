@@ -44,3 +44,13 @@ Ruff và kiểm tra diff đạt. Các lượt kiểm tra liên quan sau thay đ�
 ## Giới hạn
 
 Chưa có phiên Facebook thật hoặc phản hồi từ tài khoản người dùng để chứng minh lỗi lấy link thực tế đã hết. Không có URL/mã bài hợp lệ được nhận diện thì chưa lấy được link, link chờ duyệt có thể chưa mở được. File chẩn đoán cục bộ giúp xác định tiếp nếu còn lỗi. Kiểm thử Chromium dùng trang/phản hồi mô phỏng. Ảnh Qt offscreen không thay nghiệm thu DPI Windows hoặc thử nghiệm với người dùng mới; kiểm tra `.exe` Windows là kiểm tra khởi động, không phải chứng minh Facebook thật hoạt động.
+
+## CI mã nguồn
+
+[Checks #44119114421](https://github.com/Trung27012003/facebook-helper/actions/runs/44119114421) đạt trên commit `7b3277d5591d7c4037572da0a57d941e9ae467fb`: Ruff và **298 test, 214,241 giây**, 0 failures/errors/skipped. [JUnit CI](qa/v0.9.0/ci-tests.xml).
+
+## Windows và tải về
+
+[Build Windows #44119114541](https://github.com/Trung27012003/facebook-helper/actions/runs/44119114541) đạt trên cùng commit. `.exe` chạy trong thư mục có dấu/khoảng trắng, kiểm tra Qt, Chromium, Summernote/dán-copy HTML, bốn bước, bộ lọc hôm nay, cột link, Mở nhóm, các action mới, nháp và đóng worker. ZIP gồm 4.000 tệp; rà tên tệp không thấy dữ liệu/phiên người dùng thuộc danh sách cấm. [Bằng chứng](qa/v0.9.0/windows-verification.json).
+
+[Tải bản 0.9.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.9.0). ZIP 620.992.045 byte; SHA256 công bố `f4749433edf0050cac74ccdd25da9c75480c43db21a2256f168ef3073ba07619`. Đã tải checksum và kiểm tra đầu ZIP từ link công khai: HTTP 206, chữ ký `504b0304`. Không tải toàn bộ ZIP để tính lại hash tại workspace.
