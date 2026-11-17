@@ -29,3 +29,15 @@ Không có phiên Facebook thật để tái hiện phản hồi của tài kho�
 ## Kết quả tại workspace
 
 Ruff đạt. Bộ kiểm thử toàn bộ: **275 passed, 158,20 giây**, 0 failures/errors/skipped; [JUnit](qa/v0.8.1/local-tests.xml). Sau đó bổ sung xử lý và ca kiểm thử khi trang đóng lúc chờ phản hồi: chạy lại nhóm lấy link **23 passed**, gồm ca bổ sung này. Tổng bộ kiểm thử hiện tại là 276 ca; CI sẽ chạy toàn bộ trên commit phát hành.
+
+## CI và thao tác giao diện
+
+[Checks #44108180975](https://github.com/Trung27012003/facebook-helper/actions/runs/44108180975) đạt trên mã nguồn `dc03b4dac8705fdb362b87f9c881e157aa67dc05`: Ruff và **276 test, 161,825 giây**, 0 failures/errors/skipped. [JUnit CI](qa/v0.8.1/ci-tests.xml).
+
+Kiểm tra thao tác Qt offscreen bổ sung: kích hoạt trực tiếp hai QAction trong menu Xóa, kiểm tra số lượng trong xác nhận, dòng biến mất, nút Xóa tắt khi hết kết quả và biên nhận gửi vẫn giữ. Đạt; kiểm tra này không được tính thêm vào 276 test CI và không phải kiểm tra giao diện Windows.
+
+## Gói Windows
+
+[Build Windows #44108180232](https://github.com/Trung27012003/facebook-helper/actions/runs/44108180232) đạt trên cùng mã nguồn. File `.exe` chạy từ thư mục có dấu/khoảng trắng, kiểm tra Qt, Chromium, Summernote/dán-copy HTML, bốn bước, sáu cột kết quả, nháp và đóng worker. ZIP gồm 4.000 tệp; rà tên tệp không thấy dữ liệu/phiên người dùng thuộc danh sách cấm. [Bằng chứng](qa/v0.8.1/windows-verification.json).
+
+[Tải bản 0.8.1](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.8.1). ZIP 620.975.129 byte. SHA256 công bố: `70a51369dcd236467fdad114153d12e15131173f9f973492bce5540730a05ad8`. Đã tải checksum và kiểm tra đầu ZIP từ link công khai: HTTP 206, chữ ký `504b0304`. Không tải toàn bộ ZIP để tính lại hash tại workspace.
