@@ -33,3 +33,13 @@ Kiểm thử trình duyệt dùng Chromium và trang/phản hồi mô phỏng, k
 ## Kết quả tại workspace
 
 `ruff check .` đạt. Bộ kiểm thử cuối: **253 passed trong 139,31 giây**, không failure/error/skipped. [JUnit](qa/v0.8.0/local-tests.xml). Một lỗi mới phát hiện khi mô phỏng hết chỗ lưu đã được sửa: việc tắt kiểm tra duyệt không còn ghi lại cấu hình mỗi khi hủy đóng cửa sổ vì nháp chưa lưu được. Ca hết chỗ lưu và bộ kiểm thử toàn bộ đã chạy lại đạt.
+
+## CI mã nguồn
+
+[Checks #44097261246](https://github.com/Trung27012003/facebook-helper/actions/runs/44097261246) đạt trên mã nguồn `80029aa1e5c63d12616587fb94812ad5693eea49`: Ruff và **253 test, 141,256 giây**, 0 failures/errors/skipped. [JUnit tải từ artifact CI](qa/v0.8.0/ci-tests.xml).
+
+## Gói Windows
+
+[Build Windows #44097261335](https://github.com/Trung27012003/facebook-helper/actions/runs/44097261335) đạt trên cùng mã nguồn. File `.exe` được chạy từ thư mục có dấu/khoảng trắng, kiểm tra Qt, Chromium, Summernote/dán-copy HTML, bốn bước, sáu cột kết quả, nháp và đóng worker. ZIP gồm 4.000 tệp; rà tên tệp không thấy dữ liệu/phiên người dùng thuộc danh sách cấm. [Bằng chứng](qa/v0.8.0/windows-verification.json).
+
+[Tải bản 0.8.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.8.0). ZIP 620.967.666 byte. SHA256 công bố: `841fec0b4c65aba61e661a7b82647cb38f80771619edfdaa325b6c434c3dac7d`. Đã tải checksum và kiểm tra đầu ZIP từ link công khai: HTTP 206, chữ ký `504b0304`. Không tải toàn bộ ZIP để tính lại hash tại workspace.
