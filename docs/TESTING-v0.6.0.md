@@ -1,6 +1,6 @@
 # Kiểm thử 0.6.0
 
-Ngày 17/11/2026 (giờ Việt Nam). Bộ đầy đủ: **162 passed, 96.57 giây**, [log](test-output-v0.6.0.txt). Sau bổ sung quy tắc chỉ ghi ngày gửi khi thực sự gửi/xác nhận vừa gửi, nhóm tracking và queue: **50 passed, 29.14 giây**, [log](test-tracking-v0.6.0.txt); 35 test tracking sau bổ sung kiểm tra nhãn mâu thuẫn cũng đạt (21.76 giây), [log](test-inspection-v0.6.0.txt); kết quả CI trên mã phát hành và gói Windows ghi bên dưới khi hoàn tất.
+Ngày 17/11/2026 (giờ Việt Nam). **165 passed, 111.60 giây** trên CI của mã phát hành `c353b60debffbd055bf914ea380ff894ef00b19f`: [Checks #44003018310](https://github.com/Trung27012003/facebook-helper/actions/runs/44003018310), [log](test-output-v0.6.0.txt). Ruff đạt. Kiểm tra riêng tracking/queue: [50 passed](test-tracking-v0.6.0.txt); sau bổ sung nhãn mâu thuẫn: [35 passed](test-inspection-v0.6.0.txt).
 
 | Phần | Kiểm tra |
 |---|---|
@@ -21,3 +21,9 @@ Dữ liệu từ bản cũ nâng schema từ 3 lên 4, thêm mốc thời gian, 
 Các trang Facebook trong test được mô phỏng và chạy qua Chromium thật. Chưa thử bằng tài khoản Facebook thật. Kiểm tra chỉ đọc các phần trang đã tải; có thể chưa xác minh nếu Facebook đổi giao diện, thiếu link/timestamp, nội dung chưa tải đủ hoặc phiên đăng nhập hết hạn. Đã hiển thị là quan sát tại thời điểm kiểm tra, không đảm bảo bài tồn tại mãi hay xác định được người đã duyệt.
 
 Groups API đã ngừng hỗ trợ: [Meta v19 changelog](https://developers.facebook.com/docs/graph-api/changelog/version19.0/). Chức năng theo dõi dùng phiên trình duyệt hiện tại, không có private GraphQL doc_id hard-code.
+
+## Gói Windows
+
+[Build Windows #44003018252](https://github.com/Trung27012003/facebook-helper/actions/runs/44003018252) thành công từ cùng mã phát hành. `.exe` chạy với giao diện Windows thực, xác nhận Chromium đi kèm, Summernote, dán/copy rich text, năm tab, khởi động Qt và dừng worker sạch. CI nguồn thành công trước khi cho phép phát hành.
+
+[Tải 0.6.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.6.0). ZIP 620.947.931 byte; SHA256 công bố `f652df6ec6847343523b66cf02218219b80f6a871706ea4c58e023e74a6f64aa`. Đã đọc file checksum và kiểm tra đầu tệp tải ZIP: HTTP 206, chữ ký ZIP đúng. Không tải toàn bộ ZIP để tính lại hash tại máy này.
