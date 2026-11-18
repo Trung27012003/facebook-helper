@@ -8,7 +8,7 @@
 
 Tải **Setup.exe** → chạy → Cài đặt → mở Facebook Helper từ Start menu. Không cần Python, không cần quyền quản trị. Cập nhật bằng Setup giữ dữ liệu/phiên Facebook. Đóng bản đang chạy trước khi cài. ZIP portable vẫn có: giải nén toàn bộ rồi chạy `FacebookHelper.exe`, giữ `_internal` đi kèm. Bản chưa ký mã số; checksum ở trang phát hành.
 
-Bản 0.10.0: Setup khoảng **326 MB**, ZIP **469 MB**, giảm khoảng **25%** so với ZIP 0.9.0. Thành phần chương trình sau giải nén khoảng 1,11 GB; dữ liệu/ảnh/phiên được lưu riêng.
+Bản 0.11.0: Setup khoảng **326 MB**, ZIP **469 MB**, giảm khoảng **25%** so với ZIP 0.9.0. Thành phần chương trình sau giải nén khoảng 1,11 GB; dữ liệu/ảnh/phiên được lưu riêng.
 
 ## Cách dùng bản 0.11.0 · Vị trí và nhãn
 

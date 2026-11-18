@@ -20,4 +20,19 @@ Kiểm thử Facebook dùng trang và phản hồi mô phỏng, chưa dùng phi�
 
 ## Kết quả
 
-Đang chạy kiểm thử toàn bộ và tạo bộ cài Windows; kết quả CI và gói phát hành sẽ được ghi sau khi hoàn tất.
+Ruff đạt. Kiểm thử đầy đủ tại workspace: **331 passed, 194,64 giây**. Nhóm kiểm thử vị trí/nhãn riêng: **15 passed**.
+
+[Checks #44216917395](https://github.com/Trung27012003/facebook-helper/actions/runs/44216917395) đạt trên commit `3ca8ba359e4e22f54e9bc542dc8137271499337b`: **331 test, 202,363 giây**, 0 failures/errors/skipped. [JUnit CI](qa/v0.11.0/ci-tests.xml).
+
+[Build Windows #44216917274](https://github.com/Trung27012003/facebook-helper/actions/runs/44216917274) đạt trên cùng commit. Bản portable và bản cài đều chạy được Qt, Summernote, Chromium đầy đủ, danh mục vị trí, bộ chọn nhiều vị trí/nhãn, schema 7 và 6 tab. Kiểm tra cài/chạy/gỡ từ đường dẫn Windows có dấu đạt; DB và tệp đánh dấu dữ liệu người dùng còn nguyên sau gỡ.
+
+[Phát hành v0.11.0](https://github.com/Trung27012003/facebook-helper/releases/tag/v0.11.0):
+
+| Tệp | Dung lượng | SHA-256 từ CI |
+|---|---:|---|
+| FacebookHelper-Setup-x64.exe | 326.471.944 byte | `149bb03fbd8390506533603191962788ed1c827815bf0bfd30ca5bcc2b007496` |
+| FacebookHelper-Windows-x64.zip | 468.793.996 byte | `0c06081cd00fcd6a3229c076571489093279a9156a6a140712bd58963c781c18` |
+
+Đã xác nhận ba asset ở trạng thái uploaded, đọc được SHA256SUMS công khai và chữ ký đầu tệp MZ/PK qua link tải. Hash trong bảng được lấy từ CI-generated SHA256SUMS, không tuyên bố băm lại toàn bộ tệp tải từ Internet. API Releases công khai được kiểm tra với updater thật: bản 0.10.0 nhận ra 0.11.0, bản 0.11.0 không báo cập nhật lại.
+
+Audit 3.443 tệp không chứa dữ liệu người dùng. Prune bỏ 90.072.701 byte, còn 1.110.249.564 byte runtime. [Bằng chứng máy đọc được](qa/v0.11.0/release-verification.json).

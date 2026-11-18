@@ -1,0 +1,88 @@
+{
+  "verified_at": "2026-11-18T08:46:05.994295+07:00",
+  "source_commit": "3ca8ba359e4e22f54e9bc542dc8137271499337b",
+  "source_ci_run": 44216917395,
+  "windows_ci_run": 44216917274,
+  "source_tests": 331,
+  "source_ci_seconds": 202.363,
+  "local_tests": 331,
+  "local_seconds": 194.64,
+  "release": "https://github.com/Trung27012003/facebook-helper/releases/tag/v0.11.0",
+  "public_update_0_10_to_0_11": true,
+  "assets": [
+    {
+      "name": "FacebookHelper-Setup-x64.exe",
+      "bytes": 326471944,
+      "sha256": "149bb03fbd8390506533603191962788ed1c827815bf0bfd30ca5bcc2b007496",
+      "url": "https://github.com/Trung27012003/facebook-helper/releases/download/v0.11.0/FacebookHelper-Setup-x64.exe"
+    },
+    {
+      "name": "FacebookHelper-Windows-x64.zip",
+      "bytes": 468793996,
+      "sha256": "0c06081cd00fcd6a3229c076571489093279a9156a6a140712bd58963c781c18",
+      "url": "https://github.com/Trung27012003/facebook-helper/releases/download/v0.11.0/FacebookHelper-Windows-x64.zip"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 194,
+      "sha256": null,
+      "url": "https://github.com/Trung27012003/facebook-helper/releases/download/v0.11.0/SHA256SUMS.txt"
+    }
+  ],
+  "public_download_magic_verified": true,
+  "checksum_note": "Hashes copied from CI-generated public SHA256SUMS; public file signatures checked with bounded reads, no full remote re-hash.",
+  "portable_smoke": {
+    "ok": true,
+    "update_tls": true,
+    "chromium": "159.0.8154.6",
+    "lazy_browser": true,
+    "rich_paste_and_copy": true,
+    "position_catalog": true,
+    "multi_position_tag_picker": true,
+    "schema": 7,
+    "calendar_picker": true,
+    "today_filter": true,
+    "posting_link_column": true,
+    "group_actions": true,
+    "global_actions": true,
+    "guided_steps": 4,
+    "result_columns": 6,
+    "draft_saved": true,
+    "tabs": 6,
+    "qt_started": true,
+    "worker_stopped": true
+  },
+  "installed_smoke": {
+    "ok": true,
+    "update_tls": true,
+    "chromium": "159.0.8154.6",
+    "lazy_browser": true,
+    "rich_paste_and_copy": true,
+    "position_catalog": true,
+    "multi_position_tag_picker": true,
+    "schema": 7,
+    "calendar_picker": true,
+    "today_filter": true,
+    "posting_link_column": true,
+    "group_actions": true,
+    "global_actions": true,
+    "guided_steps": 4,
+    "result_columns": 6,
+    "draft_saved": true,
+    "tabs": 6,
+    "qt_started": true,
+    "worker_stopped": true
+  },
+  "uninstall_preserved_data": true,
+  "prune": {
+    "before_bytes": 1200322265,
+    "after_bytes": 1110249564,
+    "removed_bytes": 90072701,
+    "ok": true
+  },
+  "package_audit": {
+    "files": 3443,
+    "user_data_files": [],
+    "ok": true
+  }
+}
