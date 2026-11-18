@@ -10,7 +10,7 @@ def test_editor_groups_history_and_shutdown(app, store):
     try:
         window.show()
         app.processEvents()
-        assert window.tabs.count() == 5
+        assert window.tabs.count() == 6
         window.title.setText("Nhân viên kinh doanh")
         window.content.setPlainText("Ứng tuyển ngay\nLương thỏa thuận")
         window.content.selectAll()
@@ -24,6 +24,7 @@ def test_editor_groups_history_and_shutdown(app, store):
         assert not window.dirty
         window.group_name.setText("Việc làm Hà Nội")
         window.group_url.setText("https://facebook.com/groups/hr-hanoi/")
+        window.group_positions.set_checked([store.positions()[0]["id"]])
         window.save_group()
         window.create_job()
         assert window.history.rowCount() == 1

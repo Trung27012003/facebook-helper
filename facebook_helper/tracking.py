@@ -96,7 +96,7 @@ class TrackingMixin:
         self.store.set_preference("last_batch", candidate["id"])
         self.refresh_jobs()
         self.set_posting_step(3)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(3)
         self.statusBar().showMessage(
             "Đã mở danh sách còn lại. Kiểm tra lượt chưa rõ kết quả rồi bấm Bắt đầu / tiếp tục.", 15000
         )

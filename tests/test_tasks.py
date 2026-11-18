@@ -52,7 +52,14 @@ def test_editing_post_and_group_only_affects_future_tasks(store, task_data):
     before = store.job(job_id)
     new_images = store.post(posts[1])["images"]
     store.save_post(posts[0], "Tên mới", "<p>Nội dung mới</p>", "Nội dung mới", "#new", new_images)
-    store.save_group(groups[0], "Tên nhóm mới", "https://facebook.com/groups/hr-new/", "", "")
+    store.save_group(
+        groups[0],
+        "Tên nhóm mới",
+        "https://facebook.com/groups/hr-new/",
+        "",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     assert store.job(job_id) == before
     new_job = store.job(store.create_job(posts[0], groups[0]))
     assert new_job["body"] == "Nội dung mới\n\n#new"

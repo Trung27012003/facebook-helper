@@ -9,9 +9,30 @@ from facebook_helper.templates import recruitment_article
 
 def test_tag_normalization_and_exact_matching(store):
     assert parse_tags(" #Hà Nội, hà nội; Kỹ thuật\nTUYỂN GẤP") == ["Hà Nội", "Kỹ thuật", "TUYỂN GẤP"]
-    first = store.save_group(None, "A", "https://facebook.com/groups/a/", "Hà Nội, Kỹ thuật", "")
-    second = store.save_group(None, "B", "https://facebook.com/groups/b/", "hà nội, Kế toán", "")
-    store.save_group(None, "C", "https://facebook.com/groups/c/", "Hà Nội mở rộng", "")
+    first = store.save_group(
+        None,
+        "A",
+        "https://facebook.com/groups/a/",
+        "Hà Nội, Kỹ thuật",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
+    second = store.save_group(
+        None,
+        "B",
+        "https://facebook.com/groups/b/",
+        "hà nội, Kế toán",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
+    store.save_group(
+        None,
+        "C",
+        "https://facebook.com/groups/c/",
+        "Hà Nội mở rộng",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     assert [group["id"] for group in store.groups_by_tag("#HÀ NỘI")] == [first, second]
     assert store.groups_by_tag("") == []
     assert store.groups_by_tag("Hà Nội, Kế toán") == []
@@ -79,7 +100,7 @@ def test_migrating_existing_v1_database_preserves_history(tmp_path):
             assert upgraded.job(1)["note"] == "Ghi chú cũ"
             assert upgraded.job(1)["status"] == "pending"
             assert upgraded.job(1)["batch_id"] is None
-            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 6
+            assert upgraded.db.execute("PRAGMA user_version").fetchone()[0] == 7
         finally:
             upgraded.close()
 
@@ -128,7 +149,9 @@ def test_recruitment_template_requires_position_and_company():
 
 def test_job_snapshots_html_not_only_plain_text(store):
     post = store.save_post(None, "HTML", "<p><b>Đậm</b></p><ul><li>PLC</li></ul>", "Đậm\n• PLC", "#HR", [])
-    group = store.save_group(None, "Nhóm", "https://facebook.com/groups/hr/", "", "")
+    group = store.save_group(
+        None, "Nhóm", "https://facebook.com/groups/hr/", "", "", position_ids=[store.positions()[0]["id"]]
+    )
     job = store.create_job(post, group)
     assert "<b>Đậm</b>" in store.job(job)["body_html"]
     assert "<ul>" in store.job(job)["body_html"] and "#HR" in store.job(job)["body_html"]

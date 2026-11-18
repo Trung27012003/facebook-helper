@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .choices import CheckList, CheckPicker
 from .manager import local_date
 from .widgets import button, hint, row
 
@@ -56,21 +57,24 @@ class PostingMixin:
         self.batch_name = QLineEdit()
         self.batch_name.setPlaceholderText("Tên đợt đăng (không bắt buộc), ví dụ: Tuyển kỹ sư tháng 11")
         self.audience_mode = QComboBox()
-        self.audience_mode.addItems(["Một nhóm", "Nhiều nhóm", "Theo nhãn nhóm"])
+        self.audience_mode.addItems(["Một nhóm", "Nhiều nhóm", "Theo nhãn nhóm", "Theo vị trí tuyển dụng"])
         self.job_groups = QComboBox()
-        self.audience_tag = QComboBox()
+        self.audience_tag = CheckPicker("Chọn một hoặc nhiều nhãn")
+        self.audience_positions = CheckPicker("Chọn một hoặc nhiều vị trí")
         self.audience_mode.currentIndexChanged.connect(self.refresh_audience)
-        self.audience_tag.currentIndexChanged.connect(self.refresh_audience)
+        self.audience_tag.changed.connect(self.refresh_audience)
+        self.audience_positions.changed.connect(self.refresh_audience)
         audience.addLayout(
             row(
                 QLabel("Đăng ở đâu?"),
                 self.audience_mode,
                 self.job_groups,
                 self.audience_tag,
-                button("Thêm nhóm", lambda: self.tabs.setCurrentIndex(1)),
+                self.audience_positions,
+                button("Thêm nhóm", lambda: self.tabs.setCurrentIndex(2)),
             )
         )
-        self.audience_list = QListWidget()
+        self.audience_list = CheckList()
         self.audience_list.itemChanged.connect(self.update_audience_count)
         audience.addWidget(self.audience_list, 1)
         self.select_all_groups = button("Chọn tất cả", lambda: self.check_audience(True))
@@ -224,47 +228,60 @@ class PostingMixin:
             view.start.setDate(QDate.currentDate())
             view.end.setDate(QDate.currentDate())
         view.search()
-        self.tabs.setCurrentIndex(3)
+        self.tabs.setCurrentIndex(4)
 
     def refresh_audience(self, *args):
         if not hasattr(self, "audience_list"):
             return
         old = {
-            self.audience_list.item(i).data(Qt.ItemDataRole.UserRole)
+            self.audience_list.item(i).data(Qt.ItemDataRole.UserRole): self.audience_list.item(i).checkState()
+            == Qt.CheckState.Checked
             for i in range(self.audience_list.count())
-            if self.audience_list.item(i).checkState() == Qt.CheckState.Checked
         }
         mode = self.audience_mode.currentIndex()
         self.job_groups.setVisible(mode == 0)
         self.audience_tag.setVisible(mode == 2)
+        self.audience_positions.setVisible(mode == 3)
         self.audience_list.setVisible(mode != 0)
         self.select_all_groups.setVisible(mode != 0)
         self.clear_groups.setVisible(mode != 0)
-        groups = (
-            self.store.groups_by_tag(self.audience_tag.currentText()) if mode == 2 else self.store.groups()
+        criteria = (
+            mode,
+            tuple(self.audience_tag.checked_data())
+            if mode == 2
+            else tuple(self.audience_positions.checked_data())
+            if mode == 3
+            else (),
         )
+        same = criteria == getattr(self, "audience_criteria", None)
+        self.audience_criteria = criteria
+        if mode == 2:
+            groups = self.store.groups_for_selection(tags=self.audience_tag.labels())
+        elif mode == 3:
+            groups = self.store.groups_for_selection(position_ids=self.audience_positions.checked_data())
+        else:
+            groups = self.store.groups()
         self.audience_list.blockSignals(True)
         self.audience_list.clear()
         for group in groups:
             item = QListWidgetItem(group["name"] + (f" · {group['category']}" if group["category"] else ""))
             item.setData(Qt.ItemDataRole.UserRole, group["id"])
+            item.setToolTip("Vị trí: " + (", ".join(group["position_names"]) or "Chưa gán vị trí"))
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(
-                Qt.CheckState.Checked if mode == 2 or group["id"] in old else Qt.CheckState.Unchecked
-            )
+            checked = old.get(group["id"], mode in (2, 3)) if same else mode in (2, 3)
+            item.setCheckState(Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
             self.audience_list.addItem(item)
         self.audience_list.blockSignals(False)
         self.update_audience_count()
 
     def refresh_audience_tags(self):
-        previous = self.audience_tag.currentText()
-        self.audience_tag.blockSignals(True)
-        self.audience_tag.clear()
-        self.audience_tag.addItems(self.store.group_tags())
-        index = self.audience_tag.findText(previous)
-        if index >= 0:
-            self.audience_tag.setCurrentIndex(index)
-        self.audience_tag.blockSignals(False)
+        for picker, options in (
+            (self.audience_tag, [(t.casefold(), t) for t in self.store.group_tags()]),
+            (self.audience_positions, [(p["id"], p["name"]) for p in self.store.positions()]),
+        ):
+            picker.blockSignals(True)
+            picker.set_items(options)
+            picker.blockSignals(False)
         self.refresh_audience()
 
     def selected_group_ids(self):
@@ -284,12 +301,13 @@ class PostingMixin:
             )
 
     def update_audience_count(self, *args):
-        if self.audience_mode.currentIndex() == 2 and not self.audience_tag.currentText():
-            self.audience_count.setText("Chưa có nhãn. Vào Nhóm để thêm nhãn cho các nhóm trước nhé.")
-            return
-        self.audience_count.setText(
-            f"Đã chọn {len(self.selected_group_ids())} nhóm · mỗi nhóm có kết quả riêng"
-        )
+        mode = self.audience_mode.currentIndex()
+        if mode == 2 and not self.audience_tag.checked_data():
+            self.audience_count.setText("Chọn nhãn để xem các nhóm phù hợp")
+        elif mode == 3 and not self.audience_positions.checked_data():
+            self.audience_count.setText("Chọn vị trí để xem các nhóm phù hợp")
+        else:
+            self.audience_count.setText(f"Đã chọn {len(self.selected_group_ids())} nhóm")
 
     def create_posting_batch(self):
         if self.queue_active:
@@ -315,7 +333,11 @@ class PostingMixin:
         ):
             return
         audience = (
-            self.audience_tag.currentText() if self.audience_mode.currentIndex() == 2 else "Tự chọn nhóm"
+            self.audience_tag.currentText()
+            if self.audience_mode.currentIndex() == 2
+            else "Vị trí: " + self.audience_positions.currentText()
+            if self.audience_mode.currentIndex() == 3
+            else "Tự chọn nhóm"
         )
         batch_id = self.store.create_batch(
             post_id, group_ids, self.batch_name.text(), audience, allow_duplicate=bool(duplicates)

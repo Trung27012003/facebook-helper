@@ -476,7 +476,14 @@ def test_recover_one_of_multiple_drafts_uses_chosen_title_and_timestamp(window, 
 def test_group_switch_respects_unsaved_changes(window, store, monkeypatch):
     from PySide6.QtWidgets import QMessageBox
 
-    store.save_group(None, "Nhóm thử", "https://facebook.com/groups/thu/", "HR", "")
+    store.save_group(
+        None,
+        "Nhóm thử",
+        "https://facebook.com/groups/thu/",
+        "HR",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     window.refresh_groups()
     window.load_group(window.group_list.item(0))
     window.group_name.setText("Chưa lưu")
@@ -515,6 +522,7 @@ def test_review_is_invalidated_by_changed_image_or_group(window, store, task_dat
             "https://facebook.com/groups/changed/",
             group["category"],
             group["notes"],
+            position_ids=[store.positions()[0]["id"]],
         )
     with pytest.raises(ValueError, match="đã thay đổi"):
         window.posting_next_step()
@@ -522,7 +530,9 @@ def test_review_is_invalidated_by_changed_image_or_group(window, store, task_dat
 
 
 def test_duplicate_whitespace_normalization_is_independent_of_title(store):
-    group = store.save_group(None, "Nhóm", "https://facebook.com/groups/ws/", "", "")
+    group = store.save_group(
+        None, "Nhóm", "https://facebook.com/groups/ws/", "", "", position_ids=[store.positions()[0]["id"]]
+    )
     first = store.save_post(None, "A", "<p>Nội dung A</p>", "Nội dung A", "", [])
     store.create_job(first, group)
     second = store.save_post(None, "B", "<p>Nội dung A</p>", "Nội \n dung\tA", "", [])
@@ -608,7 +618,14 @@ def test_unwritable_export_or_backup_destination_keeps_data(
 def test_long_names_available_as_tooltips_without_details_panel(window, store):
     title, group_name = "Tên bài dài " * 30, "Tên nhóm dài " * 30
     post = store.save_post(None, title, "<p>Nội dung</p>", "Nội dung", "", [])
-    group = store.save_group(None, group_name, "https://facebook.com/groups/long/", "", "")
+    group = store.save_group(
+        None,
+        group_name,
+        "https://facebook.com/groups/long/",
+        "",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     job_id = store.create_job(post, group)
     store.update_job(job_id, status="pending")
     view = window.post_manager
@@ -683,12 +700,29 @@ def test_copy_action_uses_current_row(window, store, task_data, app):
 )
 def test_manager_keyword_search_covers_title_body_group_note_link_and_check_note(window, store, keyword):
     post = store.save_post(None, "Vị trí đặc biệt", "<p>Nội dung ở cuối</p>", "Nội dung ở cuối", "", [])
-    group = store.save_group(None, "Nhóm riêng biệt", "https://facebook.com/groups/keyword/", "", "")
+    group = store.save_group(
+        None,
+        "Nhóm riêng biệt",
+        "https://facebook.com/groups/keyword/",
+        "",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     target = store.create_job(post, group)
     store.update_job(target, note="Ghi chú riêng", url="https://facebook.com/groups/keyword/posts/123/")
     store.record_check(target, "unknown", "Kết quả kiểm tra riêng")
     other = store.save_post(None, "Khác", "<p>Không liên quan</p>", "Không liên quan", "", [])
-    store.create_job(other, store.save_group(None, "Nhóm khác", "https://facebook.com/groups/other/", "", ""))
+    store.create_job(
+        other,
+        store.save_group(
+            None,
+            "Nhóm khác",
+            "https://facebook.com/groups/other/",
+            "",
+            "",
+            position_ids=[store.positions()[0]["id"]],
+        ),
+    )
     view = window.post_manager
     view.keyword.setText(keyword.swapcase())
     view.search()

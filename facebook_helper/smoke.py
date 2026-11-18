@@ -6,6 +6,7 @@ import traceback
 from PySide6.QtCore import QCoreApplication, QDate, QEvent, QMimeData, QTimer
 from PySide6.QtNetwork import QSslSocket
 
+from .choices import CheckPicker, TagPicker
 from .dates import DatePicker
 from .ui import MainWindow
 
@@ -44,6 +45,15 @@ def run_smoke(app, store):
         window.copy_editor()
         assert app.clipboard().mimeData().hasHtml()
         result["rich_paste_and_copy"] = True
+        assert window.tabs.count() == 6 and window.tabs.tabText(1) == "Vị trí"
+        assert isinstance(window.group_positions, CheckPicker)
+        assert isinstance(window.category, TagPicker)
+        assert isinstance(window.audience_tag, CheckPicker)
+        assert isinstance(window.audience_positions, CheckPicker)
+        assert window.audience_mode.count() == 4
+        assert not window.group_save_button.isEnabled()
+        assert store.db.execute("PRAGMA user_version").fetchone()[0] == 7
+        result.update(position_catalog=True, multi_position_tag_picker=True, schema=7)
         assert window.posting_steps.count() == 4
         assert window.post_manager.table.columnCount() == 6
         assert window.post_manager.start.date() == window.post_manager.end.date() == QDate.currentDate()

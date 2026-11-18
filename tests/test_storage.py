@@ -80,9 +80,18 @@ def test_status_requires_actual_permalink(store, job):
 def test_unique_groups_and_required_fields(store):
     with pytest.raises(ValueError):
         store.save_post(None, "", "", "", "", [])
-    store.save_group(None, "One", "https://facebook.com/groups/hr/", "", "")
+    store.save_group(
+        None, "One", "https://facebook.com/groups/hr/", "", "", position_ids=[store.positions()[0]["id"]]
+    )
     with pytest.raises(ValueError):
-        store.save_group(None, "Two", "https://m.facebook.com/groups/hr/", "", "")
+        store.save_group(
+            None,
+            "Two",
+            "https://m.facebook.com/groups/hr/",
+            "",
+            "",
+            position_ids=[store.positions()[0]["id"]],
+        )
 
 
 def test_images_are_owned_and_preserved(app, store, tmp_path, job):

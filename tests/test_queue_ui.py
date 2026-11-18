@@ -17,7 +17,12 @@ def test_tag_selects_all_matching_groups_and_allows_exclusions(window, store, ta
     for index, group_id in enumerate(groups):
         group = next(g for g in store.groups() if g["id"] == group_id)
         store.save_group(
-            group_id, group["name"], group["url"], "Hà Nội, Kỹ thuật" if index < 2 else "Hồ Chí Minh", ""
+            group_id,
+            group["name"],
+            group["url"],
+            "Hà Nội, Kỹ thuật" if index < 2 else "Hồ Chí Minh",
+            "",
+            position_ids=[store.positions()[0]["id"]],
         )
     window.refresh_posts()
     window.refresh_groups()
@@ -329,7 +334,7 @@ def test_finished_batch_highlights_results_hides_start_and_stale_instructions(wi
     window.post_manager.keyword.setText("Từ khóa của lần tìm trước")
     window.results_button.click()
     assert len(window.post_manager.filtered_jobs) == 3
-    assert window.tabs.currentIndex() == 3 and window.post_manager.criteria[0] == batch
+    assert window.tabs.currentIndex() == 4 and window.post_manager.criteria[0] == batch
 
 
 def test_posting_controls_follow_running_and_paused_state(window, store, task_data):

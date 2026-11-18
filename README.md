@@ -1,6 +1,6 @@
 # Facebook Helper · HR
 
-Ứng dụng desktop tiếng Việt cho một người dùng: soạn tin tuyển dụng theo mẫu, chọn nhóm bằng nhãn và thực hiện danh sách đăng lần lượt. **Python + PySide6 + Playwright + SQLite**.
+Ứng dụng desktop tiếng Việt cho một người dùng: soạn tin tuyển dụng theo mẫu, chọn nhóm theo vị trí tuyển dụng hoặc nhãn và thực hiện danh sách đăng lần lượt. **Python + PySide6 + Playwright + SQLite**.
 
 ## Tải về và mở ứng dụng
 
@@ -10,7 +10,7 @@ Tải **Setup.exe** → chạy → Cài đặt → mở Facebook Helper từ Sta
 
 Bản 0.10.0: Setup khoảng **326 MB**, ZIP **469 MB**, giảm khoảng **25%** so với ZIP 0.9.0. Thành phần chương trình sau giải nén khoảng 1,11 GB; dữ liệu/ảnh/phiên được lưu riêng.
 
-## Cách dùng bản 0.10.0 · Summernote
+## Cách dùng bản 0.11.0 · Vị trí và nhãn
 
 Mỗi lượt đăng thử tối đa 3 lần khi gặp lỗi tạm thời trước gửi. Nếu bản đang mở đã chuẩn bị đủ, lần sau dùng chính bản đó, không dán chữ/tải ảnh lại. Sau bấm Đăng, chỉ cho phép thử lại nếu phản hồi của đúng thao tác xác nhận chưa tạo bài và báo lỗi tạm thời; cần bản soạn vẫn mở, nút Đăng còn dùng được. Đăng nhập/xác thực, hạn chế, kết quả chưa rõ hoặc đã gửi không tự thử lại. Tối đa 3 lần tổng cộng, không phải 3 lần bổ sung.
 
@@ -32,19 +32,23 @@ Giao diện dùng nút xanh cho bước chính hiện tại. Khi soạn có thay
 - Ảnh trong nội dung dán không tự nhập; dùng **Thêm ảnh** để đính kèm. Nguồn chỉ có chữ thuần không thể tự khôi phục kiểu chữ.
 - Sửa bài, thêm/sắp xếp ảnh, xem trước và lưu. Facebook chỉ hỗ trợ một phần định dạng; không hỗ trợ toàn bộ font/màu/bố cục Word.
 
-### 2. Nhóm & nhãn
+### 2. Vị trí tuyển dụng, nhóm và nhãn
 
-Thêm tên, link nhóm và ghi chú quy định. **Nhãn nhóm** dùng để chọn nơi đăng, không được chèn vào bài.
+Vào **Vị trí** để khai báo tên như Kỹ sư PLC, Kế toán, Nhân viên kinh doanh. Có tìm kiếm, sửa tên/ghi chú; chỉ xóa được vị trí không còn gắn với nhóm.
 
-Ví dụ:
+Vào **Nhóm**, nhập tên, link Facebook và **chọn ít nhất một vị trí tuyển dụng** trước khi lưu. Một nhóm được gắn nhiều vị trí và nhiều nhãn. Các ô chọn có danh sách tích và tìm kiếm, không cần giữ Ctrl. Bấm **+ Vị trí** để thêm nhanh mà vẫn giữ thông tin nhóm đang nhập. Trong ô Nhãn, nhập nhãn mới và bấm Thêm; có thể nhập nhiều nhãn ngăn cách bằng dấu phẩy.
 
-| Nhóm | Nhãn |
-|---|---|
-| Việc làm kỹ thuật Hà Nội | Hà Nội, Kỹ thuật |
-| Cộng đồng tự động hóa | Hà Nội, Kỹ thuật |
-| Việc làm kế toán | Hà Nội, Kế toán |
+| Nhóm | Vị trí | Nhãn |
+|---|---|---|
+| Cộng đồng tự động hóa | Kỹ sư PLC | Hà Nội, Kỹ thuật |
+| Việc làm Hà Nội | Kỹ sư PLC, Kế toán | Hà Nội, Tuyển gấp |
+| Việc làm kế toán | Kế toán | Hồ Chí Minh |
 
-Một nhóm có thể có nhiều nhãn, ngăn cách bằng dấu phẩy. Nhiều nhóm dùng chung nhãn. Chọn nhãn **Kỹ thuật** sẽ chọn hai nhóm đầu; nhãn **Hà Nội** sẽ chọn cả ba. Nhãn khớp chính xác và không phân biệt hoa/thường, không tìm theo một phần tên. Có ô tìm nhóm theo tên/nhãn.
+Ở bước **Chọn nhóm**, chọn **Theo vị trí tuyển dụng** rồi tích một hoặc nhiều vị trí, hoặc **Theo nhãn nhóm** rồi tích nhiều nhãn. Nhóm khớp **ít nhất một** lựa chọn được chọn sẵn và chỉ xuất hiện một lần. Có thể bỏ chọn nhóm không cần trước khi xem lại. Vẫn có cách chọn một nhóm hoặc tích nhiều nhóm trực tiếp.
+
+Nhãn và vị trí chỉ dùng phân loại nơi đăng, không chèn vào nội dung bài. Nhãn khớp chính xác, không phân biệt hoa/thường. Sửa tên vị trí giữ nguyên liên kết các nhóm. Dữ liệu cũ được giữ, các nhóm chưa có vị trí sẽ hiển thị số lượng chưa gán; chọn vị trí khi sửa và lưu lại. Đợt đăng đã tạo vẫn giữ bản chụp nội dung và danh sách nhóm cũ.
+
+[Danh mục vị trí](docs/qa/v0.11.0/positions.png) · [Chọn vị trí](docs/qa/v0.11.0/position-picker.png) · [Tạo đợt theo vị trí](docs/qa/v0.11.0/batch-positions.png).
 
 ### 3. Đăng bài qua bốn bước
 
@@ -170,7 +174,7 @@ Vẫn dừng khi ô trống, thiếu tệp ảnh, sai nhóm, Facebook báo lỗi
 
 [Checklist kiểm thử toàn bộ](docs/TEST-CHECKLIST.md) và [bản Excel để đánh dấu](docs/TEST-CHECKLIST.xlsx) gồm đầu mục, ưu tiên, kết quả mong đợi và mẫu ghi lỗi.
 
-Xem [kiểm thử bản 0.10.0](docs/TESTING-v0.10.0.md), [kiểm thử bản 0.9.0](docs/TESTING-v0.9.0.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
+Xem [kiểm thử bản 0.11.0](docs/TESTING-v0.11.0.md), [kiểm thử bản 0.10.0](docs/TESTING-v0.10.0.md), [kiểm thử bản 0.9.0](docs/TESTING-v0.9.0.md), [kiểm thử bản 0.8.1](docs/TESTING-v0.8.1.md), [kiểm thử bản 0.8.0](docs/TESTING-v0.8.0.md), [kiểm thử bản 0.7.1](docs/TESTING-v0.7.1.md), [kiểm thử bản 0.7.0](docs/TESTING-v0.7.0.md), [kiểm thử bản 0.6.0](docs/TESTING-v0.6.0.md), [kiểm thử bản 0.5.0](docs/TESTING-v0.5.0.md), [kiểm thử bản 0.4.2](docs/TESTING-v0.4.2.md), [kiểm thử bản 0.4.1](docs/TESTING-v0.4.1.md), [kiểm thử bản 0.4](docs/TESTING-v0.4.md), [kiểm thử bản 0.3](docs/TESTING-v0.3.md), [kiểm thử bản 0.2](docs/TESTING-v0.2.md) và [kiểm thử bản 0.1](docs/TESTING.md). Test trình duyệt chạy Chromium với HTML mô phỏng, không đăng Facebook thật.
 
 ```bash
 python -m pip install -e '.[dev]'

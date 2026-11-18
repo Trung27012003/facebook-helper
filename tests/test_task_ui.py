@@ -19,7 +19,7 @@ def test_create_six_tasks_using_ui(window, store, task_data, monkeypatch):
     monkeypatch.setattr(window.browser, "submit", lambda *args: commands.append(args))
     window.refresh_posts()
     window.refresh_groups()
-    window.tabs.setCurrentIndex(2)
+    window.tabs.setCurrentIndex(3)
     create = next(
         widget for widget in window.findChildren(QPushButton) if widget.text() == "Lưu đợt đăng để chạy sau"
     )

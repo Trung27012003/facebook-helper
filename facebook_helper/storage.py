@@ -83,7 +83,19 @@ class Store:
                 CREATE INDEX IF NOT EXISTS events_job ON job_events(job_id, id);
                 CREATE TABLE IF NOT EXISTS preferences (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             """)
-            self.db.execute("PRAGMA user_version=6")
+            self.db.executescript("""
+                CREATE TABLE IF NOT EXISTS positions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+                    name_key TEXT NOT NULL UNIQUE, notes TEXT NOT NULL DEFAULT ''
+                );
+                CREATE TABLE IF NOT EXISTS group_positions (
+                    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+                    position_id INTEGER NOT NULL REFERENCES positions(id) ON DELETE RESTRICT,
+                    PRIMARY KEY(group_id, position_id)
+                );
+                CREATE INDEX IF NOT EXISTS group_positions_position ON group_positions(position_id);
+            """)
+            self.db.execute("PRAGMA user_version=7")
         self.recovered = []
 
     def recover_interrupted(self):
@@ -143,25 +155,107 @@ class Store:
         with self.db:
             self.db.execute("DELETE FROM posts WHERE id=?", (post_id,))
 
-    def groups(self):
-        return [dict(row) for row in self.db.execute("SELECT * FROM groups ORDER BY name")]
+    def positions(self):
+        return [
+            dict(r)
+            for r in self.db.execute("""SELECT p.*,
+            (SELECT COUNT(*) FROM group_positions gp WHERE gp.position_id=p.id) AS group_count
+            FROM positions p ORDER BY p.name_key,p.id""")
+        ]
 
-    def save_group(self, group_id, name, url, category, notes):
+    def save_position(self, position_id, name, notes=""):
+        name = " ".join(unicodedata.normalize("NFC", name).split())
+        if not name:
+            raise ValueError("Nhập tên vị trí tuyển dụng.")
+        try:
+            with self.db:
+                if position_id is None:
+                    return self.db.execute(
+                        "INSERT INTO positions(name,name_key,notes) VALUES(?,?,?)",
+                        (name, name.casefold(), notes.strip()),
+                    ).lastrowid
+                updated = self.db.execute(
+                    "UPDATE positions SET name=?,name_key=?,notes=? WHERE id=?",
+                    (name, name.casefold(), notes.strip(), position_id),
+                )
+                if updated.rowcount != 1:
+                    raise ValueError("Vị trí không còn tồn tại.")
+        except sqlite3.IntegrityError as exc:
+            raise ValueError("Tên vị trí này đã có trong danh sách.") from exc
+        return position_id
+
+    def delete_position(self, position_id):
+        try:
+            with self.db:
+                self.db.execute("DELETE FROM positions WHERE id=?", (position_id,))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError("Vị trí đang dùng cho nhóm. Gỡ vị trí khỏi các nhóm trước khi xóa.") from exc
+
+    def groups(self):
+        bindings = {}
+        names = {p["id"]: p["name"] for p in self.positions()}
+        for relation in self.db.execute(
+            "SELECT group_id,position_id FROM group_positions ORDER BY position_id"
+        ):
+            bindings.setdefault(relation["group_id"], []).append(relation["position_id"])
+        result = []
+        for row in self.db.execute("SELECT * FROM groups ORDER BY name,id"):
+            group = dict(row)
+            group["position_ids"] = bindings.get(group["id"], [])
+            group["position_names"] = [names[i] for i in group["position_ids"]]
+            result.append(group)
+        return result
+
+    def save_group(self, group_id, name, url, category, notes, position_ids=None):
         if not name.strip():
             raise ValueError("Nhập tên nhóm.")
+        ids = list(dict.fromkeys(position_ids or []))
+        if not ids:
+            raise ValueError("Chọn ít nhất một vị trí tuyển dụng cho nhóm.")
+        if any(type(i) is not int for i in ids):
+            raise ValueError("Vị trí tuyển dụng không hợp lệ.")
         values = (name.strip(), normalize_group(url), ", ".join(parse_tags(category)), notes.strip())
         try:
             with self.db:
+                placeholders = ",".join("?" for _ in ids)
+                found = self.db.execute(
+                    f"SELECT count(*) FROM positions WHERE id IN ({placeholders})", ids
+                ).fetchone()[0]
+                if found != len(ids):
+                    raise ValueError("Có vị trí không còn tồn tại. Hãy chọn lại.")
                 if group_id is None:
-                    return self.db.execute(
+                    group_id = self.db.execute(
                         "INSERT INTO groups(name,url,category,notes) VALUES(?,?,?,?)", values
                     ).lastrowid
-                self.db.execute(
-                    "UPDATE groups SET name=?,url=?,category=?,notes=? WHERE id=?", (*values, group_id)
+                else:
+                    updated = self.db.execute(
+                        "UPDATE groups SET name=?,url=?,category=?,notes=? WHERE id=?", (*values, group_id)
+                    )
+                    if updated.rowcount != 1:
+                        raise ValueError("Nhóm không còn tồn tại.")
+                self.db.execute("DELETE FROM group_positions WHERE group_id=?", (group_id,))
+                self.db.executemany(
+                    "INSERT INTO group_positions(group_id,position_id) VALUES(?,?)",
+                    [(group_id, i) for i in ids],
                 )
         except sqlite3.IntegrityError as exc:
             raise ValueError("Nhóm này đã có trong danh sách.") from exc
         return group_id
+
+    def groups_for_selection(self, position_ids=(), tags=()):
+        selected = set(position_ids)
+        known = {p["id"] for p in self.positions()}
+        if selected - known:
+            raise ValueError("Có vị trí không còn tồn tại. Hãy chọn lại.")
+        labels = {tag.casefold() for tag in parse_tags(",".join(tags))}
+        if not selected and not labels:
+            return []
+        return [
+            g
+            for g in self.groups()
+            if selected.intersection(g["position_ids"])
+            or labels.intersection(t.casefold() for t in parse_tags(g["category"]))
+        ]
 
     def delete_group(self, group_id):
         with self.db:

@@ -1,11 +1,10 @@
-**Facebook Helper 0.10.0 — Setup, lịch dễ chọn và thử lại có kiểm soát**
+**Facebook Helper 0.11.0 — Vị trí tuyển dụng và chọn nhiều nhãn**
 
-- Có bộ cài Setup cho Windows 10/11 x64, cài theo người dùng, tạo lối tắt và gỡ cài đặt; dữ liệu/phiên Facebook ở riêng và được giữ.
-- Lỗi tạm thời trước gửi được thử tối đa 3 lần. Nếu bản soạn đã sẵn sàng, dùng chính bản đang mở. Sau bấm Đăng, chỉ thử lại khi phản hồi đúng thao tác xác nhận lỗi tạm thời/chưa tạo bài. Không thử lại mù khi chưa rõ kết quả, gặp xác thực hoặc hạn chế.
-- Ô ngày chuyển sang lịch tiếng Việt của Qt, bấm cả ô để chọn; hiển thị đủ ngày và có Hôm nay.
-- Playwright khởi động khi cần. Gói bỏ Chromium headless dư và các tài nguyên phát triển/locale không dùng; Setup nén LZMA2. Giữ Qt WebEngine, Chromium đầy đủ và tài nguyên tiếng Việt/Anh.
-- Có kiểm tra cập nhật công khai, hỏi Tải bộ cài/Để sau và kiểm tra thủ công. Thông báo hoãn khi đang đăng. Không tự cài.
+- Thêm tab Vị trí: khai báo, tìm, sửa tên và ghi chú. Không xóa vị trí đang được nhóm sử dụng.
+- Khi lưu nhóm, bắt buộc chọn ít nhất một vị trí tuyển dụng; hỗ trợ nhiều vị trí và nhiều nhãn. Có tìm kiếm và tích chọn trực tiếp, không cần giữ Ctrl. Thêm nhanh vị trí ngay khi nhập nhóm.
+- Tạo đợt theo nhiều vị trí hoặc nhiều nhãn. Nhóm khớp ít nhất một mục được chọn sẵn, nhóm trùng chỉ xuất hiện một lần. Vẫn có thể bỏ chọn nhóm, chọn một nhóm hoặc nhiều nhóm trực tiếp trước bước xem lại.
+- Giữ nhóm, nhãn, bài viết, phiên Facebook và đợt đăng cũ. Các nhóm cũ chưa có vị trí cần chọn vị trí khi sửa/lưu lại; không tự gán sai phân loại.
 
-Máy dùng bản cũ cần cài bản này một lần; các bản sau mới nhận thông báo trong ứng dụng. Đóng bản đang chạy trước khi cài. Không cần Python hoặc quyền quản trị.
+Tải Setup cho Windows 10/11 x64, đóng ứng dụng cũ rồi cài đè. Không cần Python hay quyền quản trị. Có ZIP portable và SHA256SUMS đi kèm. Máy dùng 0.10.0 có thể nhận thông báo cập nhật khi mở ứng dụng.
 
-Kiểm thử Facebook dùng mô phỏng; chưa chứng minh lỗi trên tài khoản người dùng đã hết. Bài chờ duyệt có thể chưa có link dùng được. Checksum cho Setup và ZIP đi kèm.
+Kiểm thử thao tác Facebook dùng mô phỏng, chưa thử đăng bằng tài khoản Facebook thật của người dùng.

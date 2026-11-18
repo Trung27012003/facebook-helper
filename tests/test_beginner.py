@@ -87,7 +87,7 @@ def test_post_this_article_saves_and_opens_guided_flow(window, store):
     window.content.setHtml("<p><b>Tuyển kế toán</b></p>")
     window.post_this_article()
     assert store.post(window.post_id)["plain"] == "Tuyển kế toán"
-    assert window.tabs.currentIndex() == 2 and window.posting_steps.currentIndex() == 1
+    assert window.tabs.currentIndex() == 3 and window.posting_steps.currentIndex() == 1
     assert window.job_posts.currentData() == window.post_id
 
 

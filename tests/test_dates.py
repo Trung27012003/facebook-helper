@@ -4,7 +4,7 @@ from PySide6.QtTest import QTest
 
 def test_entire_date_field_opens_vietnamese_calendar_and_selects_day(window, app):
     picker = window.post_manager.start
-    window.tabs.setCurrentIndex(3)
+    window.tabs.setCurrentIndex(4)
     picker.click()
     app.processEvents()
     assert picker.popup.isVisible()
@@ -20,7 +20,7 @@ def test_picker_text_fits_and_invalid_date_cannot_be_set(window, app):
 
     picker = window.post_manager.end
     window.resize(980, 680)
-    window.tabs.setCurrentIndex(3)
+    window.tabs.setCurrentIndex(4)
     app.processEvents()
     assert picker.fontMetrics().horizontalAdvance(picker.text()) + 24 <= picker.width()
     before = picker.date()

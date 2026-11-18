@@ -23,6 +23,7 @@ def store(tmp_path):
     from facebook_helper.storage import Store
 
     value = Store(tmp_path / "data")
+    value.save_position(None, "Vị trí kiểm thử")
     yield value
     value.close()
 
@@ -30,7 +31,14 @@ def store(tmp_path):
 @pytest.fixture
 def job(store):
     post_id = store.save_post(None, "Kế toán", "<p>Ứng tuyển</p>", "Ứng tuyển", "#hr", [])
-    group_id = store.save_group(None, "Nhóm HR", "https://facebook.com/groups/hr-hanoi/", "HN", "")
+    group_id = store.save_group(
+        None,
+        "Nhóm HR",
+        "https://facebook.com/groups/hr-hanoi/",
+        "HN",
+        "",
+        position_ids=[store.positions()[0]["id"]],
+    )
     return store.create_job(post_id, group_id)
 
 
@@ -50,6 +58,7 @@ def window(app, store):
     finally:
         value.dirty = False
         value.group_original = value.group_values()
+        value.position_original = value.position_values()
         value.close()
         deadline = time.monotonic() + 10
         while value.isVisible() and time.monotonic() < deadline:
@@ -84,7 +93,14 @@ def task_data(app, store, tmp_path):
             )
         )
     groups = [
-        store.save_group(None, f"Nhóm {index}", f"https://facebook.com/groups/hr-{index}/", "HR", "")
+        store.save_group(
+            None,
+            f"Nhóm {index}",
+            f"https://facebook.com/groups/hr-{index}/",
+            "HR",
+            "",
+            position_ids=[store.positions()[0]["id"]],
+        )
         for index in range(3)
     ]
     return posts, groups

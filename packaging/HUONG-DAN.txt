@@ -14,7 +14,7 @@ Không tự thử lại khi Facebook yêu cầu đăng nhập/xác thực hoặc
 CHỌN NGÀY
 Bấm cả ô ngày để mở lịch tiếng Việt, chọn ngày hoặc Hôm nay rồi bấm Tìm kiếm.
 
-FACEBOOK HELPER 0.10.0 — WINDOWS 10/11 64-BIT
+FACEBOOK HELPER 0.11.0 — WINDOWS 10/11 64-BIT
 
 Đóng bản cũ, sao lưu dữ liệu rồi giải nén toàn bộ ZIP vào thư mục mới.
 Mở FacebookHelper.exe, giữ _internal đi kèm. Không cần cài Python.
@@ -22,12 +22,12 @@ Dữ liệu bài, nhóm, nhãn, ảnh và lịch sử cũ được giữ.
 
 LẦN ĐẦU
 Bấm Trợ giúp nếu cần: đăng nhập trực tiếp trong cửa sổ Facebook,
-thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome cá nhân.
+khai báo Vị trí, thêm nhóm rồi Soạn bài. Phiên Facebook của ứng dụng khác Chrome cá nhân.
 
 ĐĂNG BÀI QUA BỐN BƯỚC
 1. Trong Soạn bài, bấm Chọn nhóm đăng để lưu và đi thẳng đến chọn nhóm.
    Hoặc vào Đăng bài và chọn bài đã lưu.
-2. Chọn một nhóm, tích nhiều nhóm hoặc chọn theo nhãn, rồi Tiếp tục.
+2. Chọn một nhóm, tích nhiều nhóm, chọn nhiều vị trí hoặc nhiều nhãn, rồi Tiếp tục.
 3. Xem lại nội dung, ảnh và nhóm. Chọn tự bấm Đăng hoặc chỉ chuẩn bị.
    Bấm Bắt đầu đăng khi sẵn sàng. Lưu đợt đăng để chạy sau chỉ lưu, chưa gửi.
 4. Theo dõi nhóm đang làm và tiến độ. Có thể Tạm dừng.
@@ -62,9 +62,18 @@ Không tự đăng ngay khi khởi động. Nội dung và ảnh trùng có cả
 Không vượt hạn chế hoặc xác thực của Facebook. Bản chưa ký mã số.
 Nguồn: https://github.com/Trung27012003/facebook-helper
 
-GIAO DIỆN 0.10.0
+GIAO DIỆN 0.11.0
 Nút xanh là bước chính: Lưu bài khi đang sửa → Chọn nhóm đăng sau khi lưu.
 Bài mới và Từ mẫu ở bên trái. Nhân bản, sao chép, xóa ở Thao tác bài.
 Chọn ảnh rồi mở Thao tác ảnh để xem, sắp xếp hoặc bỏ ảnh.
 Nhóm có nút Lưu nhóm; link không hợp lệ được báo ngay dưới ô nhập.
 Cài đặt chia thành Tài khoản, Dữ liệu, Hỗ trợ. Xuất chẩn đoán chỉ xuất metadata lấy link.
+
+VỊ TRÍ TUYỂN DỤNG VÀ NHÃN
+Vào Vị trí để thêm Kỹ sư PLC, Kế toán…
+Khi lưu nhóm, bắt buộc chọn ít nhất một vị trí; có thể tích nhiều vị trí và nhiều nhãn.
+Bấm ô chọn để tìm và tích, không cần Ctrl. + Vị trí thêm nhanh ngay tại nhóm.
+Khi tạo đợt: Theo vị trí tuyển dụng hoặc Theo nhãn nhóm → tích nhiều lựa chọn.
+Nhóm khớp ít nhất một lựa chọn được chọn sẵn; nhóm trùng chỉ xuất hiện một lần.
+Có thể bỏ chọn nhóm không cần trước bước Xem lại.
+Nhóm cũ vẫn được giữ; khi sửa và lưu lại cần chọn vị trí. Đợt cũ không đổi.

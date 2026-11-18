@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -32,6 +33,7 @@ from PySide6.QtWidgets import (
 from . import __version__
 from .beginner import BeginnerMixin
 from .browser import BrowserWorker
+from .choices import CheckPicker, TagPicker
 from .domain import STATUSES, normalize_group, post_url
 from .editor import SummernoteEditor
 from .manager import PostManager, send_label
@@ -91,6 +93,8 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         store.recover_interrupted()
         self.post_id = None
         self.group_id = None
+        self.position_id = None
+        self.position_original = ("", "")
         self.dirty = False
         self.loading = False
         self.busy = False
@@ -120,6 +124,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         layout.addWidget(self.build_quick_start())
         self.tabs = QTabWidget()
         self.tabs.addTab(self.build_editor(), "Soạn bài")
+        self.tabs.addTab(self.build_positions(), "Vị trí")
         self.tabs.addTab(self.build_groups(), "Nhóm")
         self.tabs.addTab(self.build_jobs(), "Đăng bài")
         self.post_manager = PostManager(store, self)
@@ -127,6 +132,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.tabs.addTab(self.build_settings(), "Cài đặt")
         layout.addWidget(self.tabs)
         self.setCentralWidget(container)
+        self.refresh_positions()
         self.refresh_posts()
         self.refresh_groups()
         self.refresh_jobs()
@@ -527,6 +533,160 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.content.copy_article(self.tags.text())
         self.statusBar().showMessage("Đã sao chép bài", 10000)
 
+    def build_positions(self):
+        page = QWidget()
+        layout = QHBoxLayout(page)
+        sidebar = QWidget()
+        sidebar.setObjectName("panel")
+        side = QVBoxLayout(sidebar)
+        self.position_count = QLabel("Vị trí tuyển dụng")
+        self.position_count.setObjectName("sectionTitle")
+        side.addWidget(self.position_count)
+        self.position_search = QLineEdit()
+        self.position_search.setPlaceholderText("Tìm vị trí…")
+        self.position_search.textChanged.connect(self.filter_positions)
+        side.addWidget(self.position_search)
+        self.position_list = QListWidget()
+        self.position_list.itemClicked.connect(self.load_position)
+        side.addWidget(self.position_list, 1)
+        menu = menu_button("Thao tác")
+        self.delete_position_action = menu.menu().addAction(
+            "Xóa vị trí đang chọn", lambda: self.guard(self.delete_position)
+        )
+        side.addLayout(row(button("Vị trí mới", self.new_position), menu))
+        layout.addWidget(sidebar, 1)
+        panel = QWidget()
+        panel.setObjectName("panel")
+        form = QVBoxLayout(panel)
+        form.addWidget(QLabel("Tên vị trí tuyển dụng *"))
+        self.position_name = QLineEdit()
+        self.position_name.setPlaceholderText("Ví dụ: Kỹ sư PLC, Kế toán, Kinh doanh")
+        form.addWidget(self.position_name)
+        form.addWidget(QLabel("Ghi chú"))
+        self.position_notes = QTextEdit()
+        self.position_notes.setAcceptRichText(False)
+        form.addWidget(self.position_notes, 1)
+        self.position_usage = hint("")
+        form.addWidget(self.position_usage)
+        self.position_save_button = button("Lưu vị trí", lambda: self.guard(self.save_position), True)
+        actions = row()
+        actions.addStretch()
+        actions.addWidget(self.position_save_button)
+        form.addLayout(actions)
+        layout.addWidget(panel, 2)
+        self.position_name.textChanged.connect(self.update_position_actions)
+        self.position_notes.textChanged.connect(self.update_position_actions)
+        self.update_position_actions()
+        return page
+
+    def position_values(self):
+        return self.position_name.text(), self.position_notes.toPlainText()
+
+    def update_position_actions(self):
+        if not hasattr(self, "position_save_button"):
+            return
+        values = self.position_values()
+        self.position_save_button.setEnabled(bool(values[0].strip()) and values != self.position_original)
+        current = next((p for p in self.store.positions() if p["id"] == self.position_id), None)
+        count = current["group_count"] if current else 0
+        self.position_usage.setText(f"Đang gắn với {count} nhóm" if current else "")
+        self.delete_position_action.setEnabled(bool(current) and count == 0)
+        self.delete_position_action.setToolTip("Gỡ vị trí khỏi các nhóm trước khi xóa" if count else "")
+
+    def confirm_position_switch(self):
+        return (
+            self.position_values() == self.position_original
+            or QMessageBox.question(
+                self,
+                "Vị trí chưa lưu",
+                "Bỏ thay đổi chưa lưu của vị trí này?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            == QMessageBox.StandardButton.Yes
+        )
+
+    def new_position(self):
+        if not self.confirm_position_switch():
+            return
+        self.position_id = None
+        self.position_name.clear()
+        self.position_notes.clear()
+        self.position_original = self.position_values()
+        self.position_list.setCurrentRow(-1)
+        self.update_position_actions()
+        self.position_name.setFocus()
+
+    def load_position(self, item):
+        if not self.confirm_position_switch():
+            return
+        value = next(
+            (p for p in self.store.positions() if p["id"] == item.data(Qt.ItemDataRole.UserRole)), None
+        )
+        if not value:
+            return
+        self.position_id = value["id"]
+        self.position_name.setText(value["name"])
+        self.position_notes.setPlainText(value["notes"])
+        self.position_original = self.position_values()
+        self.update_position_actions()
+
+    def refresh_positions(self):
+        self.position_list.clear()
+        positions = self.store.positions()
+        for value in positions:
+            item = QListWidgetItem(value["name"])
+            item.setData(Qt.ItemDataRole.UserRole, value["id"])
+            self.position_list.addItem(item)
+            if value["id"] == self.position_id:
+                self.position_list.setCurrentItem(item)
+        self.position_count.setText(f"Vị trí · {len(positions)}")
+        self.filter_positions()
+        self.group_positions.set_items([(p["id"], p["name"]) for p in positions])
+        self.refresh_audience_tags()
+        self.update_position_actions()
+
+    def filter_positions(self, *args):
+        query = self.position_search.text().strip().casefold()
+        for i in range(self.position_list.count()):
+            item = self.position_list.item(i)
+            item.setHidden(query not in item.text().casefold())
+
+    def save_position(self):
+        self.position_id = self.store.save_position(self.position_id, *self.position_values())
+        self.position_original = self.position_values()
+        self.refresh_positions()
+        self.refresh_groups()
+        self.statusBar().showMessage("Đã lưu vị trí", 5000)
+
+    def add_position_inline(self):
+        name, accepted = QInputDialog.getText(self, "Thêm vị trí", "Tên vị trí tuyển dụng")
+        if accepted:
+            selected = self.group_positions.checked_data()
+            value = self.store.save_position(None, name)
+            self.refresh_positions()
+            self.group_positions.set_checked([*selected, value])
+
+    def delete_position(self):
+        if (
+            self.position_id is not None
+            and QMessageBox.question(
+                self,
+                "Xóa vị trí",
+                "Xóa vị trí này?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            == QMessageBox.StandardButton.Yes
+        ):
+            self.store.delete_position(self.position_id)
+            self.position_id = None
+            self.position_name.clear()
+            self.position_notes.clear()
+            self.position_original = self.position_values()
+            self.refresh_positions()
+            self.refresh_groups()
+
     def build_groups(self):
         page = QWidget()
         layout = QHBoxLayout(page)
@@ -540,7 +700,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.group_count.setObjectName("sectionTitle")
         side.addWidget(self.group_count)
         self.group_search = QLineEdit()
-        self.group_search.setPlaceholderText("Tìm tên hoặc nhãn nhóm…")
+        self.group_search.setPlaceholderText("Tìm tên, vị trí hoặc nhãn…")
         self.group_search.textChanged.connect(self.filter_group_list)
         side.addWidget(self.group_search)
         self.group_list = QListWidget()
@@ -554,7 +714,11 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         split.addWidget(sidebar)
         form_widget = QWidget()
         form_widget.setObjectName("panel")
-        form = QVBoxLayout(form_widget)
+        group_outer = QVBoxLayout(form_widget)
+        group_body = QWidget()
+        group_body.setObjectName("editorBody")
+        form = QVBoxLayout(group_body)
+        form.setContentsMargins(0, 0, 0, 0)
         heading = QLabel("Thông tin nhóm")
         heading.setObjectName("sectionTitle")
         form.addWidget(heading)
@@ -562,19 +726,22 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.group_name.setPlaceholderText("Tên nhóm trên Facebook")
         self.group_url = QLineEdit()
         self.group_url.setPlaceholderText("https://www.facebook.com/groups/…/")
-        self.category = QLineEdit()
-        self.category.setPlaceholderText("Ví dụ: Hà Nội, Kỹ thuật, Tuyển gấp")
-        self.category.setToolTip("Các nhóm có thể dùng chung nhãn; ngăn cách nhiều nhãn bằng dấu phẩy.")
+        self.group_positions = CheckPicker("Chọn ít nhất một vị trí")
+        self.group_positions.changed.connect(self.update_group_actions)
+        self.category = TagPicker()
+        self.category.changed.connect(self.update_group_actions)
         self.group_notes = QTextEdit()
         self.group_notes.setAcceptRichText(False)
         self.group_notes.setPlaceholderText("Quy định nhóm hoặc thông tin cần lưu ý…")
-        for title, field in (
-            ("Tên nhóm *", self.group_name),
-            ("Link Facebook *", self.group_url),
-            ("Nhãn phân loại", self.category),
-        ):
+        for title, field in (("Tên nhóm *", self.group_name), ("Link Facebook *", self.group_url)):
             form.addWidget(QLabel(title))
             form.addWidget(field)
+        form.addWidget(QLabel("Vị trí tuyển dụng *"))
+        form.addLayout(
+            row(self.group_positions, button("+ Vị trí", lambda: self.guard(self.add_position_inline)))
+        )
+        form.addWidget(QLabel("Nhãn phân loại"))
+        form.addWidget(self.category)
         self.group_validation = hint("")
         self.group_validation.setStyleSheet("color:#b91c1c;")
         form.addWidget(self.group_validation)
@@ -585,13 +752,17 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         actions = row(self.group_open_button)
         actions.addStretch()
         actions.addWidget(self.group_save_button)
-        form.addLayout(actions)
+        group_scroll = QScrollArea()
+        group_scroll.setWidgetResizable(True)
+        group_scroll.setWidget(group_body)
+        group_outer.addWidget(group_scroll, 1)
+        group_outer.addLayout(actions)
         split.addWidget(form_widget)
         split.setSizes([250, 850])
         split.setStretchFactor(0, 0)
         split.setStretchFactor(1, 1)
         layout.addWidget(split)
-        for field in (self.group_name, self.group_url, self.category, self.group_notes):
+        for field in (self.group_name, self.group_url, self.group_notes):
             field.textChanged.connect(self.update_group_actions)
         self.update_group_actions()
         return page
@@ -608,12 +779,20 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             except ValueError:
                 pass
         invalid = bool(self.group_url.text().strip()) and not valid_url
-        self.group_validation.setText("Nhập link nhóm Facebook hợp lệ" if invalid else "")
-        self.group_validation.setVisible(invalid)
+        missing_position = bool(values[0].strip()) and valid_url and not self.group_positions.checked_data()
+        self.group_validation.setText(
+            "Nhập link nhóm Facebook hợp lệ"
+            if invalid
+            else "Chọn ít nhất một vị trí tuyển dụng"
+            if missing_position
+            else ""
+        )
+        self.group_validation.setVisible(invalid or missing_position)
         self.group_save_button.setEnabled(
             bool(values[0].strip())
             and valid_url
-            and values != getattr(self, "group_original", ("", "", "", ""))
+            and bool(self.group_positions.checked_data())
+            and values != getattr(self, "group_original", ("", "", "", "", ()))
         )
         self.group_open_button.setEnabled(valid_url)
         self.delete_group_action.setEnabled(self.group_id is not None)
@@ -628,7 +807,9 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         for group in self.store.groups():
             item = QListWidgetItem(group["name"] + (f" · {group['category']}" if group["category"] else ""))
             item.setData(Qt.ItemDataRole.UserRole, group)
-            item.setToolTip(item.text())
+            item.setToolTip(
+                item.text() + "\nVị trí: " + (", ".join(group["position_names"]) or "Chưa gán vị trí")
+            )
             self.group_list.addItem(item)
             if group["id"] == self.group_id:
                 self.group_list.setCurrentItem(item)
@@ -638,14 +819,20 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             self.job_groups.setCurrentIndex(index)
         self.refresh_audience_tags()
         self.filter_group_list()
-        self.group_count.setText(f"Nhóm · {self.group_list.count()}")
+        missing = sum(not g["position_ids"] for g in self.store.groups())
+        self.group_count.setText(
+            f"Nhóm · {self.group_list.count()}" + (f" · {missing} chưa gán" if missing else "")
+        )
+        labels = {t.casefold(): t for t in self.store.group_tags()}
+        labels.update({t.casefold(): t for t in self.category.labels()})
+        self.category.set_items(sorted(labels.items()))
         self.update_group_actions()
 
     def filter_group_list(self):
         query = self.group_search.text().casefold()
         for index in range(self.group_list.count()):
             item = self.group_list.item(index)
-            item.setHidden(query not in item.text().casefold())
+            item.setHidden(query not in (item.text() + " " + item.toolTip()).casefold())
 
     def load_group(self, item):
         if not self.confirm_group_switch():
@@ -655,6 +842,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         self.group_list.setCurrentItem(item)
         self.group_name.setText(group["name"])
         self.group_url.setText(group["url"])
+        self.group_positions.set_checked(group["position_ids"])
         self.category.setText(group["category"])
         self.group_notes.setPlainText(group["notes"])
         self.group_original = self.group_values()
@@ -664,13 +852,14 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
         return (
             self.group_name.text(),
             self.group_url.text(),
-            self.category.text(),
+            self.category.currentText(),
             self.group_notes.toPlainText(),
+            tuple(sorted(self.group_positions.checked_data())),
         )
 
     def confirm_group_switch(self):
         values = self.group_values()
-        original = getattr(self, "group_original", ("", "", "", ""))
+        original = getattr(self, "group_original", ("", "", "", "", ()))
         return (
             values == original
             or QMessageBox.question(
@@ -688,7 +877,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             return
         self.group_id = None
         self.group_list.setCurrentRow(-1)
-        for field in (self.group_name, self.group_url, self.category, self.group_notes):
+        for field in (self.group_name, self.group_url, self.category, self.group_notes, self.group_positions):
             field.clear()
         self.group_original = self.group_values()
         self.update_group_actions()
@@ -1322,7 +1511,7 @@ class MainWindow(BeginnerMixin, TrackingMixin, PostingMixin, QMainWindow):
             event.ignore()
             return
         self.draft_timer.stop()
-        if not self.confirm_group_switch():
+        if not self.confirm_group_switch() or not self.confirm_position_switch():
             self.configure_tracking()
             event.ignore()
             return

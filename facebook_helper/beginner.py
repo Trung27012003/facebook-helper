@@ -33,7 +33,7 @@ class BeginnerMixin:
         layout.addLayout(
             row(
                 button("1. Đăng nhập Facebook", lambda: self.guard(lambda: self.run_browser("login"))),
-                button("2. Thêm nhóm", lambda: self.tabs.setCurrentIndex(1)),
+                button("2. Thêm nhóm", lambda: self.tabs.setCurrentIndex(2)),
                 button("3. Soạn bài", self.finish_quick_start, True),
                 button("Ẩn hướng dẫn", self.hide_quick_start),
             )
@@ -312,4 +312,4 @@ class BeginnerMixin:
             self.save_post()
         self.job_posts.setCurrentIndex(self.job_posts.findData(self.post_id))
         self.set_posting_step(1)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(3)

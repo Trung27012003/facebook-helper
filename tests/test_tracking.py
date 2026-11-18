@@ -287,7 +287,7 @@ def test_resume_selects_remaining_batch_and_keeps_sent_snapshot(window, store, t
     jobs = store.batch_jobs(batch)
     store.update_job(jobs[0]["id"], status="submitted")
     window.resume_saved_queue()
-    assert window.batch_filter.currentData() == batch and window.tabs.currentIndex() == 2
+    assert window.batch_filter.currentData() == batch and window.tabs.currentIndex() == 3
     assert window.next_queue_job(batch)["id"] == jobs[1]["id"]
     post = store.post(task_data[0][0])
     store.save_post(post["id"], "Sửa tiêu đề", "<p>Mới</p>", "Mới", "", post["images"])

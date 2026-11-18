@@ -19,7 +19,7 @@ def test_editor_highlights_save_then_group_selection_and_keeps_review_required(w
     commands = []
     monkeypatch.setattr(window.browser, "submit", lambda *args: commands.append(args))
     window.editor_post_button.click()
-    assert window.posting_steps.currentIndex() == 1 and window.tabs.currentIndex() == 2
+    assert window.posting_steps.currentIndex() == 1 and window.tabs.currentIndex() == 3
     assert store.post(window.post_id)["plain"] == "Nội dung đã chỉnh"
     assert not commands and not store.batches()
 
@@ -68,6 +68,8 @@ def test_group_form_validates_without_popup_and_saves_from_primary_button(window
     window.group_url.setText("https://example.com/not-facebook")
     assert not window.group_save_button.isEnabled() and not window.group_validation.isHidden()
     window.group_url.setText("https://www.facebook.com/groups/123/")
+    assert not window.group_save_button.isEnabled()
+    window.group_positions.set_checked([store.positions()[0]["id"]])
     assert window.group_save_button.isEnabled() and window.group_save_button.property("primary")
     window.group_save_button.click()
     assert store.groups()[0]["name"] == "Nhóm kỹ thuật" and not window.group_save_button.isEnabled()
